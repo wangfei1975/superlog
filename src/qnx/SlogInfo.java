@@ -11,14 +11,65 @@ import java.util.Vector;
 public final class SlogInfo {
     public interface LogListener {
         public void handleLogs();
+        public void handleSearchResult();
+        public void handleStatusChanged(final boolean connected);
     }
+    
     final static int MAX_NOTIFY_COUNT = 100;
     int remotepid = 0;
     String serverIp;
     int serverPort;
     LogListener listener = null;
-    Vector<String[]> data = new Vector<String[]>(1000, 1000);
+    
+    boolean connected = false;
+    
+    public synchronized boolean isConnected() {
+        return connected;
+    }
+    public synchronized void setConnectStatus(boolean con) {
+        connected = con;
+    }
+    
+    
+    
+    public class LogItem {
+        public String [] texts;
+        public int searchMarker;
+        public String getText(int i) {
+            if (texts != null && i >= 0 && i < texts.length) {
+                return texts[i];
+            }
+            return null;
+        }
+        public LogItem() {
+            texts = null;
+            searchMarker = 0;
+        }
+        public LogItem(String [] txt) {
+            texts = txt;
+        }
+        public int getTextCount() {
+            if (texts != null) {
+                return texts.length;
+            }
+            return 0;
+        }
+        public int getSearchMarker() {
+            return searchMarker;
+        }
+    }
+    Vector<LogItem> data = new Vector<LogItem>(1000, 1000);
 
+    public int changedflag = 0;
+    public synchronized boolean isDataChanged() {
+        return changedflag != 0;
+    }
+    public synchronized void resetChangeFlag() {
+        changedflag = 0;
+    }
+    public synchronized void setChanged() {
+        changedflag = 1;
+    }
     
     String[] parseLogLine(String str) {
 
@@ -49,24 +100,29 @@ public final class SlogInfo {
        public int dir;
        public int flag;
        
-       public int curresult;
+       public int curresult = -1;
+       public int resultcount = 0;
     }
     private SearchCtx searchCtx = new SearchCtx();
  
+    public final SearchCtx getSearchCtx() {
+        return searchCtx;
+    }
     private int search_p(String str, int start, int dir, int flag){
-        String [] item;
+        LogItem item;
         for (int i = start; i < getDataSize(); i+= dir)
         {
             item = getData(i);
             if (item != null) {
-                if (item[4] != null && !item[4].isEmpty()) {
-                    if ((flag & SearchCtx.FLAG_CASE_SENSITIVE) != 0)
+                item.searchMarker = 0;
+                if (item.getText(4) != null && !item.getText(4).isEmpty()) {
+                    if ((flag & SearchCtx.FLAG_CASE_SENSITIVE) == 0)
                     {
-                        if(item[4].toLowerCase().contains(str.toLowerCase()))
+                        if(item.getText(4).toLowerCase().contains(str.toLowerCase()))
                             return i;
                     }
                     else {
-                    if (item[4].contains(str))
+                    if (item.getText(4).contains(str))
                         return i;
                     }
                 }
@@ -74,12 +130,59 @@ public final class SlogInfo {
         }
         return -1;
     }
+    
+    public int searchPrev() {
+        int dsize = getDataSize();
+        int start = dsize - 1;
+        if (searchCtx.curresult >= 0) {
+            start = searchCtx.curresult - 1;
+        }
+        while(start >= 0) {
+            if (getData(start).searchMarker != 0) {
+                searchCtx.curresult = start;
+                return start;
+            }
+            start --;
+        }
+        return -1;
+    }
     public int searchNext() {
-        if (searchCtx.curresult < 0)
-            searchCtx.curresult = search_p(searchCtx.str, searchCtx.start, searchCtx.dir, searchCtx.flag);
-            else
-                searchCtx.curresult = search_p(searchCtx.str, searchCtx.curresult, searchCtx.dir, searchCtx.flag);    
-        return searchCtx.curresult;
+         int dsize = getDataSize();
+         int start = 0;
+         if (searchCtx.curresult >= 0) {
+             start = searchCtx.curresult+1;
+         }
+         while(start < dsize) {
+             if (getData(start).searchMarker != 0) {
+                 searchCtx.curresult = start;
+                 return start;
+             }
+             start++;
+         }
+         return -1;
+    }
+    
+    public int searchMarkall(String str, int flag) {
+   
+        int cnt = 0;
+        int r = search_p(str, 0, 1, flag);
+        searchCtx.curresult = -1;
+        searchCtx.resultcount = 0;
+        while(r >= 0) {
+            if (searchCtx.curresult < 0) {
+                searchCtx.curresult = r;
+            }
+            LogItem l = getData(r);
+            l.searchMarker = 1;
+            searchCtx.resultcount++;
+            setChanged();
+            cnt ++;
+            r = search_p(str, r+1, 1, flag);
+        }
+        if (listener != null && isDataChanged())
+            listener.handleSearchResult();
+        return cnt;
+        
     }
     public int search(String str, int startline, int dir, int flag) {
         if (str == null || str.isEmpty())
@@ -102,6 +205,7 @@ public final class SlogInfo {
     }
     public void clearLogs() {
         data.clear();
+        this.setChanged();
         if (listener != null)
             listener.handleLogs();
     }
@@ -109,18 +213,19 @@ public final class SlogInfo {
         return data.size();
     }
     
-    public synchronized String[]  getData(int idx) {
+    public synchronized LogItem  getData(int idx) {
         if (idx < 0 || idx >= data.size())
             return null;
         return data.get(idx);
     }
-
+    Socket sock;
     public void disconnect() {
         if (remotepid == 0)
             return;
         
-        Socket sock;
+        
         try {
+            sock.close();
             sock = new Socket(serverIp, serverPort);
             DataOutputStream out = new DataOutputStream(sock.getOutputStream());
 
@@ -141,6 +246,10 @@ public final class SlogInfo {
             remotepid = 0;
 
             sock.close();
+            setConnectStatus(false);
+            if (listener != null) {
+                listener.handleStatusChanged(false);
+            }
 
         } catch (UnknownHostException e) {
             // TODO Auto-generated catch block
@@ -151,20 +260,24 @@ public final class SlogInfo {
         }
 
     }
-
+    
     public void connect(String ip, int port, final LogListener o) {
         
         serverIp = ip;
         serverPort = port;
         listener = o;
+        
             // ignore the first line
             //din.readLine();
             new Thread() {
                 public void run() {
-                      Socket sock;
+                     
                     try {
                         sock = new Socket(serverIp, serverPort);
-                       
+                        setConnectStatus(true);
+                        if (o != null) {
+                            o.handleStatusChanged(true);
+                        }
                         DataOutputStream out = new DataOutputStream(sock.getOutputStream());
 
                         BufferedReader din = new BufferedReader(new InputStreamReader(
@@ -204,9 +317,11 @@ public final class SlogInfo {
                         str = din.readLine();
                         while (str != null) {
                             if (!str.isEmpty()) {
-                                String[] log = parseLogLine(str);
+                                String[] logtxt = parseLogLine(str);
+                                LogItem log = new LogItem(logtxt);
                                 synchronized (this) { 
                                 data.add(log);
+                                setChanged();
                                 }
                                 newlines++;
                                 if (sock.getInputStream().available() == 0 || newlines > MAX_NOTIFY_COUNT) {
@@ -219,10 +334,18 @@ public final class SlogInfo {
                             str = din.readLine();
                         }
                         sock.close();
+                        setConnectStatus(false);
+                        if (o != null) {
+                            o.handleStatusChanged(false);
+                        }
 
                     } catch (IOException e) {
                         // TODO Auto-generated catch block
-                        e.printStackTrace();
+                      //  e.printStackTrace();
+                        setConnectStatus(false);
+                        if (o != null) {
+                            o.handleStatusChanged(false);
+                        }
                     }
                 
             }

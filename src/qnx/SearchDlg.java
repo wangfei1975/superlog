@@ -15,6 +15,11 @@ public class SearchDlg extends Dialog {
   private String message;
   private String input;
 
+  private  boolean isCaseSenstive = false;
+  
+  public boolean isCaseSenstive() {
+      return isCaseSenstive;
+  }
   /**
    * InputDialog constructor
    * 
@@ -34,8 +39,8 @@ public class SearchDlg extends Dialog {
   public SearchDlg(Shell parent, int style) {
     // Let users override the default styles
     super(parent, style);
-    setText("Input Dialog");
-    setMessage("Please enter a value:");
+    setText("Find");
+    setMessage("Please enter a string:");
   }
 
   /**
@@ -122,6 +127,13 @@ public class SearchDlg extends Dialog {
     data.horizontalSpan = 2;
     label.setLayoutData(data);
 
+    final Button caseSenstive = new Button(shell, SWT.CHECK);
+    caseSenstive.setText("Case senstive");
+    caseSenstive.setSelection(isCaseSenstive);
+    data = new GridData(GridData.FILL_HORIZONTAL);
+    data.horizontalSpan = 2;
+    caseSenstive.setLayoutData(data);
+    
     // Display the input box
     final Text text = new Text(shell, SWT.BORDER);
     data = new GridData(GridData.FILL_HORIZONTAL);
@@ -138,6 +150,7 @@ public class SearchDlg extends Dialog {
     ok.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
         input = text.getText();
+        isCaseSenstive = caseSenstive.getSelection();
         shell.close();
       }
     });
