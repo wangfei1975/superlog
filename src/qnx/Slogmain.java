@@ -39,10 +39,10 @@ public class Slogmain {
     Label conStatus = null;
     ToolItem toolConnect = null;
     ToolItem toolDisconnect = null;
+    ToolItem toolPause = null;
     MenuItem menuConnect = null;
     MenuItem menuDisconnect = null;
-    
-    
+
     public Slogmain() {
 
     }
@@ -55,7 +55,7 @@ public class Slogmain {
     Shell getShell() {
         return shell;
     }
-   
+
     Listener searchListener = new Listener() {
         public void handleEvent(Event event) {
             SearchDlg d = new SearchDlg(shell);
@@ -79,7 +79,7 @@ public class Slogmain {
             int next = logger.searchNext();
             if (next >= 0) {
                 table.setSelection(next);
-            
+
             }
         }
     };
@@ -90,39 +90,61 @@ public class Slogmain {
             int prev = logger.searchPrev();
             if (prev >= 0) {
                 table.setSelection(prev);
-            
+
             }
         }
     };
-    
-    
-    Listener copyLogListener = new Listener() {
+
+    Listener pauseListener = new Listener() {
         public void handleEvent(Event event) {
-            
             if (table == null || table.isDisposed())
                 return;
-            Clipboard  cb = new Clipboard(display);
-            TableItem [] items = table.getSelection();
-            
-            if (items != null && items.length > 0) {
-                String txt = "";
-                for (int i = 0; i < items.length; i++)
-                {
-                    String line = "";
-                    for (int c = 1; c < table.getColumnCount(); c++) {
-                       line += " " + items[i].getText(c);
-                    }
-                    txt += line;
-                    if (i < items.length) {
-                        txt += "\n";
-                    }
-                }
-                
-                cb.setContents(new Object[]{txt}, new Transfer[]{TextTransfer.getInstance()});
+            logger.pause();
+
+            if (logger.isPaused()) {
+                toolPause.setText("Resume (Paused)");
+            } else {
+                toolPause.setText("Pause (Running)");
             }
+            // toolPause.setData("hello");
         }
     };
-    
+
+    void copyLog(int startColum) {
+
+        if (table == null || table.isDisposed())
+            return;
+        Clipboard cb = new Clipboard(display);
+        TableItem[] items = table.getSelection();
+
+        if (items != null && items.length > 0) {
+            String txt = "";
+            for (int i = 0; i < items.length; i++) {
+                String line = "";
+                for (int c = startColum; c < table.getColumnCount(); c++) {
+                    line += " " + items[i].getText(c);
+                }
+                txt += line;
+                if (i < items.length) {
+                    txt += "\n";
+                }
+            }
+
+            cb.setContents(new Object[] { txt }, new Transfer[] { TextTransfer.getInstance() });
+        }
+    }
+
+    Listener copyLogvListener = new Listener() {
+        public void handleEvent(Event event) {
+            copyLog(1);
+        }
+    };
+    Listener copyLogListener = new Listener() {
+        public void handleEvent(Event event) {
+            copyLog(6);
+        }
+    };
+
     Listener clearLogsListener = new Listener() {
         public void handleEvent(Event event) {
             logger.clearLogs();
@@ -131,7 +153,7 @@ public class Slogmain {
     Listener connectListener = new Listener() {
         public void handleEvent(Event event) {
             if (event.widget == menuConnect || event.widget == toolConnect) {
-                ConnectDlg dlg = new ConnectDlg(shell);
+                ConnectDlg dlg = new ConnectDlg(shell, logger.getServerIp(), logger.getServerPort());
                 if (dlg.open() == 1) {
                     logger.connect(dlg.getIp(), dlg.getPort(), logListener);
                 }
@@ -140,8 +162,8 @@ public class Slogmain {
             }
         }
     };
-    
-    SlogInfo.LogListener logListener =  new SlogInfo.LogListener() {
+
+    SlogInfo.LogListener logListener = new SlogInfo.LogListener() {
         @Override
         public void handleLogs() {
             if (table == null || table.isDisposed())
@@ -153,6 +175,8 @@ public class Slogmain {
                     if (table.isDisposed())
                         return;
                     if (!logger.isDataChanged())
+                        return;
+                    if (logger.isPaused())
                         return;
                     int cnt = logger.getDataSize();
                     table.setRedraw(true);
@@ -199,21 +223,20 @@ public class Slogmain {
                         lineStatus.update();
                     } else {
                         int curres = logger.getSearchCtx().curresult;
-                        if (curres >= 0)
-                        {
+                        if (curres >= 0) {
                             table.setTopIndex(curres);
                             table.setSelection(curres);
                         }
                     }
                 }
             });
-            
+
         }
 
         @Override
         public void handleStatusChanged(final boolean connected) {
             // TODO Auto-generated method stub
-            if (conStatus == null || conStatus.isDisposed()){
+            if (conStatus == null || conStatus.isDisposed()) {
                 return;
             }
             Display display = getShell().getDisplay();
@@ -224,11 +247,12 @@ public class Slogmain {
                     menuConnect.setEnabled(!connected);
                     menuDisconnect.setEnabled(connected);
                     toolDisconnect.setEnabled(connected);
-                    shell.setText("QLOG - " + getConnectStatus());
+                    shell.setText("QSLOG - " + getConnectStatus());
                 }
             });
         }
     };
+
     String getConnectStatus() {
         if (logger.isConnected()) {
             return "Connected to:" + logger.serverIp + ":" + logger.serverPort;
@@ -236,46 +260,52 @@ public class Slogmain {
             return "Disconected";
         }
     }
-    Image iconSearch =null;
+
+    Image iconSearch = null;
+
     void createToolbar() {
         CoolBar composite = new CoolBar(shell, SWT.NONE);
         {
             CoolItem item = new CoolItem(composite, SWT.NONE);
             ToolBar tb = new ToolBar(composite, SWT.FLAT);
-            
+
             toolConnect = new ToolItem(tb, SWT.PUSH);
             toolConnect.setText("Connect ...");
             toolConnect.addListener(SWT.Selection, connectListener);
-            
-            
+
             toolDisconnect = new ToolItem(tb, SWT.PUSH);
             toolDisconnect.setText("Disconnect");
             toolDisconnect.addListener(SWT.Selection, connectListener);
-            
+
             ToolItem ti = new ToolItem(tb, SWT.SEPARATOR);
-            
+
             ti = new ToolItem(tb, SWT.PUSH);
             ti.setText("Clean Logs");
             ti.addListener(SWT.Selection, clearLogsListener);
-           
-            
+
             ti = new ToolItem(tb, SWT.SEPARATOR);
 
             ti = new ToolItem(tb, SWT.PUSH);
             ti.setText("Find ...");
             ti.addListener(SWT.Selection, searchListener);
             ti.setData("Find");
-            
+
             ti = new ToolItem(tb, SWT.PUSH);
             ti.setText("Next");
             ti.addListener(SWT.Selection, searchNextListener);
             ti.setData("Next");
-            
+
             ti = new ToolItem(tb, SWT.PUSH);
             ti.setText("Prev");
             ti.addListener(SWT.Selection, searchPrevListener);
             ti.setData("Prev");
-  
+
+            ti = new ToolItem(tb, SWT.SEPARATOR);
+            toolPause = new ToolItem(tb, SWT.PUSH);
+            toolPause.setText("Pause (Running)     ");
+            toolPause.addListener(SWT.Selection, pauseListener);
+            toolPause.setData("Pause");
+
             Point p = tb.computeSize(SWT.DEFAULT, SWT.DEFAULT);
             tb.setSize(p);
             Point p2 = item.computeSize(p.x, p.y);
@@ -291,63 +321,72 @@ public class Slogmain {
 
         Menu qlogm = new Menu(mi);
         mi.setMenu(qlogm);
-        
+
         mi = new MenuItem(m, SWT.CASCADE);
         mi.setText("&Edit");
         Menu editmenu = new Menu(mi);
         mi.setMenu(editmenu);
-        
-        
+
         menuConnect = new MenuItem(qlogm, SWT.CASCADE);
         menuConnect.setText("&Connect ...");
         menuConnect.setAccelerator(SWT.COMMAND | 'N');
         menuConnect.addListener(SWT.Selection, connectListener);
-        
+
         menuDisconnect = new MenuItem(qlogm, SWT.CASCADE);
         menuDisconnect.setText("&Disconnect");
         menuDisconnect.setAccelerator(SWT.COMMAND | 'D');
         menuDisconnect.addListener(SWT.Selection, connectListener);
-        
+
         mi = new MenuItem(editmenu, SWT.CASCADE);
         mi.setText("&Clear Logs");
         mi.setAccelerator(SWT.COMMAND | 'R');
         mi.addListener(SWT.Selection, clearLogsListener);
 
         mi = new MenuItem(editmenu, SWT.SEPARATOR);
-        
+
         mi = new MenuItem(editmenu, SWT.CASCADE);
         mi.setText("&Find ...");
         mi.setAccelerator(SWT.COMMAND | 'F');
         mi.addListener(SWT.Selection, searchListener);
-        
+
         mi = new MenuItem(editmenu, SWT.CASCADE);
         mi.setText("&Next");
-        mi.setAccelerator(SWT.SHIFT|SWT.COMMAND | 'N');
+        mi.setAccelerator(SWT.SHIFT | SWT.COMMAND | 'N');
         mi.addListener(SWT.Selection, searchNextListener);
-        
+
         mi = new MenuItem(editmenu, SWT.CASCADE);
         mi.setText("&Prev");
-        mi.setAccelerator(SWT.SHIFT|SWT.COMMAND | 'P');
+        mi.setAccelerator(SWT.SHIFT | SWT.COMMAND | 'P');
         mi.addListener(SWT.Selection, searchPrevListener);
-        
+
         mi = new MenuItem(editmenu, SWT.SEPARATOR);
-        
+
+        mi = new MenuItem(editmenu, SWT.CASCADE);
+        mi.setText("&Copy Selection(All Colums)");
+        mi.setAccelerator(SWT.COMMAND | 'V');
+        mi.addListener(SWT.Selection, copyLogvListener);
+
         mi = new MenuItem(editmenu, SWT.CASCADE);
         mi.setText("&Copy Selection");
         mi.setAccelerator(SWT.COMMAND | 'C');
         mi.addListener(SWT.Selection, copyLogListener);
-        
+
         popupMenu = new Menu(shell, SWT.POP_UP);
         MenuItem item = new MenuItem(popupMenu, SWT.PUSH);
+        item.setText("&Copy Selection(All Colums)");
+        item.setAccelerator(SWT.COMMAND | 'V');
+        item.addListener(SWT.Selection, copyLogvListener);
+
+        item = new MenuItem(popupMenu, SWT.PUSH);
         item.setText("&Copy Selection");
         item.setAccelerator(SWT.COMMAND | 'C');
         item.addListener(SWT.Selection, copyLogListener);
-        
+
         shell.setMenuBar(m);
     }
 
     Menu popupMenu = null;
-    
+
     protected Control createContents() {
 
         GridLayout layout = new GridLayout();
@@ -370,7 +409,7 @@ public class Slogmain {
         table.setFocus();
 
         String[] title = { "Flag", "Line", "Time", "Sev", "Major", "Minor", "Args" };
-        int[] width = {28, 70, 155, 30, 50, 50, 1000 };
+        int[] width = { 28, 70, 155, 30, 50, 50, 1000 };
 
         for (int i = 0; i < title.length; i++) {
             TableColumn column = new TableColumn(table, SWT.NONE);
@@ -397,23 +436,30 @@ public class Slogmain {
                     char ser = log.getText(1).charAt(0);
                     switch (ser) {
                     case '0':
-                        item.setBackground(display.getSystemColor(SWT.COLOR_RED));
+                        item.setBackground(display.getSystemColor(SWT.COLOR_BLACK));
                         item.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
                         break;
                     case '1':
-                        item.setForeground(display.getSystemColor(SWT.COLOR_RED));
+                        item.setBackground(display.getSystemColor(SWT.COLOR_DARK_RED));
+                        item.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
                         break;
                     case '2':
-                        item.setForeground(display.getSystemColor(SWT.COLOR_DARK_RED));
+                        item.setBackground(display.getSystemColor(SWT.COLOR_RED));
+                        item.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
                         break;
                     case '3':
-                        item.setForeground(display.getSystemColor(SWT.COLOR_DARK_YELLOW));
+                        item.setForeground(display.getSystemColor(SWT.COLOR_BLUE));
+                        item.setBackground(display.getSystemColor(SWT.COLOR_YELLOW));
+                        // item.setForeground(display.getSystemColor(SWT.COLOR_DARK_BLUE));
+                        // //Warning
                         break;
                     case '4':
+                        // item.setForeground(display.getSystemColor(SWT.COLOR_DARK_YELLOW));
+                        // //Notice
                         item.setForeground(display.getSystemColor(SWT.COLOR_DARK_BLUE));
                         break;
                     case '5':
-                        item.setForeground(display.getSystemColor(SWT.COLOR_DARK_GREEN));
+                        item.setForeground(display.getSystemColor(SWT.COLOR_DARK_GREEN)); // Info
                         break;
                     case '6':
                         item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
@@ -446,22 +492,18 @@ public class Slogmain {
         Font font = new Font(display, "Monaco", 14, 0);
         table.setFont(font);
 
-
-       
-       
         lineStatus = new Label(shell, SWT.BORDER);
         lineStatus.setText("0 lines of log");
         gridData = new GridData();
         gridData.horizontalSpan = 2;
         gridData.horizontalAlignment = GridData.FILL;
         gridData.verticalAlignment = GridData.FILL;
-       // gridData.grabExcessHorizontalSpace = true;
+        // gridData.grabExcessHorizontalSpace = true;
         lineStatus.setLayoutData(gridData);
-        
-        
-        Label labelsep = new Label(shell, SWT.SHADOW_IN|SWT.BORDER);
+
+        Label labelsep = new Label(shell, SWT.SHADOW_IN | SWT.BORDER);
         labelsep.setText("|");
-        
+
         conStatus = new Label(shell, SWT.BORDER);
         gridData = new GridData();
         gridData.horizontalSpan = 1;
@@ -469,11 +511,9 @@ public class Slogmain {
         gridData.verticalAlignment = GridData.FILL;
         gridData.grabExcessHorizontalSpace = true;
         conStatus.setLayoutData(gridData);
-        
-        
-    
+
         table.setMenu(popupMenu);
-        
+
         shell.setSize(1200, 800);
 
         return shell;
@@ -486,24 +526,22 @@ public class Slogmain {
 
         display = new Display();
         shell = new Shell(display);
-       
-        shell.setText("QLOG");
-        
-       InputStream is = getClass().getClassLoader().getResourceAsStream("search.png");
+
+        shell.setText("QSLOG");
+
+        InputStream is = getClass().getClassLoader().getResourceAsStream("search.png");
         if (is == null) {
             iconSearch = new Image(display, "resources/search.png");
         } else {
-            iconSearch = new Image(display, is);    
+            iconSearch = new Image(display, is);
         }
-        
-        logger = new SlogInfo();
-        
 
-        
+        logger = new SlogInfo();
+
         // Open the main window
         createContents();
         shell.open();
-        logger.connect("172.16.235.128", 8000, logListener);
+        logger.connect("10.222.96.245", 8000, logListener);
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch())
                 display.sleep();

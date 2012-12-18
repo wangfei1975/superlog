@@ -16,20 +16,24 @@ import org.eclipse.swt.widgets.Text;
 
 public class ConnectDlg extends Dialog {
     private String message = "input target IP and port";
-    private String ipaddr =  "172.16.235.128";
-    private int port = 8000;
+    private String ipaddr;
+    private int port;
     private int selection = 0;
-    
-    
+
     public String getIp() {
         return ipaddr;
     }
+
     public int getPort() {
         return port;
     }
-    
-    public ConnectDlg(Shell parent) {
+
+    public ConnectDlg(Shell parent, String ip, int p) {
         this(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+        if (ip != null) {
+            ipaddr = ip;
+            port = p;
+        }
     }
 
     public ConnectDlg(Shell parent, int style) {
@@ -42,34 +46,33 @@ public class ConnectDlg extends Dialog {
         shell.setText(getText());
         createContents(shell);
         shell.pack();
-       
+
         Rectangle shellBounds = getParent().getBounds();
-               
+
         Point dialogSize = shell.getSize();
 
-        shell.setLocation(
-          shellBounds.x + (shellBounds.width - dialogSize.x) / 2,
-          shellBounds.y + (shellBounds.height - dialogSize.y) / 2);
+        shell.setLocation(shellBounds.x + (shellBounds.width - dialogSize.x) / 2, shellBounds.y
+                + (shellBounds.height - dialogSize.y) / 2);
 
         shell.open();
-        
-        
+
         Display display = getParent().getDisplay();
         while (!shell.isDisposed()) {
-          if (!display.readAndDispatch()) {
-            display.sleep();
-          }
+            if (!display.readAndDispatch()) {
+                display.sleep();
+            }
         }
         // Return the entered value, or null
         return selection;
-      }
+    }
 
-      /**
-       * Creates the dialog's contents
-       * 
-       * @param shell the dialog window
-       */
-      private void createContents(final Shell shell) {
+    /**
+     * Creates the dialog's contents
+     * 
+     * @param shell
+     *            the dialog window
+     */
+    private void createContents(final Shell shell) {
         shell.setLayout(new GridLayout(2, true));
 
         // Show the message
@@ -82,13 +85,13 @@ public class ConnectDlg extends Dialog {
         // Display the input box
         final Text text = new Text(shell, SWT.BORDER);
         data = new GridData(GridData.FILL_HORIZONTAL);
-       // data.horizontalSpan = 2;
+        // data.horizontalSpan = 2;
         text.setText(ipaddr);
         text.setLayoutData(data);
-        
+
         final Text textport = new Text(shell, SWT.BORDER);
         data = new GridData(GridData.FILL_HORIZONTAL);
-       // data.horizontalSpan = 2;
+        // data.horizontalSpan = 2;
         textport.setText(Integer.toString(port));
         textport.setLayoutData(data);
 
@@ -100,12 +103,12 @@ public class ConnectDlg extends Dialog {
         data = new GridData(GridData.FILL_HORIZONTAL);
         ok.setLayoutData(data);
         ok.addSelectionListener(new SelectionAdapter() {
-          public void widgetSelected(SelectionEvent event) {
-            ipaddr = text.getText();
-            port = Integer.parseInt(textport.getText());
-            selection = 1;
-            shell.close();
-          }
+            public void widgetSelected(SelectionEvent event) {
+                ipaddr = text.getText();
+                port = Integer.parseInt(textport.getText());
+                selection = 1;
+                shell.close();
+            }
         });
 
         // Create the cancel button and add a handler
@@ -115,15 +118,15 @@ public class ConnectDlg extends Dialog {
         data = new GridData(GridData.FILL_HORIZONTAL);
         cancel.setLayoutData(data);
         cancel.addSelectionListener(new SelectionAdapter() {
-          public void widgetSelected(SelectionEvent event) {
-            selection = 0;
-            shell.close();
-          }
+            public void widgetSelected(SelectionEvent event) {
+                selection = 0;
+                shell.close();
+            }
         });
 
         // Set the OK button as the default, so
         // user can type input and press Enter
         // to dismiss
         shell.setDefaultButton(ok);
-      }
+    }
 }
