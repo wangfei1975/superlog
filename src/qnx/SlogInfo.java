@@ -9,6 +9,8 @@ import java.net.UnknownHostException;
 import java.util.Vector;
 
 public final class SlogInfo {
+    
+    
     public interface LogListener {
         public void handleLogs();
 
@@ -56,8 +58,11 @@ public final class SlogInfo {
 
     public class LogItem {
         public String[] texts;
-        public int searchMarker;
-
+        public int searchMarker = 0;
+        private int mLevel = 7;
+        
+      
+        
         public String getText(int i) {
             if (texts != null && i >= 0 && i < texts.length) {
                 return texts[i];
@@ -65,11 +70,33 @@ public final class SlogInfo {
             return null;
         }
 
-        public LogItem() {
-            texts = null;
-            searchMarker = 0;
+        public LogItem(String str) {
+            String[] seperator = { "    ", " ", " ", " " };
+            String[] ret = new String[5];
+            texts = ret;
+            
+            int idx = 0, nextidx;
+            for (int i = 0; i < 4; i++) {
+                nextidx = str.indexOf(seperator[i], idx);
+                if (nextidx <= 0) {
+                    ret[0] = ret[1] = ret[2] = ret[3] = null;
+                    ret[4] = str;
+                    return;
+                }
+                ret[i] = str.substring(idx, nextidx);
+                idx = nextidx + seperator[i].length();
+                while (str.charAt(idx) == ' ')
+                    idx++;
+            }
+            ret[4] = str.substring(idx);
+            if (ret[1] != null && !ret[1].isEmpty()) {
+                mLevel = ret[1].charAt(0) - '0';
+                if (mLevel < 0 || mLevel > 7) {
+                    mLevel = 6;
+                }
+            }
         }
-
+        
         public LogItem(String[] txt) {
             texts = txt;
         }
@@ -83,6 +110,9 @@ public final class SlogInfo {
 
         public int getSearchMarker() {
             return searchMarker;
+        }
+        public int getLevel() {
+            return mLevel;
         }
     }
 
@@ -102,27 +132,7 @@ public final class SlogInfo {
         changedflag = 1;
     }
 
-    String[] parseLogLine(String str) {
 
-        String[] seperator = { "    ", " ", " ", " " };
-        String[] ret = new String[5];
-        int idx = 0, nextidx;
-        for (int i = 0; i < 4; i++) {
-            nextidx = str.indexOf(seperator[i], idx);
-            if (nextidx <= 0) {
-                ret[0] = ret[1] = ret[2] = ret[3] = null;
-                ret[4] = str;
-                return ret;
-            }
-            ret[i] = str.substring(idx, nextidx);
-            idx = nextidx + seperator[i].length();
-            while (str.charAt(idx) == ' ')
-                idx++;
-        }
-
-        ret[4] = str.substring(idx);
-        return ret;
-    }
 
     public class SearchCtx {
         public static final int FLAG_CASE_SENSITIVE = 1;
@@ -362,8 +372,7 @@ public final class SlogInfo {
                     str = din.readLine();
                     while (str != null) {
                         if (!str.isEmpty()) {
-                            String[] logtxt = parseLogLine(str);
-                            LogItem log = new LogItem(logtxt);
+                            LogItem log = new LogItem(str);
                             synchronized (this) {
                                 data.add(log);
                                 setChanged();
