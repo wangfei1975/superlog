@@ -541,7 +541,7 @@ public class Slogmain {
         // Open the main window
         createContents();
         shell.open();
-        logger.connect("10.222.96.245", 8000, logListener);
+        logger.connect("10.222.109.58", 8000, logListener);
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch())
                 display.sleep();

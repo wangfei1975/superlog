@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 public final class SlogInfo {
@@ -18,8 +19,9 @@ public final class SlogInfo {
     }
 
     final static int MAX_NOTIFY_COUNT = 100;
+    final static int MAX_LOG_ITEM = 5000 * 10;
     int remotepid = 0;
-    String serverIp = "10.222.96.245";
+    String serverIp = "10.222.101.157";
     int serverPort = 8000;
     LogListener listener = null;
 
@@ -86,7 +88,7 @@ public final class SlogInfo {
         }
     }
 
-    Vector<LogItem> data = new Vector<LogItem>(1000, 1000);
+    ArrayList<LogItem> data = new ArrayList<LogItem>(1000);
 
     public int changedflag = 0;
 
@@ -245,6 +247,12 @@ public final class SlogInfo {
             listener.handleLogs();
     }
 
+    final public void rollingAppendLogItem(LogItem item) {
+        if (data.size() >= MAX_LOG_ITEM) {
+            data.remove(0);
+        }
+        data.add(item);
+    }
     public synchronized int getDataSize() {
         return data.size();
     }
@@ -338,7 +346,7 @@ public final class SlogInfo {
                     System.out.print(str + "\n");
                     out.writeBytes("service launcher\r\n");
                     System.out.print(din.readLine() + "\n");
-                    out.writeBytes("start sloginfo sloginfo -c -w\r\n");
+                    out.writeBytes("start sloginfo sloginfo -c -w -t\r\n");
                     String ret = din.readLine();
                     if (ret.startsWith("OK")) {
                         System.out.print("launch success, pid is:" + ret.substring(3) + "\n");
@@ -347,7 +355,7 @@ public final class SlogInfo {
                     } else {
                         out.writeBytes("service launcher\r\n");
                         System.out.print(din.readLine() + "\n");
-                        out.writeBytes("start /bin/sloginfo sloginfo -c -w\r\n");
+                        out.writeBytes("start /bin/sloginfo sloginfo -c -w -t\r\n");
                         ret = din.readLine();
                         if (ret.startsWith("OK")) {
                             System.out.print("launch success, pid is:" + ret.substring(3) + "\n");
@@ -365,7 +373,7 @@ public final class SlogInfo {
                             String[] logtxt = parseLogLine(str);
                             LogItem log = new LogItem(logtxt);
                             synchronized (this) {
-                                data.add(log);
+                                rollingAppendLogItem(log);
                                 setChanged();
                             }
                             newlines++;
