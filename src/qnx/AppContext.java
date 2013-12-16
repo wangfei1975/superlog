@@ -1,27 +1,36 @@
 package qnx;
 
+import java.util.ArrayList;
+
+import org.eclipse.swt.widgets.Display;
+
 
 public class AppContext {
-    
-    private MainFrame  mMainFrame;
-    
+
     private SystemConfigs mConfigs;
+    private SlogMainFrame  mMainFrame;
+    private Display mDisplay =  new Display();
+
     
+    public Display getDisplay() {
+        return mDisplay;
+    }
     public SystemConfigs getConfigs() {
         return mConfigs;
     }
-    public AppContext(String caption, MainFrame mf){
-        mMainFrame = mf;
+    public AppContext(String caption){
         Resources.loadResources(this);
-        mConfigs = new SystemConfigs(mf.getDisplay());
+        mConfigs = new SystemConfigs(mDisplay);
+        mMainFrame = new SlogMainFrame(caption, mDisplay);
     }
 
-    MainFrame getMainFrame() {
+    SlogMainFrame getMainFrame() {
         return mMainFrame;
     }
     
     public void run() {
         mMainFrame.run();
+        Resources.freeResources(this);
     }
     
 }

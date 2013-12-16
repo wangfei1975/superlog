@@ -1,6 +1,10 @@
 package qnx;
+import java.util.ArrayList;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabFolder2Adapter;
+import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -20,6 +24,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.SlogTable;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -27,8 +32,13 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
-public final class SlogMainFrame extends MainFrame {
+public final class SlogMainFrame {
     
+    private Display mDisplay;
+    private Shell   mShell;
+    
+    //private ArrayList <LogSource> mLogSources = new ArrayList <LogSource>(10);
+  //  private ArrayList <SlogTabFrame> mLogTabs = new  ArrayList <SlogTabFrame>(10);
     
     Label mStatusLabelLogs = null;
     Label mStatusLabelConnection = null;
@@ -39,14 +49,22 @@ public final class SlogMainFrame extends MainFrame {
     MenuItem mMenuDisconnect = null;
     SlogInfo mLogger;
     Table mMainTable;
-    SlogTabView mMainTableView;
+//    SlogTabView mMainTableView;
     
     Menu mPopupMenu = null;
     CTabFolder mTabFolder;
     
+    public Display getDisplay() {
+        return mDisplay;
+    }
+    public Shell getShell() {
+        return mShell;
+    }
     
-    public SlogMainFrame() {
-        super();
+    public SlogMainFrame(String caption, Display disp) {
+        mDisplay = disp;
+        mShell = new Shell(disp);
+        mShell.setText(caption);
         createContents();
     }
     
@@ -55,9 +73,13 @@ public final class SlogMainFrame extends MainFrame {
             ToolBar tb = new ToolBar(coolbar, SWT.FLAT);
             
             mToolConnect = new ToolItem(tb, SWT.PUSH);
-            mToolConnect.setText("Connect ...");
+            mToolConnect.setText("Connect Target ...");
             mToolConnect.addListener(SWT.Selection, onClickConnect);
 
+            ToolItem t = new ToolItem(tb, SWT.PUSH);
+            t.setText("Open File ...");
+           
+            
             mToolDisconnect = new ToolItem(tb, SWT.PUSH);
             mToolDisconnect.setText("Disconnect");
             mToolDisconnect.addListener(SWT.Selection, onClickConnect);
@@ -91,17 +113,18 @@ public final class SlogMainFrame extends MainFrame {
             mToolPause.setText("Pause (Running)     ");
             mToolPause.addListener(SWT.Selection, onClickPause);
             mToolPause.setData("Pause");
-
+ 
             CoolItem item = new CoolItem(coolbar, SWT.NONE);
             Point p = tb.computeSize(SWT.DEFAULT, SWT.DEFAULT);
             tb.setSize(p);
             Point p2 = item.computeSize(p.x, p.y);
             item.setControl(tb);
             item.setSize(p2);
+     
     }
-    
+ 
     Listener onClickSearch = new Listener() {
-        public void handleEvent(Event event) {
+        public void handleEvent(Event event) { /*
             SearchDlg d = new SearchDlg(getShell());
             String input = d.open();
             if (input != null) {
@@ -114,10 +137,10 @@ public final class SlogMainFrame extends MainFrame {
                     mLogger.searchMarkall(input, flag);
                 }
             }
-        }
+        */}
     };
     Listener onClickSearchNext = new Listener() {
-        public void handleEvent(Event event) {
+        public void handleEvent(Event event) { /*
             if (mMainTable == null || mMainTable.isDisposed())
                 return;
             int next = mLogger.searchNext();
@@ -125,10 +148,10 @@ public final class SlogMainFrame extends MainFrame {
                 mMainTable.setSelection(next);
 
             }
-        }
+       */ }
     };
     Listener onClickSearchPrev = new Listener() {
-        public void handleEvent(Event event) {
+        public void handleEvent(Event event) { /*
             if (mMainTable == null || mMainTable.isDisposed())
                 return;
             int prev = mLogger.searchPrev();
@@ -136,11 +159,11 @@ public final class SlogMainFrame extends MainFrame {
                 mMainTable.setSelection(prev);
 
             }
-        }
+        */}
     };
 
     Listener onClickPause = new Listener() {
-        public void handleEvent(Event event) {
+        public void handleEvent(Event event) { /*
             if (mMainTable == null || mMainTable.isDisposed())
                 return;
             mLogger.pause();
@@ -150,7 +173,7 @@ public final class SlogMainFrame extends MainFrame {
             } else {
                 mToolPause.setText("Pause (Running)");
             }
-        }
+        */}
     };
 
     void copyLog(int startColum) {
@@ -190,22 +213,25 @@ public final class SlogMainFrame extends MainFrame {
 
     Listener onClickClearLogs = new Listener() {
         public void handleEvent(Event event) {
-            mLogger.clearLogs();
+         //   mLogger.clearLogs();
         }
     };
     Listener onClickConnect = new Listener() {
-        public void handleEvent(Event event) {
+        public void handleEvent(Event event) { 
             if (event.widget == mToolConnect || event.widget == mMenuConnect ) {
-                ConnectDlg dlg = new ConnectDlg(getShell(), mLogger.getServerIp(), mLogger.getServerPort());
+                SystemConfigs.LogUrl lu = Slogmain.getApp().getConfigs().getLastLogUrl();
+                ConnectDlg dlg = new ConnectDlg(getShell(), lu.url, lu.port);
                 if (dlg.open() == 1) {
-                    mLogger.connect(dlg.getIp(), dlg.getPort(), logListener);
+                    LogSource ls = new SlogLogSource(dlg.getIp(), dlg.getPort());
+                    SlogTabFrame ltab = new SlogTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, ls);
+                    mTabFolder.setSelection(ltab);
                 }
             } else {
-                mLogger.disconnect();
+             //   mLogger.disconnect();
             }
-        }
+         }
     };
-
+    /*
     SlogInfo.LogListener logListener = new SlogInfo.LogListener() {
         @Override
         public void handleLogs() {
@@ -303,8 +329,7 @@ public final class SlogMainFrame extends MainFrame {
             return "Disconected";
         }
     }
-
- 
+   */
 
     void createMenus() {
         Menu m = new Menu(getShell(), SWT.BAR);
@@ -376,7 +401,7 @@ public final class SlogMainFrame extends MainFrame {
 
         getShell().setMenuBar(m);
     }
-    
+
     protected Control createContents() {
 
         GridLayout layout = new GridLayout();
@@ -389,6 +414,7 @@ public final class SlogMainFrame extends MainFrame {
         mTabFolder = new CTabFolder(getShell(), SWT.BORDER);
         mTabFolder.setSimple(false);
         mTabFolder.setUnselectedCloseVisible(true);
+        mTabFolder.setUnselectedImageVisible(true);
         
         GridData gridData = new GridData();
         gridData.horizontalSpan = 4;
@@ -398,10 +424,33 @@ public final class SlogMainFrame extends MainFrame {
         gridData.grabExcessVerticalSpace = true;
         mTabFolder.setLayoutData(gridData);
         
-        mMainTableView = new SlogMainTabView(mTabFolder, SWT.NONE);
-        mMainTable = mMainTableView.getTable();
-        mMainTable.setFocus();
-        
+        mTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
+            public void close(CTabFolderEvent event) {
+                
+                if (event.item instanceof SlogTabFrame) {
+                    SlogTabFrame it =  (SlogTabFrame)event.item;
+                    it.getLogSource().disconnect();
+                }
+                
+              //  event.doit = false;
+             //   if (event.item.equals(specialItem)) {
+             //       event.doit = false;
+             //   }
+            }
+        });
+
+        /*
+        mMainTableView = new SlogMainTabView(mTabFolder, SWT.FLAT);
+        mMainTableView.getTableFrame().setFocus();
+        mTabFolder.setSelection(mMainTableView.getTabItem());
+        */
+ /*
+        new SlogTabFrame(mTabFolder, "file://abcddfg.log", SWT.FLAT|SWT.CLOSE|SWT.ICON);
+        new SlogTabFrame(mTabFolder, "qcon://192.168.0.1", SWT.FLAT|SWT.CLOSE|SWT.ICON);
+        mTabFolder.setSelection(mTabFolder.getItem(0));
+        */
+       // mMainTable.setFocus();
+        /*
         mStatusLabelLogs = new Label(getShell(), SWT.BORDER);
         mStatusLabelLogs.setText("0 lines of log");
         gridData = new GridData();
@@ -423,7 +472,7 @@ public final class SlogMainFrame extends MainFrame {
         mStatusLabelConnection.setLayoutData(gridData);
 
       
-
+ */
         getShell().setSize(1200, 800);
 
         return getShell();
@@ -431,10 +480,16 @@ public final class SlogMainFrame extends MainFrame {
     }
 
     public void run() {
-        mLogger = new SlogInfo();
+     //   mLogger = new SlogInfo();
         // Open the main window
-        mLogger.connect("10.222.96.245", 8000, logListener);
-        super.run();
-        mLogger.disconnect();
+    //    mLogger.connect("10.222.96.245", 8000, logListener);
+        mShell.open();
+        Display display = getDisplay();
+        while (!mShell.isDisposed()) {
+            if (!display.readAndDispatch())
+                display.sleep();
+        }
+        display.dispose();
+      //  mLogger.disconnect();
     }
 }

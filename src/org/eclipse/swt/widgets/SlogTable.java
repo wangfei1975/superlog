@@ -1,33 +1,21 @@
 package org.eclipse.swt.widgets;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
 
-
+import qnx.LogSource.LogItem;
+import qnx.LogSource.LogView;
 import qnx.Resources;
-import qnx.SlogInfo;
-import qnx.SlogInfo.LogItem;
 import qnx.Slogmain;
 import qnx.SystemConfigs;
-
 public final class SlogTable extends Table {
 
-    public interface LogProvider {
-        public LogItem getLog(int index);
-    }
-    LogProvider mLogProvider = null;
+    LogView mLogView = null;
 
-
-    public void setLogProvider(LogProvider provider) {
-        mLogProvider = provider;
+    public void setLogView(LogView v) {
+        mLogView = v;
     }
     public SlogTable(Composite parent, int style) {
         super(parent, style | SWT.BORDER | SWT.VIRTUAL | SWT.MULTI);
@@ -53,13 +41,13 @@ public final class SlogTable extends Table {
 
         addListener(SWT.SetData, new Listener() {
             public void handleEvent(Event e) {
-                if (mLogProvider == null) {
+                if (mLogView == null) {
                     return;
                 }
 
                 TableItem item = (TableItem) e.item;
                 int index = SlogTable.this.indexOf(item);
-                SlogInfo.LogItem log = mLogProvider.getLog(index);
+                LogItem log = mLogView.getLog(index);
 
                 if (log == null) {
                     return;
@@ -69,8 +57,11 @@ public final class SlogTable extends Table {
                     item.setText(i + 2, log.getText(i) == null ? "" : log.getText(i));
                 }
 
-                final SystemConfigs cfgs = Slogmain.getInstance().getConfigs();
-                item.setBackground(cfgs.getLogBackground(log.getLevel()));
+                final SystemConfigs cfgs = Slogmain.getApp().getConfigs();
+                Color bk = cfgs.getLogBackground(log.getLevel());
+                if (bk != null) {
+                item.setBackground(bk);
+                }
                 item.setForeground(cfgs.getLogForeground(log.getLevel()));
 
                 if (log.getSearchMarker() != 0) {

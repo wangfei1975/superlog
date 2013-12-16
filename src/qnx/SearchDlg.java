@@ -44,7 +44,7 @@ public class SearchDlg extends Dialog {
         // Let users override the default styles
         super(parent, style);
         setText("Find");
-        setMessage("Please enter a string:");
+        setMessage("Enter a string:");
     }
 
     /**

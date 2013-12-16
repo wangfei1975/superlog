@@ -11,10 +11,15 @@ public final class Resources {
     static void loadResources(AppContext ctx) {
         InputStream is = ctx.getClass().getClassLoader().getResourceAsStream("search.png");
         if (is == null) {
-            iconSearch = new Image(ctx.getMainFrame().getDisplay(), "resources/search.png");
+            iconSearch = new Image(ctx.getDisplay(), "resources/search.png");
         } else {
-            iconSearch = new Image(ctx.getMainFrame().getDisplay(), is);
+            iconSearch = new Image(ctx.getDisplay(), is);
         }
     }
 
+    static void freeResources(AppContext ctx) {
+        if (iconSearch != null) {
+            iconSearch.dispose();
+        }
+    }
 }

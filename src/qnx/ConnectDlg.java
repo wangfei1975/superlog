@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 public class ConnectDlg extends Dialog {
-    private String message = "input target IP and port";
+    private String message = "Target IP and port";
     private String ipaddr;
     private int port;
     private int selection = 0;

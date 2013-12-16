@@ -10,7 +10,7 @@ import java.util.Vector;
 
 public final class SlogInfo {
     
-    
+    /*
     public interface LogListener {
         public void handleLogs();
 
@@ -56,7 +56,7 @@ public final class SlogInfo {
         }
     }
 
-    public class LogItem {
+    public class LogItemooo {
         public String[] texts;
         public int searchMarker = 0;
         private int mLevel = 7;
@@ -406,4 +406,5 @@ public final class SlogInfo {
             }
         }.start();
     }
+    */
 }
