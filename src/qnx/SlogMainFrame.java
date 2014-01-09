@@ -69,17 +69,22 @@ public final class SlogMainFrame {
     }
     
     void createToolbar() {
-            CoolBar coolbar = new CoolBar(getShell(), SWT.NONE);
+            CoolBar coolbar = new CoolBar(getShell(), SWT.FLAT);
             ToolBar tb = new ToolBar(coolbar, SWT.FLAT);
             
             mToolConnect = new ToolItem(tb, SWT.PUSH);
-            mToolConnect.setText("Connect Target ...");
+//            mToolConnect.setText("Connect Target ...");
             mToolConnect.addListener(SWT.Selection, onClickConnect);
+            mToolConnect.setImage(Resources.iconOpenDevice);
+            mToolConnect.setToolTipText("Connect to a QCONN device");
 
+            new ToolItem(tb, SWT.SEPARATOR_FILL);
             ToolItem t = new ToolItem(tb, SWT.PUSH);
-            t.setText("Open File ...");
-           
             
+ //           t.setText("Open File ...");
+            t.setImage(Resources.iconOpenFile);
+           
+            /*
             mToolDisconnect = new ToolItem(tb, SWT.PUSH);
             mToolDisconnect.setText("Disconnect");
             mToolDisconnect.addListener(SWT.Selection, onClickConnect);
@@ -113,7 +118,7 @@ public final class SlogMainFrame {
             mToolPause.setText("Pause (Running)     ");
             mToolPause.addListener(SWT.Selection, onClickPause);
             mToolPause.setData("Pause");
- 
+ */
             CoolItem item = new CoolItem(coolbar, SWT.NONE);
             Point p = tb.computeSize(SWT.DEFAULT, SWT.DEFAULT);
             tb.setSize(p);

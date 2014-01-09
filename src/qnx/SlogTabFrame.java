@@ -50,6 +50,25 @@ public final class SlogTabFrame extends CTabItem implements LogListener{
                  d.open();
             }
         });
+        
+        it.setImage(Resources.iconSearch);
+        
+        it = new ToolItem(tb, SWT.PUSH);
+        it.setText("Next");
+    //    ti.addListener(SWT.Selection, onClickSearchNext);
+        it.setData("Next");
+
+        it = new ToolItem(tb, SWT.PUSH);
+        it.setText("Prev");
+      //  ti.addListener(SWT.Selection, onClickSearchPrev);
+        it.setData("Prev");
+
+        it = new ToolItem(tb, SWT.SEPARATOR);
+        it = new ToolItem(tb, SWT.PUSH);
+        it.setText("Pause (Running)     ");
+        //mToolPause.addListener(SWT.Selection, onClickPause);
+        it.setData("Pause");
+        
  
         CoolItem item = new CoolItem(coolbar, SWT.FLAT);
         Point p = tb.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -63,7 +82,7 @@ public final class SlogTabFrame extends CTabItem implements LogListener{
         super(parent, style);
         setText(txt);
         
-        setImage(Resources.iconSearch);
+        //setImage(Resources.iconSearch);
         Composite com = new Composite(parent, style);
         GridLayout layout = new GridLayout();
         layout.numColumns = 4;
