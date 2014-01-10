@@ -1,5 +1,9 @@
 package feiw;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +29,10 @@ public class LogSource {
 
     protected int mStatus = stIdle;
     
+    
+    public synchronized int getStatus() {
+        return mStatus;
+    }
     public void addStatusListener(StatusListener slis) {
         if (slis != null) {
             mStatusListeners.add(slis);
@@ -39,6 +47,26 @@ public class LogSource {
                 li.onStatusChanged(mStatus, st);                
             }
             mStatus = st;
+        }
+    }
+    
+    protected void fetchLogs(InputStream is) throws IOException {
+        BufferedReader  din = new BufferedReader(new InputStreamReader(is));
+        String str = din.readLine();
+        int newlines = 0;
+        while (str != null) {
+            if (!str.isEmpty()) {
+                LogItem it = new LogItem(str);
+                if (is.available() == 0
+                        || newlines > SystemConfigs.MIN_NOTIFY_COUNT) {
+                    addLogItem(it, true);
+                    newlines = 0;
+                } else {
+                    addLogItem(it, false);
+                    newlines++;
+                }
+            }
+            str = din.readLine();
         }
     }
     
@@ -70,7 +98,7 @@ public class LogSource {
                 }
                 ret[i] = str.substring(idx, nextidx);
                 idx = nextidx + seperator[i].length();
-                while (str.charAt(idx) == ' ')
+                while (str.length() > idx && str.charAt(idx) == ' ')
                     idx++;
             }
             ret[4] = str.substring(idx);

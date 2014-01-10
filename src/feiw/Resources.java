@@ -26,6 +26,7 @@ public final class Resources {
     public static Image connected_16 = null;
     public static Image disconnected_32 = null;
     public static Image disconnected_16 = null;
+    public static Image file_16 = null;
     
     public static ArrayList <Image> mIcons = new ArrayList<Image> (30);
  
@@ -55,6 +56,7 @@ public final class Resources {
         connected_16 = loadIcon(ctx, "connected_16");
         disconnected_32 = loadIcon(ctx, "disconnected_32");
         disconnected_16 = loadIcon(ctx, "disconnected_16");
+        file_16 = loadIcon(ctx, "file_16");
     }
 
     static void freeResources(AppContext ctx) {

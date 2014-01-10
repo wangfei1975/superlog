@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.CoolBar;
 import org.eclipse.swt.widgets.CoolItem;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -36,15 +37,10 @@ public final class SlogMainFrame {
     
     private Display mDisplay;
     private Shell   mShell;
-    
-    //private ArrayList <LogSource> mLogSources = new ArrayList <LogSource>(10);
-  //  private ArrayList <SlogTabFrame> mLogTabs = new  ArrayList <SlogTabFrame>(10);
-    
-    Label mStatusLabelLogs = null;
-    Label mStatusLabelConnection = null;
+
     ToolItem mToolConnect = null;
-    ToolItem mToolDisconnect = null;
-    ToolItem mToolPause = null;
+    ToolItem mToolOpen = null;
+    
     MenuItem mMenuConnect = null;
     MenuItem mMenuDisconnect = null;
 
@@ -87,10 +83,34 @@ public final class SlogMainFrame {
 
             //new ToolItem(tb, SWT.SEPARATOR_FILL);
             new ToolItem(tb, SWT.SEPARATOR);
-            ToolItem t = new ToolItem(tb, SWT.PUSH);
+            mToolOpen = new ToolItem(tb, SWT.PUSH);
+            mToolOpen.setImage(Resources.openfile_32);
+            mToolOpen.setToolTipText("Open a Sloginfo file");
+            mToolOpen.addListener(SWT.Selection, new Listener() {
+                public void handleEvent(Event event) { 
+                    FileDialog dialog = new FileDialog (getShell(), SWT.OPEN);
+                    String [] filterNames = new String [] {"Log Files", "All Files (*)"};
+                    String [] filterExtensions = new String [] {"*.log;*.txt;", "*"};
+//                    String filterPath = "";
+                    /*
+                    String platform = SWT.getPlatform();
+                    if (platform.equals("win32") || platform.equals("wpf")) {
+                        filterNames = new String [] {"Image Files", "All Files (*.*)"};
+                        filterExtensions = new String [] {"*.gif;*.png;*.bmp;*.jpg;*.jpeg;*.tiff", "*.*"};
+                        filterPath = "c:\\";
+                    }
+                    */
+                    dialog.setFilterNames (filterNames);
+                    dialog.setFilterExtensions (filterExtensions);
+                //    dialog.setFilterPath (filterPath);
+                    String fname = dialog.open();
+                    if (fname != null) {
+                        mTabFolder.setSelection(new FileTabFrame(mTabFolder, fname, SWT.FLAT|SWT.CLOSE|SWT.ICON, fname));
+                    }
+
+                }
+            });
             
-          //  t.setText("Open");
-            t.setImage(Resources.openfile_32);
            
             /*
             mToolDisconnect = new ToolItem(tb, SWT.PUSH);
@@ -235,9 +255,7 @@ public final class SlogMainFrame {
                 SystemConfigs.LogUrl lu = Slogmain.getApp().getConfigs().getLastLogUrl();
                 ConnectDlg dlg = new ConnectDlg(getShell(), lu.url, lu.port);
                 if (dlg.open() == 1) {
-                    LogSource ls = new QconnLogSource(dlg.getIp(), dlg.getPort());
-                    SlogTabFrame ltab = new SlogTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, ls, null);
-                    ltab.setImage(Resources.connectDevice_16);
+                    QconnTabFrame ltab = new QconnTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, dlg.getIp(), dlg.getPort());
                     mTabFolder.setSelection(ltab);
                 }
             } else {
@@ -423,7 +441,7 @@ public final class SlogMainFrame {
         getShell().setLayout(layout);
         createToolbar();
 
-        createMenus();
+    //   createMenus();
 
         mTabFolder = new CTabFolder(getShell(), SWT.BORDER);
         mTabFolder.setSimple(false);

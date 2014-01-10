@@ -61,6 +61,7 @@ public final class QconnLogSource extends LogSource {
                         if (ret.startsWith("OK")) {
                             System.out.print("launch success, pid is:" + ret.substring(3) + "\n");
                             mRemotepid = Integer.parseInt(ret.substring(3));
+                            //skip sloginfo header
                         } else {
                             mRemotepid = 0;
                         }
@@ -72,25 +73,11 @@ public final class QconnLogSource extends LogSource {
                         mSock = null;
                         return;
                     }
+                    
                     mSock = sock;
+                    ret = din.readLine();
                     setStatus(stConnected);
-                    int newlines = 0;
-                    din.readLine();
-                    str = din.readLine();
-                    while (str != null && !sock.isInputShutdown()) {
-                        if (!str.isEmpty()) {
-                            LogItem it = new LogItem(str);
-                            if (sock.getInputStream().available() == 0
-                                    || newlines > SystemConfigs.MIN_NOTIFY_COUNT) {
-                                addLogItem(it, true);
-                                newlines = 0;
-                            } else {
-                                addLogItem(it, false);
-                                newlines++;
-                            }
-                        }
-                        str = din.readLine();
-                    }
+                    fetchLogs(sock.getInputStream());
                     sock.close();
                     setStatus(stIdle);
                 } catch (IOException e) {
