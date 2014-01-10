@@ -1,4 +1,4 @@
-package qnx;
+package feiw;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,12 +7,41 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LogSource {
 
+    public static int stIdle = 0;
+    public static int stConnecting = 1;
+    public static int stConnected = 2;
+            
     public interface LogFilter {
         public boolean filterLog(LogItem item);
     }
     public interface LogListener {
         public void  onLogChanged();
     }
+    
+    public interface StatusListener {
+        public void onStatusChanged(int oldStatus, int newStatus);
+    }
+    
+
+    protected int mStatus = stIdle;
+    
+    public void addStatusListener(StatusListener slis) {
+        if (slis != null) {
+            mStatusListeners.add(slis);
+        }
+    }
+    public void removeStatusListener(StatusListener slis) {
+        mStatusListeners.remove(slis);
+    }
+    protected void setStatus(int st) {
+        if (st != mStatus) {
+            for (StatusListener li : mStatusListeners) {
+                li.onStatusChanged(mStatus, st);                
+            }
+            mStatus = st;
+        }
+    }
+    
     public static final class LogItem {
         public String[] texts;
         public int searchMarker = 0;
@@ -137,6 +166,12 @@ public class LogSource {
         }
     }
     
+    public void removeLogView(LogView v) {
+        mViews.remove(v);
+        if (mViews.size() == 0) {
+            disconnect();
+        }
+    }
     public LogView newLogView(LogListener listener, LogFilter filter) {
         LogView v = new LogView(listener, filter, mItems);
         mViews.add(v);
@@ -153,7 +188,11 @@ public class LogSource {
     public void disconnect() {
         
     }
+
     List <LogItem> mItems = (List <LogItem>) Collections.synchronizedList(new ArrayList <LogItem>(10000));
-    ArrayList <LogView> mViews = new ArrayList <LogView>(5);
+    List <LogView> mViews = (List <LogView>) Collections.synchronizedList(new ArrayList <LogView>(5));
+    
+    List <StatusListener>  mStatusListeners = (List <StatusListener>) Collections.synchronizedList(new ArrayList <StatusListener>(5));
+    
     
 }

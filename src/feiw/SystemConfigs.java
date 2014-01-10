@@ -1,4 +1,4 @@
-package qnx;
+package feiw;
 
 import java.util.ArrayList;
 
@@ -17,7 +17,7 @@ public final class SystemConfigs {
         public String url;
         public int    port;
         public LogUrl(String s, String u, int p) {
-            s = scheme;
+            scheme = s;
             url = u;
             port = p;
         }
@@ -53,6 +53,7 @@ public final class SystemConfigs {
                 }; 
         mSearchBackColor = disp.getSystemColor(SWT.COLOR_INFO_BACKGROUND);
         
+        mRecentUrls.add(new LogUrl("qconn", "10.222.98.205", 8000));
         mRecentUrls.add(new LogUrl("qconn", "10.222.109.58", 8000));
         mRecentUrls.add(new LogUrl("file", "Users/feiwang/qnx/abcd.log", 0));
         

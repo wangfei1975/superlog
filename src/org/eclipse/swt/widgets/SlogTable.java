@@ -4,12 +4,20 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 
-import qnx.LogSource.LogItem;
-import qnx.LogSource.LogView;
-import qnx.Resources;
-import qnx.Slogmain;
-import qnx.SystemConfigs;
+import feiw.Resources;
+import feiw.Slogmain;
+import feiw.SystemConfigs;
+import feiw.LogSource.LogItem;
+import feiw.LogSource.LogView;
+
 public final class SlogTable extends Table {
 
     LogView mLogView = null;
@@ -22,12 +30,14 @@ public final class SlogTable extends Table {
         setLinesVisible(true);
         setHeaderVisible(true);
         String[] title = { "Flag", "Line", "Time", "Sev", "Major", "Minor", "Args" };
-        int[] width = { 28, 70, 155, 30, 50, 50, 1000 };
+        int[] width = { 28, 50, 155, 30, 50, 50, 1000 };
 
         for (int i = 0; i < title.length; i++) {
             TableColumn column = new TableColumn(this, SWT.NONE);
             column.setText(title[i]);
+           // column.setAlignment(SWT.CENTER);
             column.setWidth(width[i]);
+            
         }
 
         FontData[] fontData = getFont().getFontData();

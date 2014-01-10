@@ -1,4 +1,4 @@
-package qnx;
+package feiw;
 
 /*
  * 
@@ -18,7 +18,7 @@ package qnx;
  * */
 public final class Slogmain  {
  
-    static AppContext mApp = new AppContext("QSlog");
+    static AppContext mApp = new AppContext("SuperLog");
     
     static public AppContext getApp() {
         return mApp;

@@ -1,4 +1,4 @@
-package qnx;
+package feiw;
 import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
@@ -9,6 +9,7 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
@@ -25,7 +26,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.SlogTable;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -47,7 +47,7 @@ public final class SlogMainFrame {
     ToolItem mToolPause = null;
     MenuItem mMenuConnect = null;
     MenuItem mMenuDisconnect = null;
-    SlogInfo mLogger;
+
     Table mMainTable;
 //    SlogTabView mMainTableView;
     
@@ -71,17 +71,18 @@ public final class SlogMainFrame {
     void createToolbar() {
             CoolBar coolbar = new CoolBar(getShell(), SWT.FLAT);
             ToolBar tb = new ToolBar(coolbar, SWT.FLAT);
-            
+//            tb.setBackground(new Color(getDisplay(), 255,255,255));
             mToolConnect = new ToolItem(tb, SWT.PUSH);
-//            mToolConnect.setText("Connect Target ...");
+         //   mToolConnect.setText("Connect");
             mToolConnect.addListener(SWT.Selection, onClickConnect);
             mToolConnect.setImage(Resources.iconOpenDevice);
             mToolConnect.setToolTipText("Connect to a QCONN device");
 
-            new ToolItem(tb, SWT.SEPARATOR_FILL);
+            //new ToolItem(tb, SWT.SEPARATOR_FILL);
+            new ToolItem(tb, SWT.SEPARATOR);
             ToolItem t = new ToolItem(tb, SWT.PUSH);
             
- //           t.setText("Open File ...");
+          //  t.setText("Open");
             t.setImage(Resources.iconOpenFile);
            
             /*
@@ -227,8 +228,9 @@ public final class SlogMainFrame {
                 SystemConfigs.LogUrl lu = Slogmain.getApp().getConfigs().getLastLogUrl();
                 ConnectDlg dlg = new ConnectDlg(getShell(), lu.url, lu.port);
                 if (dlg.open() == 1) {
-                    LogSource ls = new SlogLogSource(dlg.getIp(), dlg.getPort());
-                    SlogTabFrame ltab = new SlogTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, ls);
+                    LogSource ls = new QconnLogSource(dlg.getIp(), dlg.getPort());
+                    SlogTabFrame ltab = new SlogTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, ls, null);
+                    ltab.setImage(Resources.iconOpenDevice16);
                     mTabFolder.setSelection(ltab);
                 }
             } else {
@@ -434,13 +436,8 @@ public final class SlogMainFrame {
                 
                 if (event.item instanceof SlogTabFrame) {
                     SlogTabFrame it =  (SlogTabFrame)event.item;
-                    it.getLogSource().disconnect();
+                    it.onClose();
                 }
-                
-              //  event.doit = false;
-             //   if (event.item.equals(specialItem)) {
-             //       event.doit = false;
-             //   }
             }
         });
 

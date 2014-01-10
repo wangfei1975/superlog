@@ -1,4 +1,4 @@
-package qnx;
+package feiw;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -7,14 +7,14 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public final class SlogLogSource extends LogSource {
+public final class QconnLogSource extends LogSource {
 
     private String mServerIp;
     private int mServerPort;
     private Socket mSock;
     private int mRemotepid = 0;
  
-    public SlogLogSource(final String ip, final int port) {
+    public QconnLogSource(final String ip, final int port) {
         super();
         mServerIp = ip;
         mServerPort = port;
@@ -63,6 +63,11 @@ public final class SlogLogSource extends LogSource {
                         }
                     }
 
+                    if (mRemotepid == 0) {
+                        sock.close();
+                        mSock = null;
+                        return;
+                    }
                     int newlines = 0;
                     din.readLine();
                     str = din.readLine();
