@@ -82,7 +82,7 @@ public final class SlogMainFrame {
             mToolConnect = new ToolItem(tb, SWT.PUSH);
          //   mToolConnect.setText("Connect");
             mToolConnect.addListener(SWT.Selection, onClickConnect);
-            mToolConnect.setImage(Resources.iconOpenDevice);
+            mToolConnect.setImage(Resources.connectDevice_32);
             mToolConnect.setToolTipText("Connect to a QCONN device");
 
             //new ToolItem(tb, SWT.SEPARATOR_FILL);
@@ -90,7 +90,7 @@ public final class SlogMainFrame {
             ToolItem t = new ToolItem(tb, SWT.PUSH);
             
           //  t.setText("Open");
-            t.setImage(Resources.iconOpenFile);
+            t.setImage(Resources.openfile_32);
            
             /*
             mToolDisconnect = new ToolItem(tb, SWT.PUSH);
@@ -237,7 +237,7 @@ public final class SlogMainFrame {
                 if (dlg.open() == 1) {
                     LogSource ls = new QconnLogSource(dlg.getIp(), dlg.getPort());
                     SlogTabFrame ltab = new SlogTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, ls, null);
-                    ltab.setImage(Resources.iconOpenDevice16);
+                    ltab.setImage(Resources.connectDevice_16);
                     mTabFolder.setSelection(ltab);
                 }
             } else {

@@ -58,11 +58,11 @@ public final class SlogTabFrame extends CTabItem implements LogListener, StatusL
         ToolItem it;
         
         it = new ToolItem(tb, SWT.PUSH);
-        it.setImage(Resources.iconDisconnected32);
+        it.setImage(Resources.disconnected_32);
 
         it = new ToolItem(tb, SWT.PUSH);
       //  it.setText("Pause (Running)     ");
-        it.setImage(Resources.iconStop);
+        it.setImage(Resources.pause_32);
         //mToolPause.addListener(SWT.Selection, onClickPause);
         it.setData("Pause");
         new ToolItem(tb, SWT.SEPARATOR);        
@@ -75,11 +75,11 @@ public final class SlogTabFrame extends CTabItem implements LogListener, StatusL
             }
         });
         
-        it.setImage(Resources.iconSearch);
+        it.setImage(Resources.search_32);
         
         it = new ToolItem(tb, SWT.PUSH);
       //  it.setText("Next");
-        it.setImage(Resources.iconNext);
+        it.setImage(Resources.down_32);
     //    ti.addListener(SWT.Selection, onClickSearchNext);
         it.setData("Next");
 
@@ -87,14 +87,14 @@ public final class SlogTabFrame extends CTabItem implements LogListener, StatusL
    //     it.setText("Prev");
       //  ti.addListener(SWT.Selection, onClickSearchPrev);
         it.setData("Prev");
-        it.setImage(Resources.iconPrev);
+        it.setImage(Resources.up_32);
 
 
         
         it = new ToolItem(tb, SWT.SEPARATOR);
         it = new ToolItem(tb, SWT.PUSH);
       //  it.setText("Pause (Running)     ");
-        it.setImage(Resources.iconFilter);
+        it.setImage(Resources.filter_32);
         //mToolPause.addListener(SWT.Selection, onClickPause);
         it.setData("Filter");
         it.addListener(SWT.Selection, new Listener() {
@@ -110,7 +110,7 @@ public final class SlogTabFrame extends CTabItem implements LogListener, StatusL
                     }
                     
                 });
-                ltab.setImage(Resources.iconFilter16);
+                ltab.setImage(Resources.filter_16);
                 getParent().setSelection(ltab);
             }
         });
@@ -142,7 +142,7 @@ public final class SlogTabFrame extends CTabItem implements LogListener, StatusL
        
         
         mStatusLabel = new Label(com, SWT.BORDER_SOLID|SWT.ICON);
-        mStatusLabel.setImage(Resources.iconDisconnected16);
+        mStatusLabel.setImage(Resources.disconnected_16);
 
         mStatusLabel.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1));
         mStatusLabel.setAlignment(SWT.LEFT);
@@ -204,16 +204,16 @@ public final class SlogTabFrame extends CTabItem implements LogListener, StatusL
         final Image img ;
         switch(newStatus) {
         case LogSource.stIdle:
-            img = Resources.iconDisconnected16;
+            img = Resources.disconnected_16;
             break;
         case LogSource.stConnecting:
-            img = Resources.iconDisconnected16;
+            img = Resources.disconnected_16;
             break;
         case LogSource.stConnected:
-            img = Resources.iconConnected16;
+            img = Resources.connected_16;
             break;
          default:
-             img = Resources.iconConnected16;
+             img = Resources.connected_16;
                 break;
         }
        

@@ -1,6 +1,9 @@
 package feiw;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
@@ -10,74 +13,53 @@ import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.widgets.Display;
 
 public final class Resources {
-    public static Image iconSearch = null;
-    public static Image iconOpenDevice = null;
-    public static Image iconOpenDevice16 = null;
-    public static Image iconOpenFile = null;
-    public static Image iconNext = null;
-    public static Image iconPrev = null;
-    public static Image iconGo = null;
-    public static Image iconStop = null;
-    public static Image iconFilter = null;
-    public static Image iconFilter16 = null;
-    public static Image iconConnected24 = null;
-    public static Image iconConnected16 = null;
-    public static Image iconDisconnected32 = null;
-    public static Image iconDisconnected16 = null;
+    public static Image openfile_32 = null;
+    public static Image search_32 = null;
+    public static Image connectDevice_32 = null;
+    public static Image connectDevice_16 = null;
+    public static Image down_32 = null;
+    public static Image up_32 = null;
+    public static Image go_32 = null;
+    public static Image pause_32 = null;
+    public static Image filter_32 = null;
+    public static Image filter_16 = null;
+    public static Image connected_16 = null;
+    public static Image disconnected_32 = null;
+    public static Image disconnected_16 = null;
+    
+    public static ArrayList <Image> mIcons = new ArrayList<Image> (30);
+ 
+    static Image loadIcon(AppContext ctx, String name) {
+        Image icon = null;
+        InputStream is = ctx.getClass().getClassLoader().getResourceAsStream(name + ".png");
+        if (is == null) {
+            icon = new Image(ctx.getDisplay(), "resources/" + name + ".png");
+        } else {
+            icon = new Image(ctx.getDisplay(), is);
+        }
+        mIcons.add(icon);
+        return icon;
+    }
     
     static void loadResources(AppContext ctx) {
-      //  InputStream is = ctx.getClass().getClassLoader().getResourceAsStream("search_64.png");
-      //  if (is == null) {
-        if (iconSearch == null ){
-            Display dis = ctx.getDisplay();
-            iconSearch = new Image(dis, "resources/search_32.png");
-            iconOpenDevice =new Image(dis, "resources/connectDevice_32.png");
-            iconOpenDevice16 =new Image(dis, "resources/connectDevice_16.png");
-            iconNext = new Image (dis, "resources/down_32.png");
-            iconPrev = new Image (dis, "resources/up_32.png");
-            iconGo = new Image (dis, "resources/go_32.png");
-            iconStop = new Image (dis, "resources/pause_32.png");
-            
-            iconFilter = new Image (dis, "resources/filter_32.png");
-            iconFilter16 = new Image (dis, "resources/filter_16.png");
-            
-            iconConnected24 = new Image (dis, "resources/connected_24.png");
-            iconConnected16 = new Image (dis, "resources/connected_16.png");
-            iconDisconnected32 = new Image (dis, "resources/disconnected_32.png");
-            iconDisconnected16 = new Image (dis, "resources/disconnected_16.png");
-            
-            
-            
-//            ImageData [] imd = new ImageLoader().load("resources/connectDevice.ico");
-         //   ImageData timd = new ImageData(imd[2].width, imd[2].height, imd[2].depth, imd[2].palette);
-            
-            
-           // setAllFields(timd, imd[2]);
-            //Color bk= iconOpenDevice.getBackground();
-  //          iconOpenDevice = new Image(dis, imd[0]);
-         //   iconOpenDevice.setBackground(bk);
-         //   iconOpenDevice.setBackground(timd.data[timd.transparentPixel])
-            
-            
-            /*
-            for (ImageData im :imd) {
-                if (im.width == 32) {
-                    iconOpenDevice = new Image(Display.getCurrent(), im);
-                   // iconOpenDevice.setBackground(new Color(dis, 255,255,255));
-                    break;
-                }
-            }
-            */
-            iconOpenFile = new Image(dis, "resources/folder_32.png");
-        }
-        //} else {
-         //   iconSearch = new Image(dis, is);
-       // }
+        openfile_32 = loadIcon(ctx, "openfile_32");
+        search_32 = loadIcon(ctx, "search_32");
+        connectDevice_32 = loadIcon(ctx, "connectDevice_32");
+        connectDevice_16 = loadIcon(ctx, "connectDevice_16");
+        down_32 = loadIcon(ctx, "down_32");
+        up_32 = loadIcon(ctx, "up_32");
+        go_32 = loadIcon(ctx, "go_32");
+        pause_32 = loadIcon(ctx, "pause_32");
+        filter_32 = loadIcon(ctx, "filter_32");
+        filter_16 = loadIcon(ctx, "filter_16");
+        connected_16 = loadIcon(ctx, "connected_16");
+        disconnected_32 = loadIcon(ctx, "disconnected_32");
+        disconnected_16 = loadIcon(ctx, "disconnected_16");
     }
 
     static void freeResources(AppContext ctx) {
-        if (iconSearch != null) {
-            iconSearch.dispose();
+        for (Image im : mIcons) {
+            im.dispose();
         }
     }
 }
