@@ -35,7 +35,7 @@ public final class SystemConfigs {
     public SystemConfigs(Display disp) {
         mForeColors = new Color[] {disp.getSystemColor(SWT.COLOR_BLACK),
                 disp.getSystemColor(SWT.COLOR_DARK_RED),
-                disp.getSystemColor(SWT.COLOR_RED),
+                disp.getSystemColor(SWT.COLOR_WHITE),
                 disp.getSystemColor(SWT.COLOR_BLUE),
                 disp.getSystemColor(SWT.COLOR_DARK_BLUE),
                 disp.getSystemColor(SWT.COLOR_DARK_GREEN),
@@ -44,7 +44,7 @@ public final class SystemConfigs {
                 }; 
         mBackColors = new Color[] {disp.getSystemColor(SWT.COLOR_WHITE),
                 disp.getSystemColor(SWT.COLOR_WHITE),
-                disp.getSystemColor(SWT.COLOR_WHITE),
+                disp.getSystemColor(SWT.COLOR_RED),
                 disp.getSystemColor(SWT.COLOR_YELLOW),
                 disp.getSystemColor(SWT.COLOR_WHITE),
                 disp.getSystemColor(SWT.COLOR_WHITE),

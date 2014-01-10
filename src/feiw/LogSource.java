@@ -7,9 +7,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LogSource {
 
-    public static int stIdle = 0;
-    public static int stConnecting = 1;
-    public static int stConnected = 2;
+    public static final int stIdle = 0;
+    public static final int stConnecting = 1;
+    public static final int stConnected = 2;
             
     public interface LogFilter {
         public boolean filterLog(LogItem item);
@@ -33,7 +33,7 @@ public class LogSource {
     public void removeStatusListener(StatusListener slis) {
         mStatusListeners.remove(slis);
     }
-    protected void setStatus(int st) {
+    protected synchronized void setStatus(int st) {
         if (st != mStatus) {
             for (StatusListener li : mStatusListeners) {
                 li.onStatusChanged(mStatus, st);                

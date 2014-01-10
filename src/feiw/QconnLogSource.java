@@ -16,6 +16,7 @@ public final class QconnLogSource extends LogSource {
  
     public QconnLogSource(final String ip, final int port) {
         super();
+        setStatus(stConnecting);
         mServerIp = ip;
         mServerPort = port;
         new Thread() {
@@ -23,7 +24,8 @@ public final class QconnLogSource extends LogSource {
                 try {
                     Socket sock = new Socket(ip, port);
                     mSock = sock;
-
+                    /*
+                    sock.setKeepAlive(true);
                     DataOutputStream out = new DataOutputStream(sock.getOutputStream());
 
                     BufferedReader din = new BufferedReader(new InputStreamReader(
@@ -37,10 +39,11 @@ public final class QconnLogSource extends LogSource {
                     System.out.print(din.readLine() + "\n");
                     sock.close();
                     sock = new Socket(ip, port);
-
-                    out = new DataOutputStream(sock.getOutputStream());
-                    din = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-                    str = din.readLine();
+                    */
+                    DataOutputStream out = new DataOutputStream(sock.getOutputStream());
+                    BufferedReader  din = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+                  //  sock.setKeepAlive(true);
+                    String str = din.readLine();
                     System.out.print(str + "\n");
                     out.writeBytes("service launcher\r\n");
                     System.out.print(din.readLine() + "\n");
@@ -64,14 +67,17 @@ public final class QconnLogSource extends LogSource {
                     }
 
                     if (mRemotepid == 0) {
+                        setStatus(stIdle);
                         sock.close();
                         mSock = null;
                         return;
                     }
+                    mSock = sock;
+                    setStatus(stConnected);
                     int newlines = 0;
                     din.readLine();
                     str = din.readLine();
-                    while (str != null) {
+                    while (str != null && !sock.isInputShutdown()) {
                         if (!str.isEmpty()) {
                             LogItem it = new LogItem(str);
                             if (sock.getInputStream().available() == 0
@@ -86,10 +92,10 @@ public final class QconnLogSource extends LogSource {
                         str = din.readLine();
                     }
                     sock.close();
-
+                    setStatus(stIdle);
                 } catch (IOException e) {
-                    e.printStackTrace();
-
+//                    e.printStackTrace();
+                    setStatus(stIdle);
                 }
                 mSock = null;
             }
@@ -123,6 +129,7 @@ public final class QconnLogSource extends LogSource {
             mRemotepid = 0;
 
             mSock.close();
+            setStatus(stIdle);
             // setConnectStatus(false);
             // // if (listener != null) {
             // listener.handleStatusChanged(false);

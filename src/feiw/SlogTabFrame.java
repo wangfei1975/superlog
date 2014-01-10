@@ -26,8 +26,9 @@ import feiw.LogSource.LogFilter;
 import feiw.LogSource.LogItem;
 import feiw.LogSource.LogListener;
 import feiw.LogSource.LogView;
+import feiw.LogSource.StatusListener;
 
-public final class SlogTabFrame extends CTabItem implements LogListener{
+public final class SlogTabFrame extends CTabItem implements LogListener, StatusListener{
  
     private SlogTable mTable;
     private LogView mLogView;
@@ -37,6 +38,7 @@ public final class SlogTabFrame extends CTabItem implements LogListener{
     
     public void onClose() {
         mLogSrc.removeLogView(mLogView);
+        mLogSrc.removeStatusListener(this);
     }
     public LogView getLogView() {
         return mLogView;
@@ -52,7 +54,19 @@ public final class SlogTabFrame extends CTabItem implements LogListener{
         CoolBar coolbar = new CoolBar(parent, SWT.FLAT);
         ToolBar tb = new ToolBar(coolbar, SWT.FLAT);
         coolbar.setBackground(new Color(getDisplay(), 255,255,255));
-        ToolItem it = new ToolItem(tb, SWT.PUSH);
+        
+        ToolItem it;
+        
+        it = new ToolItem(tb, SWT.PUSH);
+        it.setImage(Resources.iconDisconnected32);
+
+        it = new ToolItem(tb, SWT.PUSH);
+      //  it.setText("Pause (Running)     ");
+        it.setImage(Resources.iconStop);
+        //mToolPause.addListener(SWT.Selection, onClickPause);
+        it.setData("Pause");
+        new ToolItem(tb, SWT.SEPARATOR);        
+        it = new ToolItem(tb, SWT.PUSH);
        // it.setText("Find");
         it.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
@@ -75,12 +89,7 @@ public final class SlogTabFrame extends CTabItem implements LogListener{
         it.setData("Prev");
         it.setImage(Resources.iconPrev);
 
-        it = new ToolItem(tb, SWT.SEPARATOR);
-        it = new ToolItem(tb, SWT.PUSH);
-      //  it.setText("Pause (Running)     ");
-        it.setImage(Resources.iconStop);
-        //mToolPause.addListener(SWT.Selection, onClickPause);
-        it.setData("Pause");
+
         
         it = new ToolItem(tb, SWT.SEPARATOR);
         it = new ToolItem(tb, SWT.PUSH);
@@ -102,6 +111,7 @@ public final class SlogTabFrame extends CTabItem implements LogListener{
                     
                 });
                 ltab.setImage(Resources.iconFilter16);
+                getParent().setSelection(ltab);
             }
         });
         
@@ -113,7 +123,7 @@ public final class SlogTabFrame extends CTabItem implements LogListener{
         item.setControl(tb);
         item.setSize(p2);
 
-        coolbar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 4, 1));
+        coolbar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
     }
     public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter) {
         super(parent, style);
@@ -121,19 +131,21 @@ public final class SlogTabFrame extends CTabItem implements LogListener{
         Composite com = new Composite(parent, style);
 
         GridLayout layout = new GridLayout();
-        layout.numColumns = 4;
+        layout.numColumns = 3;
         com.setLayout(layout);
         
         createToolbar(com);
 
         SlogTable tb = new SlogTable(com, SWT.FLAT);
-        tb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
+        tb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
         mTable = tb;
        
         
-        mStatusLabel = new Label(com, SWT.BORDER_SOLID);
-        mStatusLabel.setText("Disconnected");     
-        mStatusLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+        mStatusLabel = new Label(com, SWT.BORDER_SOLID|SWT.ICON);
+        mStatusLabel.setImage(Resources.iconDisconnected16);
+
+        mStatusLabel.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1));
+        mStatusLabel.setAlignment(SWT.LEFT);
         
         
          Label lb = new Label(com, SWT.SEPARATOR);
@@ -143,11 +155,12 @@ public final class SlogTabFrame extends CTabItem implements LogListener{
         
          mLineCountLabel = new Label(com, SWT.BORDER);
          mLineCountLabel.setText("0 lines of log");
-         mLineCountLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+         mLineCountLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
         
         setControl(com);
         mLogSrc = logsrc;
         mLogView = mLogSrc.newLogView(this, logFilter);
+        mLogSrc.addStatusListener(this);
         mTable.setLogView(mLogView);
  
     }
@@ -182,6 +195,39 @@ public final class SlogTabFrame extends CTabItem implements LogListener{
                 }
             }
         });
+    }
+    @Override
+    public void onStatusChanged(int oldStatus, int newStatus) {
+        if (getDisplay().isDisposed() || mStatusLabel.isDisposed()) {
+            return;
+        }
+        final Image img ;
+        switch(newStatus) {
+        case LogSource.stIdle:
+            img = Resources.iconDisconnected16;
+            break;
+        case LogSource.stConnecting:
+            img = Resources.iconDisconnected16;
+            break;
+        case LogSource.stConnected:
+            img = Resources.iconConnected16;
+            break;
+         default:
+             img = Resources.iconConnected16;
+                break;
+        }
+       
+        getDisplay().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                if (!mStatusLabel.isDisposed()) {
+                    mStatusLabel.setImage(img);
+                    mStatusLabel.update();
+                }
+            }
+           }
+       );
+       
     }
     
 }

@@ -66,12 +66,19 @@ public final class SlogMainFrame {
         mShell = new Shell(disp);
         mShell.setText(caption);
         createContents();
+        mShell.addListener(SWT.Close, new Listener() {
+           public void handleEvent(Event event) {
+               closeTabFrames();
+           }
+         });
     }
     
     void createToolbar() {
             CoolBar coolbar = new CoolBar(getShell(), SWT.FLAT);
             ToolBar tb = new ToolBar(coolbar, SWT.FLAT);
-//            tb.setBackground(new Color(getDisplay(), 255,255,255));
+            coolbar.setBackground(new Color(getDisplay(), 255,255,255));
+
+            coolbar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 4, 1));
             mToolConnect = new ToolItem(tb, SWT.PUSH);
          //   mToolConnect.setText("Connect");
             mToolConnect.addListener(SWT.Selection, onClickConnect);
@@ -339,7 +346,7 @@ public final class SlogMainFrame {
    */
 
     void createMenus() {
-        Menu m = new Menu(getShell(), SWT.BAR);
+        Menu m = new Menu(mShell, SWT.BAR);
         MenuItem mi = new MenuItem(m, SWT.CASCADE);
         mi.setText("&QLog");
 
@@ -423,17 +430,10 @@ public final class SlogMainFrame {
         mTabFolder.setUnselectedCloseVisible(true);
         mTabFolder.setUnselectedImageVisible(true);
         
-        GridData gridData = new GridData();
-        gridData.horizontalSpan = 4;
-        gridData.horizontalAlignment = GridData.FILL;
-        gridData.verticalAlignment = GridData.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        gridData.grabExcessVerticalSpace = true;
-        mTabFolder.setLayoutData(gridData);
+        mTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
         
         mTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
             public void close(CTabFolderEvent event) {
-                
                 if (event.item instanceof SlogTabFrame) {
                     SlogTabFrame it =  (SlogTabFrame)event.item;
                     it.onClose();
@@ -481,10 +481,13 @@ public final class SlogMainFrame {
 
     }
 
+    public void closeTabFrames() {
+        for(CTabItem it : mTabFolder.getItems()) {
+            SlogTabFrame tbf = (SlogTabFrame) it;
+            tbf.onClose();
+        }
+    }
     public void run() {
-     //   mLogger = new SlogInfo();
-        // Open the main window
-    //    mLogger.connect("10.222.96.245", 8000, logListener);
         mShell.open();
         Display display = getDisplay();
         while (!mShell.isDisposed()) {
@@ -492,6 +495,5 @@ public final class SlogMainFrame {
                 display.sleep();
         }
         display.dispose();
-      //  mLogger.disconnect();
     }
 }
