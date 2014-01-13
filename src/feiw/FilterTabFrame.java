@@ -14,7 +14,26 @@ public class FilterTabFrame extends SlogTabFrame {
         super(parent, txt, style, logsrc, logFilter);
         setImage(Resources.filter_16);
     }
-    void createToolItems(ToolBar tb) {
-        super.createToolItems(tb);
+    
+    void updateToolItem(ToolItem tit) {
+        
+        String tn = (String)tit.getData();
+        if (tn == null || tn.isEmpty()) {
+            tit.setEnabled(false);
+            return;
+        } 
+        if (mLogSrc instanceof FileLogSource) {
+            if (tn.equals(ToolBarDes.TN_DISCONNECT)) {
+                tit.setEnabled(false);  
+            }  else if (tn.equals(ToolBarDes.TN_PAUSE)) {
+                tit.setEnabled(false);
+            } else if (tn.equals(ToolBarDes.TN_CLEAR)) {
+                tit.setEnabled(false);
+            } else {
+                tit.setEnabled(true);
+            }
+        } else {
+            tit.setEnabled(true);
+        }
     }
 }

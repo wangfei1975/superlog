@@ -1,5 +1,7 @@
 package feiw;
 
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -37,7 +39,7 @@ public class SlogTabFrame extends CTabItem implements LogListener, StatusListene
  
     private SlogTable mTable;
     private LogView mLogView;
-    private LogSource mLogSrc;
+    protected LogSource mLogSrc;
     private Label mLineCountLabel;
     private Label mStatusLabel;
     
@@ -92,6 +94,11 @@ public class SlogTabFrame extends CTabItem implements LogListener, StatusListene
           }
         }
       }
+    
+    void updateToolItem(ToolItem tit) {
+        tit.setEnabled(false);
+    }
+
     void createToolItems(ToolBar tb) {
         ToolItem it = new ToolItem(tb, SWT.PUSH);
        // it.setText("Find");
@@ -177,7 +184,7 @@ public class SlogTabFrame extends CTabItem implements LogListener, StatusListene
         layout.numColumns = 3;
         com.setLayout(layout);
         
-       createToolbar(com);
+       //createToolbar(com);
 
         SlogTable tb = new SlogTable(com, SWT.FLAT);
         tb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
@@ -205,6 +212,8 @@ public class SlogTabFrame extends CTabItem implements LogListener, StatusListene
         mLogView = mLogSrc.newLogView(this, logFilter);
         mLogSrc.addStatusListener(this);
         mTable.setLogView(mLogView);
+        
+//        mTable.addSelectionListener()
  
     }
     @Override

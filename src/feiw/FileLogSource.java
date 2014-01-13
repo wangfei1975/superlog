@@ -4,6 +4,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+
 public class FileLogSource extends LogSource {
     String mFileUrl = null;
     FileInputStream mFileIs = null;
@@ -28,4 +31,6 @@ public class FileLogSource extends LogSource {
             e.printStackTrace();
         }
     }
+    
+
 }

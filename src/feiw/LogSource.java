@@ -9,8 +9,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class LogSource {
 
+public class LogSource {
     public static final int stIdle = 0;
     public static final int stConnecting = 1;
     public static final int stConnected = 2;

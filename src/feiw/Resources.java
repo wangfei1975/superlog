@@ -27,6 +27,11 @@ public final class Resources {
     public static Image disconnected_32 = null;
     public static Image disconnected_16 = null;
     public static Image file_16 = null;
+    public static Image clear_32 = null;
+    public static Image trash_32 = null;
+    public static Image copy_32 = null;
+    public static Image copyall_32 = null;
+    public static Image save_32 = null;
     
     public static ArrayList <Image> mIcons = new ArrayList<Image> (30);
  
@@ -57,6 +62,11 @@ public final class Resources {
         disconnected_32 = loadIcon(ctx, "disconnected_32");
         disconnected_16 = loadIcon(ctx, "disconnected_16");
         file_16 = loadIcon(ctx, "file_16");
+        clear_32 = loadIcon(ctx, "clear_32");
+        trash_32 = loadIcon(ctx, "trash_32");
+        copy_32 = loadIcon(ctx, "copy_32");
+        copyall_32 = loadIcon(ctx, "copyall_32");
+        save_32 = loadIcon(ctx, "save_32");
     }
 
     static void freeResources(AppContext ctx) {

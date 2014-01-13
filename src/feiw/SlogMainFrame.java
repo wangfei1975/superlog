@@ -1,5 +1,7 @@
 package feiw;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -9,9 +11,15 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -33,21 +41,20 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
+import feiw.LogSource.LogFilter;
+import feiw.LogSource.LogItem;
+import feiw.SlogTabFrame.DropdownSelectionListener;
+import feiw.ToolBarDes.ToolItemDes;
+
 public final class SlogMainFrame {
     
+
     private Display mDisplay;
     private Shell   mShell;
 
-    ToolItem mToolConnect = null;
-    ToolItem mToolOpen = null;
     
-    MenuItem mMenuConnect = null;
-    MenuItem mMenuDisconnect = null;
-
-    Table mMainTable;
-//    SlogTabView mMainTableView;
-    
-    Menu mPopupMenu = null;
+    CoolBar mCoolBar = null;    
+    Map<String, ToolItem> mToolItems = new HashMap<String, ToolItem>(10);
     CTabFolder mTabFolder;
     
     public Display getDisplay() {
@@ -68,388 +75,165 @@ public final class SlogMainFrame {
            }
          });
     }
+
+    void createToolBar(ToolBarDes tbdes) {
+        ToolBar tb = new ToolBar(mCoolBar, SWT.FLAT);
+        tb.setData(tbdes.mName);
+        for (ToolItemDes itdes : tbdes.mItems) {
+            ToolItem it = new ToolItem(tb, itdes.mStyle);
+            it.setData(itdes.mName);
+            it.setToolTipText(itdes.mTipText);
+            it.setImage(itdes.mImage);
+            it.setDisabledImage(new Image(getDisplay(), itdes.mImage, SWT.IMAGE_GRAY));
+            mToolItems.put(itdes.mName, it);
+        }
+        CoolItem item = new CoolItem(mCoolBar, SWT.NONE);
+        Point p = tb.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+        tb.setSize(p);
+        Point p2 = item.computeSize(p.x, p.y);
+        item.setControl(tb);
+        item.setSize(p2);
+        
+    }
     
-    void createToolbar() {
-            CoolBar coolbar = new CoolBar(getShell(), SWT.FLAT);
-            ToolBar tb = new ToolBar(coolbar, SWT.FLAT);
-            coolbar.setBackground(new Color(getDisplay(), 255,255,255));
-
-            coolbar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 4, 1));
-            mToolConnect = new ToolItem(tb, SWT.PUSH);
-         //   mToolConnect.setText("Connect");
-            mToolConnect.addListener(SWT.Selection, onClickConnect);
-            mToolConnect.setImage(Resources.connectDevice_32);
-            mToolConnect.setToolTipText("Connect to a QCONN device");
-
-            //new ToolItem(tb, SWT.SEPARATOR_FILL);
-            new ToolItem(tb, SWT.SEPARATOR);
-            mToolOpen = new ToolItem(tb, SWT.PUSH);
-            mToolOpen.setImage(Resources.openfile_32);
-            mToolOpen.setToolTipText("Open a Sloginfo file");
-            mToolOpen.addListener(SWT.Selection, new Listener() {
-                public void handleEvent(Event event) { 
-                    FileDialog dialog = new FileDialog (getShell(), SWT.OPEN);
-                    String [] filterNames = new String [] {"Log Files", "All Files (*)"};
-                    String [] filterExtensions = new String [] {"*.log;*.txt;", "*"};
-//                    String filterPath = "";
-                    /*
-                    String platform = SWT.getPlatform();
-                    if (platform.equals("win32") || platform.equals("wpf")) {
-                        filterNames = new String [] {"Image Files", "All Files (*.*)"};
-                        filterExtensions = new String [] {"*.gif;*.png;*.bmp;*.jpg;*.jpeg;*.tiff", "*.*"};
-                        filterPath = "c:\\";
-                    }
-                    */
-                    dialog.setFilterNames (filterNames);
-                    dialog.setFilterExtensions (filterExtensions);
-                //    dialog.setFilterPath (filterPath);
-                    String fname = dialog.open();
-                    if (fname != null) {
-                        mTabFolder.setSelection(new FileTabFrame(mTabFolder, fname, SWT.FLAT|SWT.CLOSE|SWT.ICON, fname));
-                    }
-
-                }
-            });
-            
+    void createToolBars() {
+        mCoolBar = new CoolBar(getShell(), SWT.FLAT);
+      //  mCoolBar.setBackground(new Color(getDisplay(), 255,255,255));
+        mCoolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 4, 1));
+        for (ToolBarDes tdes : ToolBarDes.TOOBARS) {
+            createToolBar(tdes);
+        }
+        
+        mToolItems.get(ToolBarDes.TN_SEARCH).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                SearchDlg d = new SearchDlg(Slogmain.getApp().getMainFrame().getShell());
+                d.open();
+            }
            
-            /*
-            mToolDisconnect = new ToolItem(tb, SWT.PUSH);
-            mToolDisconnect.setText("Disconnect");
-            mToolDisconnect.addListener(SWT.Selection, onClickConnect);
-
-            ToolItem ti = new ToolItem(tb, SWT.SEPARATOR);
-
-            ti = new ToolItem(tb, SWT.PUSH);
-            ti.setText("Clean Logs");
-            ti.addListener(SWT.Selection, onClickClearLogs);
-
-
-            ti = new ToolItem(tb, SWT.SEPARATOR);
-
-            ti = new ToolItem(tb, SWT.PUSH);
-            ti.setText("Find ...");
-            ti.addListener(SWT.Selection, onClickSearch);
-            ti.setData("Find");
-
-            ti = new ToolItem(tb, SWT.PUSH);
-            ti.setText("Next");
-            ti.addListener(SWT.Selection, onClickSearchNext);
-            ti.setData("Next");
-
-            ti = new ToolItem(tb, SWT.PUSH);
-            ti.setText("Prev");
-            ti.addListener(SWT.Selection, onClickSearchPrev);
-            ti.setData("Prev");
-
-            ti = new ToolItem(tb, SWT.SEPARATOR);
-            mToolPause = new ToolItem(tb, SWT.PUSH);
-            mToolPause.setText("Pause (Running)     ");
-            mToolPause.addListener(SWT.Selection, onClickPause);
-            mToolPause.setData("Pause");
- */
-            CoolItem item = new CoolItem(coolbar, SWT.NONE);
-            Point p = tb.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-            tb.setSize(p);
-            Point p2 = item.computeSize(p.x, p.y);
-            item.setControl(tb);
-            item.setSize(p2);
-     
-    }
- 
-    Listener onClickSearch = new Listener() {
-        public void handleEvent(Event event) { /*
-            SearchDlg d = new SearchDlg(getShell());
-            String input = d.open();
-            if (input != null) {
-                input.trim();
-                if (!input.isEmpty()) {
-                    int flag = 0;
-                    if (d.isCaseSenstive()) {
-                        flag |= SlogInfo.SearchCtx.FLAG_CASE_SENSITIVE;
-                    }
-                    mLogger.searchMarkall(input, flag);
-                }
-            }
-        */}
-    };
-    Listener onClickSearchNext = new Listener() {
-        public void handleEvent(Event event) { /*
-            if (mMainTable == null || mMainTable.isDisposed())
-                return;
-            int next = mLogger.searchNext();
-            if (next >= 0) {
-                mMainTable.setSelection(next);
-
-            }
-       */ }
-    };
-    Listener onClickSearchPrev = new Listener() {
-        public void handleEvent(Event event) { /*
-            if (mMainTable == null || mMainTable.isDisposed())
-                return;
-            int prev = mLogger.searchPrev();
-            if (prev >= 0) {
-                mMainTable.setSelection(prev);
-
-            }
-        */}
-    };
-
-    Listener onClickPause = new Listener() {
-        public void handleEvent(Event event) { /*
-            if (mMainTable == null || mMainTable.isDisposed())
-                return;
-            mLogger.pause();
-
-            if (mLogger.isPaused()) {
-                mToolPause.setText("Resume (Paused)");
-            } else {
-                mToolPause.setText("Pause (Running)");
-            }
-        */}
-    };
-
-    void copyLog(int startColum) {
-
-        if (mMainTable == null || mMainTable.isDisposed())
-            return;
-        Clipboard cb = new Clipboard(getDisplay());
-        TableItem[] items = mMainTable.getSelection();
-
-        if (items != null && items.length > 0) {
-            String txt = "";
-            for (int i = 0; i < items.length; i++) {
-                String line = "";
-                for (int c = startColum; c < mMainTable.getColumnCount(); c++) {
-                    line += " " + items[i].getText(c);
-                }
-                txt += line;
-                if (i < items.length) {
-                    txt += "\n";
-                }
-            }
-
-            cb.setContents(new Object[] { txt }, new Transfer[] { TextTransfer.getInstance() });
-        }
-    }
-
-    Listener onClickCopyLogv = new Listener() {
-        public void handleEvent(Event event) {
-            copyLog(1);
-        }
-    };
-    Listener onClickCopyLog = new Listener() {
-        public void handleEvent(Event event) {
-            copyLog(6);
-        }
-    };
-
-    Listener onClickClearLogs = new Listener() {
-        public void handleEvent(Event event) {
-         //   mLogger.clearLogs();
-        }
-    };
-    Listener onClickConnect = new Listener() {
-        public void handleEvent(Event event) { 
-            if (event.widget == mToolConnect || event.widget == mMenuConnect ) {
+        });
+        
+        mToolItems.get(ToolBarDes.TN_CONNECT).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
                 SystemConfigs.LogUrl lu = Slogmain.getApp().getConfigs().getLastLogUrl();
                 ConnectDlg dlg = new ConnectDlg(getShell(), lu.url, lu.port);
                 if (dlg.open() == 1) {
                     QconnTabFrame ltab = new QconnTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, dlg.getIp(), dlg.getPort());
                     mTabFolder.setSelection(ltab);
+                    updateToolBars(ltab);
                 }
-            } else {
-             //   mLogger.disconnect();
             }
-         }
-    };
-    /*
-    SlogInfo.LogListener logListener = new SlogInfo.LogListener() {
-        @Override
-        public void handleLogs() {
-            if (mMainTable == null || mMainTable.isDisposed())
-                return;
-            Display display = getShell().getDisplay();
-            display.asyncExec(new Runnable() {
-                @Override
-                public void run() {
-                    if (mMainTable.isDisposed())
-                        return;
-                    if (!mLogger.isDataChanged())
-                        return;
-                    if (mLogger.isPaused())
-                        return;
-                    int cnt = mLogger.getDataSize();
-                    mMainTable.setRedraw(true);
-
-                    int cntn = mMainTable.getItemCount();
-                    mMainTable.setItemCount(0);
-                    mMainTable.setItemCount(cnt);
-                    mLogger.resetChangeFlag();
-                    if (cntn != cnt) {
-                        mMainTable.setTopIndex(cnt - 2);
-                        String txt = "" + cnt + " lines of log";
-                        mStatusLabelLogs.setText(txt);
-                        mStatusLabelLogs.update();
-                    }
+        });
+        
+        mToolItems.get(ToolBarDes.TN_OPEN).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                FileDialog dialog = new FileDialog (getShell(), SWT.OPEN);
+                String [] filterNames = new String [] {"Log Files", "All Files (*)"};
+                String [] filterExtensions = new String [] {"*.log;*.txt;", "*"};
+//                String filterPath = "";
+                /*
+                String platform = SWT.getPlatform();
+                if (platform.equals("win32") || platform.equals("wpf")) {
+                    filterNames = new String [] {"Image Files", "All Files (*.*)"};
+                    filterExtensions = new String [] {"*.gif;*.png;*.bmp;*.jpg;*.jpeg;*.tiff", "*.*"};
+                    filterPath = "c:\\";
                 }
-            });
-
-        }
-
-        @Override
-        public void handleSearchResult() {
-            if (mMainTable == null || mMainTable.isDisposed())
-                return;
-            Display display = getShell().getDisplay();
-            display.asyncExec(new Runnable() {
-                @Override
-                public void run() {
-                    if (mMainTable.isDisposed())
-                        return;
-                    if (!mLogger.isDataChanged())
-                        return;
-                    int cnt = mLogger.getDataSize();
-                    mMainTable.setRedraw(true);
-
-                    int cntn = mMainTable.getItemCount();
-                    mMainTable.setItemCount(0);
-                    mMainTable.setItemCount(cnt);
-                    mLogger.resetChangeFlag();
-                    mStatusLabelConnection.setText(mLogger.getSearchCtx().resultcount + " results found");
-                    if (cntn != cnt) {
-                        mMainTable.setTopIndex(cnt - 2);
-                        String txt = "" + cnt + " lines of log";
-                        mStatusLabelLogs.setText(txt);
-                        mStatusLabelLogs.update();
-                    } else {
-                        int curres = mLogger.getSearchCtx().curresult;
-                        if (curres >= 0) {
-                            mMainTable.setTopIndex(curres);
-                            mMainTable.setSelection(curres);
-                        }
-                    }
+                */
+                dialog.setFilterNames (filterNames);
+                dialog.setFilterExtensions (filterExtensions);
+            //    dialog.setFilterPath (filterPath);
+                String fname = dialog.open();
+                if (fname != null) {
+                    FileTabFrame ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT|SWT.CLOSE|SWT.ICON, fname);
+                    mTabFolder.setSelection(ftb);
+                    updateToolBars(ftb);
                 }
-            });
-
-        }
-
-        @Override
-        public void handleStatusChanged(final boolean connected) {
-            // TODO Auto-generated method stub
-            if (mStatusLabelConnection == null || mStatusLabelConnection.isDisposed()) {
-                return;
             }
-            Display display = getShell().getDisplay();
-            display.asyncExec(new Runnable() {
-                @Override
-                public void run() {
-                    mToolConnect.setEnabled(!connected);
-                    mMenuConnect.setEnabled(!connected);
-                    mMenuDisconnect.setEnabled(connected);
-                    mToolDisconnect.setEnabled(connected);
-                    getShell().setText("QSLOG - " + getConnectStatus());
-                }
-            });
-        }
-    };
-
-    String getConnectStatus() {
-        if (mLogger.isConnected()) {
-            return "Connected to:" + mLogger.serverIp + ":" + mLogger.serverPort;
+        });
+        
+        mToolItems.get(ToolBarDes.TN_FILTER).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                FilterTabFrame ltab = new FilterTabFrame(mTabFolder, "Filter[" + tbf.getText() + "]", SWT.FLAT|SWT.CLOSE|SWT.ICON, tbf.getLogSource(), new LogFilter() {
+                    @Override
+                    public boolean filterLog(LogItem item) {
+                        return (item.getLevel() <= 5);
+                     }
+                });
+                mTabFolder.setSelection(ltab);
+                updateToolBars(ltab);
+            }
+        });
+        
+        mToolItems.get(ToolBarDes.TN_CLEAR).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                tbf.getLogView().clear();
+            }
+        });
+ 
+    }
+    
+    void updateToolItem(ToolItem tit) {
+        String tn = (String)tit.getData();
+        if (tn == null || tn.isEmpty()) {
+            tit.setEnabled(false);
+            return;
+        } 
+        if (tn.equals(ToolBarDes.TN_CONNECT)) {
+            tit.setEnabled(true);
+        } else if (tn.equals(ToolBarDes.TN_OPEN)) {
+            tit.setEnabled(true);
         } else {
-            return "Disconected";
+            tit.setEnabled(false);
         }
     }
-   */
-
-    void createMenus() {
-        Menu m = new Menu(mShell, SWT.BAR);
-        MenuItem mi = new MenuItem(m, SWT.CASCADE);
-        mi.setText("&QLog");
-
-        Menu qlogm = new Menu(mi);
-        mi.setMenu(qlogm);
-
-        mi = new MenuItem(m, SWT.CASCADE);
-        mi.setText("&Edit");
-        Menu editmenu = new Menu(mi);
-        mi.setMenu(editmenu);
-
-        mMenuConnect = new MenuItem(qlogm, SWT.CASCADE);
-        mMenuConnect.setText("&Connect ...");
-        mMenuConnect.setAccelerator(SWT.COMMAND | 'N');
-        mMenuConnect.addListener(SWT.Selection, onClickConnect);
-
-        mMenuDisconnect = new MenuItem(qlogm, SWT.CASCADE);
-        mMenuDisconnect.setText("&Disconnect");
-        mMenuDisconnect.setAccelerator(SWT.COMMAND | 'D');
-        mMenuDisconnect.addListener(SWT.Selection, onClickConnect);
-
-        mi = new MenuItem(editmenu, SWT.CASCADE);
-        mi.setText("&Clear Logs");
-        mi.setAccelerator(SWT.COMMAND | 'R');
-        mi.addListener(SWT.Selection, onClickClearLogs);
-
-        mi = new MenuItem(editmenu, SWT.SEPARATOR);
-
-        mi = new MenuItem(editmenu, SWT.CASCADE);
-        mi.setText("&Find ...");
-        mi.setAccelerator(SWT.COMMAND | 'F');
-        mi.addListener(SWT.Selection, onClickSearch);
-
-        mi = new MenuItem(editmenu, SWT.CASCADE);
-        mi.setText("&Next");
-        mi.setAccelerator(SWT.SHIFT | SWT.COMMAND | 'N');
-        mi.addListener(SWT.Selection, onClickSearchNext);
-
-        mi = new MenuItem(editmenu, SWT.CASCADE);
-        mi.setText("&Prev");
-        mi.setAccelerator(SWT.SHIFT | SWT.COMMAND | 'P');
-        mi.addListener(SWT.Selection, onClickSearchPrev);
-
-        mi = new MenuItem(editmenu, SWT.SEPARATOR);
-
-        mi = new MenuItem(editmenu, SWT.CASCADE);
-        mi.setText("&Copy Selection(All Colums)");
-        mi.setAccelerator(SWT.COMMAND | 'V');
-        mi.addListener(SWT.Selection, onClickCopyLogv);
-
-        mi = new MenuItem(editmenu, SWT.CASCADE);
-        mi.setText("&Copy Selection");
-        mi.setAccelerator(SWT.COMMAND | 'C');
-        mi.addListener(SWT.Selection, onClickCopyLog);
-
-        mPopupMenu = new Menu(getShell(), SWT.POP_UP);
-        MenuItem item = new MenuItem(mPopupMenu, SWT.PUSH);
-        item.setText("&Copy Selection(All Colums)");
-        item.setAccelerator(SWT.COMMAND | 'V');
-        item.addListener(SWT.Selection, onClickCopyLogv);
-
-        item = new MenuItem(mPopupMenu, SWT.PUSH);
-        item.setText("&Copy Selection");
-        item.setAccelerator(SWT.COMMAND | 'C');
-        item.addListener(SWT.Selection, onClickCopyLog);
-
-        getShell().setMenuBar(m);
+    void updateToolBars(SlogTabFrame it) {
+        for (ToolItem tit : mToolItems.values()) {
+            if (it == null) {
+                updateToolItem(tit);
+            } else {
+                it.updateToolItem(tit);
+            }
+        }
+        mCoolBar.update();
     }
-
     protected Control createContents() {
 
         GridLayout layout = new GridLayout();
         layout.numColumns = 4;
         getShell().setLayout(layout);
-        createToolbar();
-
-    //   createMenus();
-
+        createToolBars();
+        updateToolBars(null);
         mTabFolder = new CTabFolder(getShell(), SWT.BORDER);
         mTabFolder.setSimple(false);
         mTabFolder.setUnselectedCloseVisible(true);
         mTabFolder.setUnselectedImageVisible(true);
         
         mTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
-        
+        mTabFolder.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                  if (e.item instanceof SlogTabFrame) {
+                      SlogTabFrame it = (SlogTabFrame)e.item;
+                      updateToolBars(it);
+                  }
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+                if (e.item instanceof SlogTabFrame) {
+                    SlogTabFrame it = (SlogTabFrame)e.item;
+                    updateToolBars(it);
+                }
+            }
+ 
+            
+        });
         mTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
             public void close(CTabFolderEvent event) {
                 if (event.item instanceof SlogTabFrame) {
@@ -459,42 +243,8 @@ public final class SlogMainFrame {
             }
         });
 
-        /*
-        mMainTableView = new SlogMainTabView(mTabFolder, SWT.FLAT);
-        mMainTableView.getTableFrame().setFocus();
-        mTabFolder.setSelection(mMainTableView.getTabItem());
-        */
- /*
-        new SlogTabFrame(mTabFolder, "file://abcddfg.log", SWT.FLAT|SWT.CLOSE|SWT.ICON);
-        new SlogTabFrame(mTabFolder, "qcon://192.168.0.1", SWT.FLAT|SWT.CLOSE|SWT.ICON);
-        mTabFolder.setSelection(mTabFolder.getItem(0));
-        */
-       // mMainTable.setFocus();
-        /*
-        mStatusLabelLogs = new Label(getShell(), SWT.BORDER);
-        mStatusLabelLogs.setText("0 lines of log");
-        gridData = new GridData();
-        gridData.horizontalSpan = 2;
-        gridData.horizontalAlignment = GridData.FILL;
-        gridData.verticalAlignment = GridData.FILL;
-        // gridData.grabExcessHorizontalSpace = true;
-        mStatusLabelLogs.setLayoutData(gridData);
-
-        Label labelsep = new Label(getShell(), SWT.SHADOW_IN | SWT.BORDER);
-        labelsep.setText("|");
-
-        mStatusLabelConnection = new Label(getShell(), SWT.BORDER);
-        gridData = new GridData();
-        gridData.horizontalSpan = 1;
-        gridData.horizontalAlignment = GridData.FILL;
-        gridData.verticalAlignment = GridData.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        mStatusLabelConnection.setLayoutData(gridData);
-
-      
- */
         getShell().setSize(1200, 800);
-
+     
         return getShell();
 
     }
