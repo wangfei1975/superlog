@@ -54,17 +54,19 @@ public final class ToolBarDes {
                 new ToolItemDes(TN_OPEN,      "Open a Log file", Resources.openfile_32, SWT.PUSH),
                 new ToolItemDes(TN_FILTER,    "Open a Filted view", Resources.filter_32, SWT.PUSH),
         }));
+        add(new ToolBarDes(TBN_SEARCH, new ToolItemDes [] { 
+                new ToolItemDes(TN_SEARCH,   "Search", Resources.search_32, SWT.PUSH),
+                new ToolItemDes(TN_NEXT,   "Next Result", Resources.down_32, SWT.PUSH),
+                new ToolItemDes(TN_PREV,   "Previous Result", Resources.up_32, SWT.PUSH),
+        }));
+        
         add(new ToolBarDes(TBN_EDIT, new ToolItemDes [] {
                 new ToolItemDes(TN_CLEAR,   "Clear Logs", Resources.trash_32, SWT.PUSH),
                 new ToolItemDes(TN_COPY,    "Copy selection", Resources.copy_32, SWT.PUSH),
                 new ToolItemDes(TN_COPYALL,    "Copy selection(All columns)", Resources.copyall_32, SWT.PUSH),
                 new ToolItemDes(TN_SAVEAS,    "Save selection as", Resources.save_32, SWT.PUSH),
         }));
-        add(new ToolBarDes(TBN_SEARCH, new ToolItemDes [] { 
-                new ToolItemDes(TN_SEARCH,   "Search", Resources.search_32, SWT.PUSH),
-                new ToolItemDes(TN_NEXT,   "Next Result", Resources.down_32, SWT.PUSH),
-                new ToolItemDes(TN_PREV,   "Previous Result", Resources.up_32, SWT.PUSH),
-        }));
+        
         add(new ToolBarDes(TBN_TARGET, new ToolItemDes [] { 
                 new ToolItemDes(TN_DISCONNECT,   "Disconnect device", Resources.disconnected_32, SWT.PUSH),
                 new ToolItemDes(TN_PAUSE,        "Pause", Resources.pause_32, SWT.PUSH)

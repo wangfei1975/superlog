@@ -22,7 +22,18 @@ public class QconnTabFrame extends SlogTabFrame implements  StatusListener {
 
     void updateToolItem(ToolItem tit) {
         tit.setEnabled(true);
-        super.updateToolItem(tit);
+        if (tit.getData().equals(ToolBarDes.TN_PAUSE)) {
+           if (mLogSrc.getStatus() == LogSource.stConnected) {
+           tit.setToolTipText(mLogView.isPaused() ? "Resume" : "Pause");
+           tit.setImage(mLogView.isPaused() ?  Resources.go_32: Resources.pause_32);
+           } else {
+               tit.setEnabled(false);
+           }
+        } else if (tit.getData().equals(ToolBarDes.TN_DISCONNECT)) {
+            tit.setEnabled(mLogSrc.getStatus() == LogSource.stConnected);
+        } else {
+            super.updateToolItem(tit);
+        }
     }
     public void onClose() {
         mLogSrc.removeStatusListener(this);
@@ -54,6 +65,7 @@ public class QconnTabFrame extends SlogTabFrame implements  StatusListener {
             public void run() {
                 if (!isDisposed()) {
                     setImage(img);
+                    Slogmain.getApp().getMainFrame().updateToolBars(QconnTabFrame.this);
                //     mStatusLabel.setImage(img);
               //      mStatusLabel.update();
                 }
@@ -66,13 +78,23 @@ public class QconnTabFrame extends SlogTabFrame implements  StatusListener {
 
     public void onPause() {
         if (!isDisposed()) {
-            setImage(Resources.paused_32);
+            if (mLogView.isPaused()) {
+                setImage(Resources.connected_32);
+                mLogView.resume();
+                
+            } else {
+                setImage(Resources.pause_32);
+                mLogView.pause();
+            }
+            Slogmain.getApp().getMainFrame().updateToolBars(this);
         }
     }
     
     public void onDisconnect() {
         if (!isDisposed()) {
+            mLogSrc.disconnect();
             setImage(Resources.disconnected_32);
+            Slogmain.getApp().getMainFrame().updateToolBars(this);
         }
     }
 }

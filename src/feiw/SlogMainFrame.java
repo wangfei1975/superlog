@@ -294,6 +294,9 @@ public final class SlogMainFrame {
                 if (event.item instanceof SlogTabFrame) {
                     SlogTabFrame it =  (SlogTabFrame)event.item;
                     it.onClose();
+                    if (mTabFolder.getItemCount() == 1) {
+                        updateToolBars(null);
+                    }
                 }
             }
         });

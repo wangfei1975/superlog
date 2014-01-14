@@ -139,8 +139,28 @@ public class LogSource {
         private List <LogItem> mFilteredItems;
         private LogListener mListener = null;
         private LogFilter mFilter = null; 
+        private String mSearchStr = null;
+        private boolean mSearchCase = false;
         private AtomicBoolean mLogChanged = new AtomicBoolean(false);
         
+        private AtomicBoolean mPaused = new AtomicBoolean(false);
+        
+        public boolean isPaused() {
+            return mPaused.get();
+        }
+        public void resume() {
+            mPaused.set(false);
+        }
+        public void pause() {
+            mPaused.set(true);
+        }
+        
+        private void notifyListener() {
+            mLogChanged.set(true);
+            if (mListener != null && !mPaused.get()) {
+                mListener.onLogChanged();
+            }
+        }
         public boolean getChangedFlag() {
             return mLogChanged.get();
         }
@@ -153,8 +173,7 @@ public class LogSource {
             if (filter == null) {
                 mFilteredItems = source;
                 if (source.size() > 0) {
-                    setChangeFlag(true);
-                    mListener.onLogChanged();
+                    notifyListener();
                 }
                 return;
             }
@@ -166,29 +185,49 @@ public class LogSource {
                 }
             }
             if (mFilteredItems.size() > 0) {
-                mListener.onLogChanged();
+                notifyListener();
             }
         }
         
         public void add(LogItem item, boolean notifylistner) {
-            setChangeFlag(true);
             if (mFilter == null) {
+                if (mSearchStr != null && !mSearchStr.isEmpty()) {
+                    String slog = item.getText(4);
+                    if (slog != null) {
+                        if (strContains(slog, mSearchStr, mSearchCase)) {
+                            item.searchMarker = 1;
+                            mSearchResults++;
+                        }
+                    }
+                }
+
                 if (notifylistner) {
                //     System.out.println("notifiy listener. log size = " + mFilteredItems.size());
-                    mListener.onLogChanged();
+                    notifyListener();
+                    
                 }
             } else if (mFilter.filterLog(item)) {
-                mFilteredItems.add(new LogItem(item));
+                LogItem ni = new LogItem(item);
+                if (mSearchStr != null && !mSearchStr.isEmpty()) {
+                    String slog = ni.getText(4);
+                    if (slog != null) {
+                        if (strContains(slog, mSearchStr, mSearchCase)) {
+                            ni.searchMarker = 1;
+                            mSearchResults++;
+                        }
+                    }
+                }
+                mFilteredItems.add(ni);
                 if (notifylistner) {
-                    mListener.onLogChanged();
+                    notifyListener();
                 }
             }
         }
  
         public void clear() {
+            mSearchResults = 0;
             mFilteredItems.clear();
-            setChangeFlag(true);
-            mListener.onLogChanged();
+            notifyListener();
         }
         
         public int size() {
@@ -200,17 +239,33 @@ public class LogSource {
         
         
         private int mSearchResults = 0;
-        private int mFirstMatchItem = 0;
         
         public int getSearchResults() {
             return mSearchResults;
         }
-        public int getNextSearchResult(int start) {
+        public int getPrevSearchResult(int start) {
             if (mSearchResults <= 0) {
                 return -1;
             }
-            if (start <= mFirstMatchItem) {
-                return mFirstMatchItem;    
+ 
+            if (start < 0 || start >= mFilteredItems.size()) {
+                start = mFilteredItems.size() - 1;
+            }
+            for (int i = start; i >= 0; i--) {
+                if (mFilteredItems.get(i).searchMarker == 1) {
+                    return i;
+                }
+            }
+            for (int i =  mFilteredItems.size() - 1; i > start; i--) {
+                if (mFilteredItems.get(i).searchMarker == 1) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        public int getNextSearchResult(int start) {
+            if (mSearchResults <= 0) {
+                return -1;
             }
             for (int i = start; i< mFilteredItems.size(); i++) {
                 if (mFilteredItems.get(i).searchMarker == 1) {
@@ -239,9 +294,9 @@ public class LogSource {
             if (mFilteredItems == null || mFilteredItems.size() <= 0) {
                 return;
             }
+            mSearchStr = txt;
+            mSearchCase = caseSenstive;
             int results = 0;
-            int firstMatch = -1;
-            int index = 0;
             for (LogItem it : mFilteredItems) {
                 it.searchMarker = 0;
                 String slog = it.getText(4);
@@ -249,17 +304,11 @@ public class LogSource {
                     if (strContains(slog, txt, caseSenstive)) {
                         it.searchMarker = 1;
                         results++;
-                        if (firstMatch < 0) {
-                            firstMatch = index;
-                        }
                     }
                 }
-                index ++;
-
             }
             if (results > 0 || results != mSearchResults) {
                 mSearchResults = results;
-                mFirstMatchItem = firstMatch;
                 setChangeFlag(true);
                 mListener.onSearchResult();
             }

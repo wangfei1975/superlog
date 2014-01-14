@@ -27,7 +27,6 @@ public final class Resources {
     public static Image copy_32 = null;
     public static Image copyall_32 = null;
     public static Image save_32 = null;
-    public static Image paused_32 = null;
     public static Image search_16 = null;
     
     public static ArrayList <Image> mIcons = new ArrayList<Image> (30);
@@ -50,7 +49,7 @@ public final class Resources {
         down_32 = loadIcon(ctx, "down_32");
         up_32 = loadIcon(ctx, "up_32");
         go_32 = loadIcon(ctx, "go_32");
-        pause_32 = loadIcon(ctx, "pause1_32");
+        pause_32 = loadIcon(ctx, "pause_32");
         filter_32 = loadIcon(ctx, "filter_32");
         connected_32 = loadIcon(ctx, "connected_32");
         disconnected_32 = loadIcon(ctx, "disconnected_32");
@@ -59,7 +58,6 @@ public final class Resources {
         copy_32 = loadIcon(ctx, "copy_32");
         copyall_32 = loadIcon(ctx, "copyall_32");
         save_32 = loadIcon(ctx, "save_32");
-        paused_32 = loadIcon(ctx, "pause1_32");
         search_16 = loadIcon(ctx, "search_16");
     }
 

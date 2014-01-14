@@ -39,7 +39,7 @@ import feiw.LogSource.StatusListener;
 public class SlogTabFrame extends CTabItem implements LogListener{
  
     private SlogTable mTable;
-    private LogView mLogView;
+    protected LogView mLogView;
     protected LogSource mLogSrc;
     private Label mLineCountLabel;
     
@@ -102,7 +102,9 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         } 
         if (tn.equals(ToolBarDes.TN_COPY) || tn.equals(ToolBarDes.TN_COPYALL)) {
           tit.setEnabled(mTable.getSelectionCount() > 0);    
-        } 
+        } else if (tn.equals(ToolBarDes.TN_NEXT) || tn.equals(ToolBarDes.TN_PREV)) {
+            tit.setEnabled(mLogView.getSearchResults() > 0);
+        }
     }
 
     void createToolItems(ToolBar tb) {
@@ -222,13 +224,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
 
             @Override
             public void widgetSelected(SelectionEvent e) {
-                if (mTable.getSelectionCount() > 0) {
-                  Slogmain.getApp().getMainFrame().getToolItem(ToolBarDes.TN_COPY).setEnabled(true);
-                  Slogmain.getApp().getMainFrame().getToolItem(ToolBarDes.TN_COPYALL).setEnabled(true);
-                } else {
-                    Slogmain.getApp().getMainFrame().getToolItem(ToolBarDes.TN_COPY).setEnabled(false);
-                    Slogmain.getApp().getMainFrame().getToolItem(ToolBarDes.TN_COPYALL).setEnabled(false);
-                }
+                Slogmain.getApp().getMainFrame().updateToolBars(SlogTabFrame.this);
             }
 
             @Override
@@ -276,7 +272,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         
     }
     public void onDisconnect() {
-        
+
     }
     
     public void onNext() {
@@ -289,17 +285,29 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         }
         int n =  mLogView.getNextSearchResult(sel+1);
         if (n >= 0) {
-            
-            mTable.select(n, n);
-            if (n < mTable.getTopIndex() || n >= getTableVisibleCount()) {
+            mTable.deselectAll();
+            mTable.select(n);
+            if (n < mTable.getTopIndex() || n >= mTable.getTopIndex() + getTableVisibleCount()) {
                 mTable.setTopIndex(n);
             }
         }
     }
     
     public void onPrev() {
-        if (mLogView.getSearchResults() <= 0) {
+        if (mLogView.getSearchResults() <= 0 || mTable.isDisposed()) {
             return;
+        }
+        int sel = mTable.getSelectionIndex();
+        if (sel < 0) {
+            sel = mTable.getTopIndex();
+        }
+        int n =  mLogView.getPrevSearchResult(sel-1);
+        if (n >= 0) {
+            mTable.deselectAll();
+            mTable.select(n);
+            if (n < mTable.getTopIndex() || n >= mTable.getTopIndex() + getTableVisibleCount()) {
+                mTable.setTopIndex(n);
+            }
         }
     }
 
@@ -332,7 +340,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                     mTable.setItemCount(mLogView.size());
                     mLogView.setChangeFlag(false);
                     mTable.setTopIndex(top);
-                  
+
                 } else {
                     int first = mLogView.getNextSearchResult(0);
 
@@ -352,6 +360,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                         mTable.setFocus();
                     }
                 }
+                Slogmain.getApp().getMainFrame().updateToolBars(this);
                 
          //   }
        // });
