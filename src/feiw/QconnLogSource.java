@@ -24,7 +24,7 @@ public final class QconnLogSource extends LogSource {
                 try {
                     Socket sock = new Socket(ip, port);
                     mSock = sock;
-                    /*
+    
                     sock.setKeepAlive(true);
                     DataOutputStream out = new DataOutputStream(sock.getOutputStream());
 
@@ -39,11 +39,11 @@ public final class QconnLogSource extends LogSource {
                     System.out.print(din.readLine() + "\n");
                     sock.close();
                     sock = new Socket(ip, port);
-                    */
-                    DataOutputStream out = new DataOutputStream(sock.getOutputStream());
-                    BufferedReader  din = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+                
+                     out = new DataOutputStream(sock.getOutputStream());
+                     din = new BufferedReader(new InputStreamReader(sock.getInputStream()));
                   //  sock.setKeepAlive(true);
-                    String str = din.readLine();
+                      str = din.readLine();
                     System.out.print(str + "\n");
                     out.writeBytes("service launcher\r\n");
                     System.out.print(din.readLine() + "\n");
@@ -90,7 +90,7 @@ public final class QconnLogSource extends LogSource {
     }
 
     public void disconnect() {
-        if (mRemotepid == 0)
+        if (mRemotepid == 0 || mSock == null)
             return;
 
         try {
@@ -113,10 +113,11 @@ public final class QconnLogSource extends LogSource {
             System.out.print(killcmd);
             out.writeBytes(killcmd);
             System.out.print(din.readLine() + "\n");
-            mRemotepid = 0;
+
 
             mSock.close();
             setStatus(stIdle);
+
             // setConnectStatus(false);
             // // if (listener != null) {
             // listener.handleStatusChanged(false);
@@ -129,6 +130,8 @@ public final class QconnLogSource extends LogSource {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        mRemotepid = 0;
+        mSock = null;
 
     }
 }

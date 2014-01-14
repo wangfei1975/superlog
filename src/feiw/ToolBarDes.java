@@ -50,7 +50,7 @@ public final class ToolBarDes {
     @SuppressWarnings("serial")
     static public final ArrayList<ToolBarDes> TOOBARS = new ArrayList <ToolBarDes>(5){ {
         add(new ToolBarDes(TBN_FILE, new ToolItemDes [] { 
-                new ToolItemDes(TN_CONNECT,   "Connect to a QCONN device", Resources.connectDevice_32, SWT.PUSH),
+                new ToolItemDes(TN_CONNECT,   "Connect to a QCONN device", Resources.connected_32, SWT.PUSH),
                 new ToolItemDes(TN_OPEN,      "Open a Log file", Resources.openfile_32, SWT.PUSH),
                 new ToolItemDes(TN_FILTER,    "Open a Filted view", Resources.filter_32, SWT.PUSH),
         }));

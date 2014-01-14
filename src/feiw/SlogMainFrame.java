@@ -64,6 +64,9 @@ public final class SlogMainFrame {
         return mShell;
     }
     
+    ToolItem getToolItem(String name) {
+        return mToolItems.get(name);
+    }
     public SlogMainFrame(String caption, Display disp) {
         mDisplay = disp;
         mShell = new Shell(disp);
@@ -98,17 +101,50 @@ public final class SlogMainFrame {
     
     void createToolBars() {
         mCoolBar = new CoolBar(getShell(), SWT.FLAT);
-      //  mCoolBar.setBackground(new Color(getDisplay(), 255,255,255));
+        mCoolBar.setBackground(new Color(getDisplay(), 255,255,255));
         mCoolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 4, 1));
         for (ToolBarDes tdes : ToolBarDes.TOOBARS) {
             createToolBar(tdes);
         }
+
+        mToolItems.get(ToolBarDes.TN_NEXT).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+             
+                    SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                    if (tbf != null) {
+                        tbf.onNext();
+                    }
+            
+            }
+           
+        });
+        
+        mToolItems.get(ToolBarDes.TN_PREV).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+  
+                    SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                    if (tbf != null) {
+                        tbf.onPrev();
+                    }
+          
+            }
+           
+        });
+        
         
         mToolItems.get(ToolBarDes.TN_SEARCH).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 SearchDlg d = new SearchDlg(Slogmain.getApp().getMainFrame().getShell());
-                d.open();
+                String txt = d.open();
+                if (txt != null && !(txt.trim().isEmpty())) {
+                    SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                    if (tbf != null) {
+                        tbf.onSearch(txt,  d.isCaseSenstive());
+                    }
+                }
             }
            
         });
@@ -173,6 +209,25 @@ public final class SlogMainFrame {
             public void widgetSelected(SelectionEvent e) {
                 SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
                 tbf.getLogView().clear();
+            }
+        });
+        
+        mToolItems.get(ToolBarDes.TN_PAUSE).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                if (tbf != null) {
+                    tbf.onPause();
+                }
+            }
+        });
+        mToolItems.get(ToolBarDes.TN_DISCONNECT).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                if (tbf != null) {
+                    tbf.onDisconnect();
+                }
             }
         });
  
@@ -242,6 +297,8 @@ public final class SlogMainFrame {
                 }
             }
         });
+        
+        mTabFolder.setFocus();
 
         getShell().setSize(1200, 800);
      

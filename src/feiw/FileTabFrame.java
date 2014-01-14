@@ -10,7 +10,7 @@ public class FileTabFrame extends SlogTabFrame {
 
     public FileTabFrame(CTabFolder parent, String txt, int style, String fname) {
         super(parent, txt, style, new FileLogSource(fname), null);
-        setImage(Resources.file_16);
+        setImage(Resources.openfile_32);
     }
     
     void updateToolItem(ToolItem tit) {
@@ -18,7 +18,7 @@ public class FileTabFrame extends SlogTabFrame {
         if (tn == null || tn.isEmpty()) {
             tit.setEnabled(false);
             return;
-        } 
+        }
         if (tn.equals(ToolBarDes.TN_DISCONNECT)) {
             tit.setEnabled(false);  
         }  else if (tn.equals(ToolBarDes.TN_PAUSE)) {
@@ -28,6 +28,7 @@ public class FileTabFrame extends SlogTabFrame {
         } else {
             tit.setEnabled(true);
         }
+        super.updateToolItem(tit);
      }
  
 }

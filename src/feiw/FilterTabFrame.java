@@ -12,7 +12,7 @@ public class FilterTabFrame extends SlogTabFrame {
     public FilterTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc,
             LogFilter logFilter) {
         super(parent, txt, style, logsrc, logFilter);
-        setImage(Resources.filter_16);
+        setImage(Resources.filter_32);
     }
     
     void updateToolItem(ToolItem tit) {

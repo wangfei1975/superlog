@@ -7,6 +7,7 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -35,17 +36,15 @@ import feiw.LogSource.LogListener;
 import feiw.LogSource.LogView;
 import feiw.LogSource.StatusListener;
 
-public class SlogTabFrame extends CTabItem implements LogListener, StatusListener{
+public class SlogTabFrame extends CTabItem implements LogListener{
  
     private SlogTable mTable;
     private LogView mLogView;
     protected LogSource mLogSrc;
     private Label mLineCountLabel;
-    private Label mStatusLabel;
     
     public void onClose() {
         mLogSrc.removeLogView(mLogView);
-        mLogSrc.removeStatusListener(this);
     }
     public LogView getLogView() {
         return mLogView;
@@ -96,7 +95,14 @@ public class SlogTabFrame extends CTabItem implements LogListener, StatusListene
       }
     
     void updateToolItem(ToolItem tit) {
-        tit.setEnabled(false);
+        String tn = (String)tit.getData();
+        if (tn == null || tn.isEmpty()) {
+            tit.setEnabled(false);
+            return;
+        } 
+        if (tn.equals(ToolBarDes.TN_COPY) || tn.equals(ToolBarDes.TN_COPYALL)) {
+          tit.setEnabled(mTable.getSelectionCount() > 0);    
+        } 
     }
 
     void createToolItems(ToolBar tb) {
@@ -191,17 +197,17 @@ public class SlogTabFrame extends CTabItem implements LogListener, StatusListene
         mTable = tb;
        
         
-        mStatusLabel = new Label(com, SWT.BORDER_SOLID|SWT.ICON);
-        mStatusLabel.setImage(logsrc.getStatus() == LogSource.stConnected ? Resources.connected_16 :Resources.disconnected_16);
+  //      mStatusLabel = new Label(com, SWT.BORDER_SOLID|SWT.ICON);
+//        mStatusLabel.setImage(logsrc.getStatus() == LogSource.stConnected ? Resources.connected_16 :Resources.disconnected_16);
 
-        mStatusLabel.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1));
-        mStatusLabel.setAlignment(SWT.LEFT);
+    //    mStatusLabel.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1));
+    //    mStatusLabel.setAlignment(SWT.LEFT);
         
         
-         Label lb = new Label(com, SWT.SEPARATOR);
-         GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
-         gd.heightHint = 16;
-         lb.setLayoutData(gd);
+      //   Label lb = new Label(com, SWT.SEPARATOR);
+        // GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
+        // gd.heightHint = 16;
+        // lb.setLayoutData(gd);
         
          mLineCountLabel = new Label(com, SWT.BORDER);
          mLineCountLabel.setText("0 lines of log");
@@ -210,10 +216,28 @@ public class SlogTabFrame extends CTabItem implements LogListener, StatusListene
         setControl(com);
         mLogSrc = logsrc;
         mLogView = mLogSrc.newLogView(this, logFilter);
-        mLogSrc.addStatusListener(this);
         mTable.setLogView(mLogView);
         
-//        mTable.addSelectionListener()
+        mTable.addSelectionListener(new SelectionListener() {
+
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (mTable.getSelectionCount() > 0) {
+                  Slogmain.getApp().getMainFrame().getToolItem(ToolBarDes.TN_COPY).setEnabled(true);
+                  Slogmain.getApp().getMainFrame().getToolItem(ToolBarDes.TN_COPYALL).setEnabled(true);
+                } else {
+                    Slogmain.getApp().getMainFrame().getToolItem(ToolBarDes.TN_COPY).setEnabled(false);
+                    Slogmain.getApp().getMainFrame().getToolItem(ToolBarDes.TN_COPYALL).setEnabled(false);
+                }
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+                // TODO Auto-generated method stub
+                
+            }
+            
+        });
  
     }
     @Override
@@ -235,8 +259,7 @@ public class SlogTabFrame extends CTabItem implements LogListener, StatusListene
                 mTable.setRedraw(true);
                 mTable.setItemCount(cnt);
                 mLogView.setChangeFlag(false);
-                
-                //mLogger.resetChangeFlag();
+
                 if (cnto != cnt) {
                     mTable.setTopIndex(cnt - 2);
                     mLineCountLabel.setText("" + cnt + " lines of log");
@@ -248,38 +271,90 @@ public class SlogTabFrame extends CTabItem implements LogListener, StatusListene
             }
         });
     }
-    @Override
-    public void onStatusChanged(int oldStatus, int newStatus) {
-        if (getDisplay().isDisposed() || mStatusLabel.isDisposed()) {
+
+    public void onPause() {
+        
+    }
+    public void onDisconnect() {
+        
+    }
+    
+    public void onNext() {
+        if (mLogView.getSearchResults() <= 0 || mTable.isDisposed()) {
             return;
         }
-        final Image img ;
-        switch(newStatus) {
-        case LogSource.stIdle:
-            img = Resources.disconnected_16;
-            break;
-        case LogSource.stConnecting:
-            img = Resources.disconnected_16;
-            break;
-        case LogSource.stConnected:
-            img = Resources.connected_16;
-            break;
-         default:
-             img = Resources.connected_16;
-                break;
+        int sel = mTable.getSelectionIndex();
+        if (sel < 0) {
+            sel = mTable.getTopIndex();
         }
-       
-        getDisplay().asyncExec(new Runnable() {
-            @Override
-            public void run() {
-                if (!mStatusLabel.isDisposed()) {
-                    mStatusLabel.setImage(img);
-                    mStatusLabel.update();
-                }
+        int n =  mLogView.getNextSearchResult(sel+1);
+        if (n >= 0) {
+            
+            mTable.select(n, n);
+            if (n < mTable.getTopIndex() || n >= getTableVisibleCount()) {
+                mTable.setTopIndex(n);
             }
-           }
-       );
-       
+        }
+    }
+    
+    public void onPrev() {
+        if (mLogView.getSearchResults() <= 0) {
+            return;
+        }
+    }
+
+    private int getTableVisibleCount() {
+        Rectangle rect = mTable.getClientArea ();
+        int itemHeight = mTable.getItemHeight ();
+        int headerHeight = mTable.getHeaderHeight ();
+        return (rect.height - headerHeight - itemHeight - 1) / itemHeight;
+    }
+    
+    public void onSearch(String txt, boolean caseSensitive) {
+        mLogView.search(txt, caseSensitive);
+    }
+    @Override
+    public void onSearchResult() {
+ //       Display display = getDisplay();
+     //   display.asyncExec(new Runnable() {
+       //     @Override
+        //    public void run() {
+                if (mTable.isDisposed())
+                    return;
+                if (!mLogView.getChangedFlag())
+                    return;
+                
+                int top = mTable.getTopIndex();
+
+                if (mLogView.getSearchResults() == 0) {
+                    mTable.setItemCount(0);
+                    mTable.setRedraw(true);
+                    mTable.setItemCount(mLogView.size());
+                    mLogView.setChangeFlag(false);
+                    mTable.setTopIndex(top);
+                  
+                } else {
+                    int first = mLogView.getNextSearchResult(0);
+
+                    if (first >= 0) {
+                        mTable.setItemCount(0);
+                        mTable.setRedraw(true);
+                        mTable.setItemCount(mLogView.size());
+                        mLogView.setChangeFlag(false);
+                        int visibleCount = getTableVisibleCount();
+                        
+                        if (first < top || first >= top + visibleCount) {
+                            mTable.setTopIndex(first);
+                        } else {
+                            mTable.setTopIndex(top);
+                        }
+                        mTable.select(first);
+                        mTable.setFocus();
+                    }
+                }
+                
+         //   }
+       // });
     }
     
 }

@@ -20,6 +20,7 @@ public class LogSource {
     }
     public interface LogListener {
         public void  onLogChanged();
+        public void  onSearchResult();
     }
     
     public interface StatusListener {
@@ -75,14 +76,18 @@ public class LogSource {
         public int searchMarker = 0;
         private int mLevel = 7;
         
-        
+ 
         public String getText(int i) {
             if (texts != null && i >= 0 && i < texts.length) {
                 return texts[i];
             }
             return null;
         }
-
+        public LogItem(LogItem o) {
+            texts = o.texts;
+            mLevel = o.mLevel;
+            searchMarker = 0;
+        }
         public LogItem(String str) {
             String[] seperator = { "    ", " ", " ", " " };
             String[] ret = new String[5];
@@ -157,7 +162,7 @@ public class LogSource {
             for (LogItem it:source) {
                 if (filter.filterLog(it)) {
                     setChangeFlag(true);
-                    mFilteredItems.add(it);
+                    mFilteredItems.add(new LogItem(it));
                 }
             }
             if (mFilteredItems.size() > 0) {
@@ -173,13 +178,13 @@ public class LogSource {
                     mListener.onLogChanged();
                 }
             } else if (mFilter.filterLog(item)) {
-                mFilteredItems.add(item);
+                mFilteredItems.add(new LogItem(item));
                 if (notifylistner) {
                     mListener.onLogChanged();
                 }
             }
         }
-        
+ 
         public void clear() {
             mFilteredItems.clear();
             setChangeFlag(true);
@@ -191,6 +196,73 @@ public class LogSource {
         }
         public LogItem getLog(int index) {
             return mFilteredItems.get(index);
+        }
+        
+        
+        private int mSearchResults = 0;
+        private int mFirstMatchItem = 0;
+        
+        public int getSearchResults() {
+            return mSearchResults;
+        }
+        public int getNextSearchResult(int start) {
+            if (mSearchResults <= 0) {
+                return -1;
+            }
+            if (start <= mFirstMatchItem) {
+                return mFirstMatchItem;    
+            }
+            for (int i = start; i< mFilteredItems.size(); i++) {
+                if (mFilteredItems.get(i).searchMarker == 1) {
+                    return i;
+                }
+            }
+            
+            for (int i = 0; i < start; i++) {
+                if (mFilteredItems.get(i).searchMarker == 1) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        
+ 
+        private static boolean strContains(String str, String sub, boolean caseSenstive) {
+            if (!caseSenstive) {
+                str.toLowerCase();
+                sub.toLowerCase();
+            }
+            return str.contains(sub);
+        }
+
+        public void search(String txt, boolean caseSenstive) {
+            if (mFilteredItems == null || mFilteredItems.size() <= 0) {
+                return;
+            }
+            int results = 0;
+            int firstMatch = -1;
+            int index = 0;
+            for (LogItem it : mFilteredItems) {
+                it.searchMarker = 0;
+                String slog = it.getText(4);
+                if (slog != null) {
+                    if (strContains(slog, txt, caseSenstive)) {
+                        it.searchMarker = 1;
+                        results++;
+                        if (firstMatch < 0) {
+                            firstMatch = index;
+                        }
+                    }
+                }
+                index ++;
+
+            }
+            if (results > 0 || results != mSearchResults) {
+                mSearchResults = results;
+                mFirstMatchItem = firstMatch;
+                setChangeFlag(true);
+                mListener.onSearchResult();
+            }
         }
     }
     
@@ -217,6 +289,7 @@ public class LogSource {
         
     }
 
+ 
     List <LogItem> mItems = (List <LogItem>) Collections.synchronizedList(new ArrayList <LogItem>(10000));
     List <LogView> mViews = (List <LogView>) Collections.synchronizedList(new ArrayList <LogView>(5));
     

@@ -76,7 +76,7 @@ public final class SlogTable extends Table {
 
                 if (log.getSearchMarker() != 0) {
                     item.setBackground(cfgs.getSearchMarkerBackground());
-                    item.setImage(Resources.search_32);
+                    item.setImage(Resources.search_16);
                 }
             }
         });
