@@ -13,6 +13,8 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -85,6 +87,7 @@ public final class SlogMainFrame {
         for (ToolItemDes itdes : tbdes.mItems) {
             ToolItem it = new ToolItem(tb, itdes.mStyle);
             it.setData(itdes.mName);
+            it.setData("KeyAccelerator", new Integer(itdes.mKeyAccelerator));
             it.setToolTipText(itdes.mTipText);
             it.setImage(itdes.mImage);
             it.setDisabledImage(new Image(getDisplay(), itdes.mImage, SWT.IMAGE_GRAY));
@@ -243,6 +246,8 @@ public final class SlogMainFrame {
             tit.setEnabled(true);
         } else if (tn.equals(ToolBarDes.TN_OPEN)) {
             tit.setEnabled(true);
+        } else if (tn.equals(ToolBarDes.TN_PREFERENCE)) {
+            tit.setEnabled(true);
         } else {
             tit.setEnabled(false);
         }
@@ -302,7 +307,29 @@ public final class SlogMainFrame {
         });
         
         mTabFolder.setFocus();
-
+        getDisplay().addFilter(SWT.KeyDown, new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                
+                for (ToolItem it : mToolItems.values()) {
+                    if (it.isEnabled()) {
+                        Integer key = (Integer) it.getData("KeyAccelerator");
+                        if (key.intValue() == (e.stateMask|e.keyCode)) {
+                            it.notifyListeners(SWT.Selection, null);
+                        }
+                        
+                    }
+                }
+                /*
+                if(((e.stateMask & SWT.COMMAND) == SWT.COMMAND) && (e.keyCode == 'f')) {
+                    ToolItem it =  mToolItems.get(ToolBarDes.TN_SEARCH);
+                    if (it.isEnabled()) {
+                        mToolItems.get(ToolBarDes.TN_SEARCH).notifyListeners(SWT.Selection, null);
+                    }
+                }
+                */
+            }});
+        
         getShell().setSize(1200, 800);
      
         return getShell();

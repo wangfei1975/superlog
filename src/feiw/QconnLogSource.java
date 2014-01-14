@@ -109,7 +109,7 @@ public final class QconnLogSource extends LogSource {
             // out.writeBytes(killcmd);
 
             // System.out.print(din.readLine() + "\n");
-            String killcmd = "start slay sloginfo " + mRemotepid + "\r\n";
+            String killcmd = "start slay -f sloginfo " + mRemotepid + "\r\n";
             System.out.print(killcmd);
             out.writeBytes(killcmd);
             System.out.print(din.readLine() + "\n");

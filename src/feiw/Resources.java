@@ -28,6 +28,8 @@ public final class Resources {
     public static Image copyall_32 = null;
     public static Image save_32 = null;
     public static Image search_16 = null;
+    public static Image config_32 = null;
+    public static Image help_32 = null;
     
     public static ArrayList <Image> mIcons = new ArrayList<Image> (30);
  
@@ -59,6 +61,8 @@ public final class Resources {
         copyall_32 = loadIcon(ctx, "copyall_32");
         save_32 = loadIcon(ctx, "save_32");
         search_16 = loadIcon(ctx, "search_16");
+        config_32 = loadIcon(ctx, "config_32");
+        help_32 = loadIcon(ctx, "help_32");
     }
 
     static void freeResources(AppContext ctx) {
