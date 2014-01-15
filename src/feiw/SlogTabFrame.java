@@ -39,9 +39,10 @@ import feiw.LogSource.StatusListener;
 public class SlogTabFrame extends CTabItem implements LogListener{
  
     private SlogTable mTable;
-    protected LogView mLogView;
+    protected LogView mLogView = null;
     protected LogSource mLogSrc;
     private Label mLineCountLabel;
+    private Label mSearchResult;
     
     public void onClose() {
         mLogSrc.removeLogView(mLogView);
@@ -206,14 +207,17 @@ public class SlogTabFrame extends CTabItem implements LogListener{
     //    mStatusLabel.setAlignment(SWT.LEFT);
         
         
-      //   Label lb = new Label(com, SWT.SEPARATOR);
-        // GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
-        // gd.heightHint = 16;
-        // lb.setLayoutData(gd);
-        
          mLineCountLabel = new Label(com, SWT.BORDER);
-         mLineCountLabel.setText("0 lines of log");
-         mLineCountLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+         mLineCountLabel.setText("0 lines of log          ");
+         mLineCountLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+         
+         Label lb = new Label(com, SWT.SEPARATOR);
+         GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
+         gd.heightHint = 16;
+         lb.setLayoutData(gd);
+        
+         mSearchResult = new Label(com, SWT.BORDER);
+         mSearchResult.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
         
         setControl(com);
         mLogSrc = logsrc;
@@ -244,7 +248,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
             public void run() {
                 if (mTable.isDisposed())
                     return;
-                if (!mLogView.getChangedFlag())
+                if (!mLogView.getChangedFlag() ||  mLogView.isPaused())
                     return;
                 
                 int cnt = mLogView.size(); 
@@ -259,7 +263,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                 if (cnto != cnt) {
                     mTable.setTopIndex(cnt - 2);
                     mLineCountLabel.setText("" + cnt + " lines of log");
-                    mLineCountLabel.update();
+//                    mLineCountLabel.update();
                    // String txt = "" + cnt + " lines of log";
                    // mStatusLabelLogs.setText(txt);
                   //  mStatusLabelLogs.update();
@@ -269,7 +273,17 @@ public class SlogTabFrame extends CTabItem implements LogListener{
     }
 
     public void onPause() {
-        
+        if (!isDisposed()) {
+            if (mLogView.isPaused()) {
+                setImage(Resources.connected_32);
+                mLogView.resume();
+                
+            } else {
+                setImage(Resources.pause_32);
+                mLogView.pause();
+            }
+            Slogmain.getApp().getMainFrame().updateToolBars(this);
+        }
     }
     public void onDisconnect() {
 
@@ -334,7 +348,8 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                 
                 int top = mTable.getTopIndex();
 
-                if (mLogView.getSearchResults() == 0) {
+                int nresults = mLogView.getSearchResults();
+                if (nresults == 0) {
                     mTable.setItemCount(0);
                     mTable.setRedraw(true);
                     mTable.setItemCount(mLogView.size());
@@ -359,6 +374,8 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                         mTable.select(first);
                         mTable.setFocus();
                     }
+                    
+                    mSearchResult.setText("found " + nresults + " lines");
                 }
                 Slogmain.getApp().getMainFrame().updateToolBars(this);
                 

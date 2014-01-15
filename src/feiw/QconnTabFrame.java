@@ -74,21 +74,7 @@ public class QconnTabFrame extends SlogTabFrame implements  StatusListener {
        );
        
     }
-    
 
-    public void onPause() {
-        if (!isDisposed()) {
-            if (mLogView.isPaused()) {
-                setImage(Resources.connected_32);
-                mLogView.resume();
-                
-            } else {
-                setImage(Resources.pause_32);
-                mLogView.pause();
-            }
-            Slogmain.getApp().getMainFrame().updateToolBars(this);
-        }
-    }
     
     public void onDisconnect() {
         if (!isDisposed()) {

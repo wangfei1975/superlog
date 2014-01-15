@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Display;
 
 public final class SystemConfigs {
 
-    public static final int MIN_NOTIFY_COUNT = 100;
+    public static final int MIN_NOTIFY_COUNT = 300;
     
     public static final class LogUrl {
         public String scheme;
