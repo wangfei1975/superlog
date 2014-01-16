@@ -126,12 +126,10 @@ public final class SlogMainFrame {
         mToolItems.get(ToolBarDes.TN_PREV).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-  
                     SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
                     if (tbf != null) {
                         tbf.onPrev();
                     }
-          
             }
            
         });
@@ -145,7 +143,7 @@ public final class SlogMainFrame {
                 if (txt != null && !(txt.trim().isEmpty())) {
                     SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
                     if (tbf != null) {
-                        tbf.onSearch(txt,  d.isCaseSenstive());
+                        tbf.onSearch(txt.trim(),  d.isCaseSenstive());
                     }
                 }
             }
@@ -160,7 +158,6 @@ public final class SlogMainFrame {
                 if (dlg.open() == 1) {
                     QconnTabFrame ltab = new QconnTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, dlg.getIp(), dlg.getPort());
                     mTabFolder.setSelection(ltab);
-                    updateToolBars(ltab);
                 }
             }
         });
@@ -195,15 +192,18 @@ public final class SlogMainFrame {
         mToolItems.get(ToolBarDes.TN_FILTER).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
-                FilterTabFrame ltab = new FilterTabFrame(mTabFolder, "Filter[" + tbf.getText() + "]", SWT.FLAT|SWT.CLOSE|SWT.ICON, tbf.getLogSource(), new LogFilter() {
-                    @Override
-                    public boolean filterLog(LogItem item) {
-                        return (item.getLevel() <= 5);
-                     }
-                });
-                mTabFolder.setSelection(ltab);
-                updateToolBars(ltab);
+                FilterDlg fdlg = new FilterDlg(getShell());
+                if (fdlg.open() == SWT.OK) {
+                    SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                    LogFilter f1 = LogFilter.newLogFilter(LogFilter.FIELD_LEVEL, LogFilter.OP_LESSTHEN, Integer.valueOf(7));
+                    LogFilter f2 = LogFilter.newLogFilter(LogFilter.FIELD_CONTENT, LogFilter.OP_CONTAINS, "avi");
+                   LogFilter f = f1.and(f2);
+                    FilterTabFrame ltab = new FilterTabFrame(mTabFolder, "\"" + f.getName() + "\" on [" + tbf.getText() + "]", SWT.FLAT|SWT.CLOSE|SWT.ICON, tbf.getLogSource(), 
+                             f);
+                    mTabFolder.setSelection(ltab);
+                    updateToolBars(ltab);    
+                }
+                
             }
         });
         
@@ -280,7 +280,7 @@ public final class SlogMainFrame {
             public void widgetSelected(SelectionEvent e) {
                   if (e.item instanceof SlogTabFrame) {
                       SlogTabFrame it = (SlogTabFrame)e.item;
-                      updateToolBars(it);
+//                      updateToolBars(it);
                   }
             }
 
@@ -288,7 +288,7 @@ public final class SlogMainFrame {
             public void widgetDefaultSelected(SelectionEvent e) {
                 if (e.item instanceof SlogTabFrame) {
                     SlogTabFrame it = (SlogTabFrame)e.item;
-                    updateToolBars(it);
+  //                  updateToolBars(it);
                 }
             }
  

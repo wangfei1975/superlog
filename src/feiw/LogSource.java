@@ -4,8 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -14,10 +18,97 @@ public class LogSource {
     public static final int stConnecting = 1;
     public static final int stConnected = 2;
 
-    public interface LogFilter {
-        public boolean filterLog(LogItem item);
+    
+    public static abstract class LogFilter {
+        public static final String OP_EQUALS = "=";
+        public static final String OP_CONTAINS = "contains";
+        public static final String OP_GREATERTHAN = ">";
+        public static final String OP_LESSTHEN = "<";
+        public static final String FIELD_LEVEL = "level";
+        public static final String FIELD_TIME = "time";
+        public static final String FIELD_CONTENT = "content";
+        
+        public abstract boolean filterLog(LogItem item);
+        
+        String mName;
+        LogFilter(String n) {
+            mName = n;
+        }
+        
+        String getName() {
+            return mName;
+        }
+        
+        public LogFilter and(final LogFilter f) {
+            return new LogFilter(getName() + " and " + f.getName()) {
+                @Override
+                public boolean filterLog(LogItem item) {
+                   return LogFilter.this.filterLog(item) && f.filterLog(item);
+                }
+            };
+        }
+        
+        public  LogFilter or(final LogFilter f) {
+            return new LogFilter(getName() + " or " + f.getName()) {
+                @Override
+                public boolean filterLog(LogItem item) {
+                   return LogFilter.this.filterLog(item) || f.filterLog(item);
+                }
+            };
+        }
+            public static LogFilter newLogFilter(String field, String op, final Object dstObj) {
+            if (FIELD_LEVEL.equals(field)) {
+                if (OP_EQUALS.equals(op)) {
+                    return new LogFilter(field + " " + op + " " + dstObj) {
+                        @Override
+                        public boolean filterLog(LogItem item) {
+                            return item.getLevel() == ((Integer)dstObj).intValue();
+                        }
+                    };
+                } else if (OP_GREATERTHAN.equals(op)) {
+                    return new LogFilter(field + " " + op + " " + dstObj) {
+                        @Override
+                        public boolean filterLog(LogItem item) {
+                            return item.getLevel() > ((Integer)dstObj).intValue();
+                        }
+                        
+                    };
+                } else if (OP_LESSTHEN.equals(op)) {
+                    return new LogFilter(field + " " + op + " " + dstObj) {
+                        @Override
+                        public boolean filterLog(LogItem item) {
+                            return item.getLevel() < ((Integer)dstObj).intValue();
+                        }
+                        
+                    };
+                }
+            } else if (FIELD_TIME.equals(field)) {
+                if (OP_EQUALS.equals(op)) {
+                    
+                } else if (OP_CONTAINS.equals(op)) {
+                    
+                } else if (OP_GREATERTHAN.equals(op)) {
+                    
+                } else if (OP_LESSTHEN.equals(op)) {
+                    
+                }
+                
+            } else if (FIELD_CONTENT.equals(field)) {
+                if (OP_CONTAINS.equals(op)) {
+                    return new LogFilter(field + " " + op + " " + dstObj) {
+                        private final StringPattern mPat = new StringPattern((String)dstObj, false);
+                        @Override
+                        public boolean filterLog(LogItem item) {
+                            return mPat.isContainedBy(item.getText()) >= 0;
+                        }
+                    };
+                }
+            }
+            return null;
+        }
+        
     }
-
+ 
     public interface LogListener {
         public void onLogChanged();
 
@@ -52,8 +143,25 @@ public class LogSource {
             mStatus = st;
         }
     }
-
     protected void fetchLogs(InputStream is) throws IOException {
+        BufferedReader din = new BufferedReader(new InputStreamReader(is));
+        String str = din.readLine();
+        long start_time = System.currentTimeMillis();
+        while (str != null) {
+            if (!str.isEmpty()) {
+                LogItem it = new LogItem(str);
+                long curtime = System.currentTimeMillis();
+                if (is.available() < 1 || curtime - start_time > 100) {
+                    addLogItem(it, true);
+                    start_time = curtime;
+                } else {
+                    addLogItem(it, false);
+                }
+            }
+            str = din.readLine();
+        }
+    }
+    protected void fetchLogsoo(InputStream is) throws IOException {
         BufferedReader din = new BufferedReader(new InputStreamReader(is));
         String str = din.readLine();
         int newlines = 0;
@@ -73,29 +181,33 @@ public class LogSource {
     }
 
     public static final class LogItem {
-        public String[] texts;
-        public int searchMarker = 0;
+        private final String[] texts;
+        private Date   mTime;
+        static final SimpleDateFormat mDfmt = new SimpleDateFormat("MMM dd HH:mm:ss.SSS");
+        static final SimpleDateFormat mDfmts = new SimpleDateFormat("MMM dd HH:mm:ss");
+        static private SimpleDateFormat mParser = mDfmt;
         private int mLevel = 7;
 
+        Date getTime() {
+            return mTime;
+        }
+        
+        public String getText() {
+            return texts[4];
+        }
         public String getText(int i) {
-            if (texts != null && i >= 0 && i < texts.length) {
+            if (i >= 0 && i < texts.length) {
                 return texts[i];
             }
             return null;
         }
 
-        public LogItem(LogItem o) {
-            texts = o.texts;
-            mLevel = o.mLevel;
-            searchMarker = 0;
-        }
-
-        public LogItem(String str) {
-            String[] seperator = { "    ", " ", " ", " " };
-            String[] ret = new String[5];
+       static final String[] seperator = { "    ", " ", " ", " " };
+        public LogItem(final String str) {
+            final String [] ret = new String[5];
             texts = ret;
-
             int idx = 0, nextidx;
+            final int slen = str.length();
             for (int i = 0; i < 4; i++) {
                 nextidx = str.indexOf(seperator[i], idx);
                 if (nextidx <= 0) {
@@ -105,14 +217,25 @@ public class LogSource {
                 }
                 ret[i] = str.substring(idx, nextidx);
                 idx = nextidx + seperator[i].length();
-                while (str.length() > idx && str.charAt(idx) == ' ')
+                while (slen > idx && str.charAt(idx) == ' ')
                     idx++;
             }
             ret[4] = str.substring(idx);
-            if (ret[1] != null && !ret[1].isEmpty()) {
+            if (!ret[1].isEmpty()) {
                 mLevel = ret[1].charAt(0) - '0';
                 if (mLevel < 0 || mLevel > 7) {
                     mLevel = 6;
+                }
+            }
+
+            try {
+                mTime = mParser.parse(ret[0]);
+            } catch (ParseException e) {
+                try {
+                    mParser = mDfmts;
+                    mTime = mParser.parse(ret[0]);
+                } catch (ParseException e1) {
+                    mTime = null;
                 }
             }
         }
@@ -128,10 +251,6 @@ public class LogSource {
             return 0;
         }
 
-        public int getSearchMarker() {
-            return searchMarker;
-        }
-
         public int getLevel() {
             return mLevel;
         }
@@ -141,11 +260,14 @@ public class LogSource {
         private List<LogItem> mFilteredItems;
         private LogListener mListener = null;
         private LogFilter mFilter = null;
-        private String mSearchStr = null;
-        private boolean mSearchCase = false;
+        private StringPattern mSearchPattern = null;
+
         private AtomicBoolean mLogChanged = new AtomicBoolean(false);
         private AtomicBoolean mPaused = new AtomicBoolean(false);
 
+        public final String getSearchPattern() {
+            return mSearchPattern.toString();
+        }
         public boolean isPaused() {
             return mPaused.get();
         }
@@ -184,31 +306,32 @@ public class LogSource {
                 return;
             }
             mFilteredItems = (List<LogItem>) Collections.synchronizedList(new ArrayList<LogItem>(
-                    1000));
+                    10000));
+ 
             synchronized (source) {
                 for (LogItem it : source) {
                     if (filter.filterLog(it)) {
-                        mFilteredItems.add(new LogItem(it));
+                        mFilteredItems.add(it);
                     }
                 }
             }
+ 
             if (mFilteredItems.size() > 0) {
                 notifyListener();
             }
         }
-
+        
+        public boolean isSearchResults(final LogItem item) {
+            if (mSearchPattern != null) {
+                return mSearchPattern.isContainedBy(item.getText()) >= 0;
+            }
+            return false;
+        }
         public void add(LogItem item, boolean notifylistner) {
             if (mFilter == null) {
-                if (mSearchStr != null && !mSearchStr.isEmpty()) {
-                    String slog = item.getText(4);
-                    if (slog != null) {
-                        if (strContains(slog, mSearchStr, mSearchCase)) {
-                            item.searchMarker = 1;
-                            mSearchResults++;
-                        }
-                    }
+                if (isSearchResults(item)) {
+                    mSearchResults++;
                 }
-
                 if (notifylistner) {
                     // System.out.println("notifiy listener. log size = " +
                     // mFilteredItems.size());
@@ -216,17 +339,10 @@ public class LogSource {
 
                 }
             } else if (mFilter.filterLog(item)) {
-                LogItem ni = new LogItem(item);
-                if (mSearchStr != null && !mSearchStr.isEmpty()) {
-                    String slog = ni.getText(4);
-                    if (slog != null) {
-                        if (strContains(slog, mSearchStr, mSearchCase)) {
-                            ni.searchMarker = 1;
-                            mSearchResults++;
-                        }
-                    }
+                if (isSearchResults(item)) {
+                    mSearchResults++;
                 }
-                mFilteredItems.add(ni);
+                mFilteredItems.add(item);
                 if (notifylistner) {
                     notifyListener();
                 }
@@ -247,7 +363,7 @@ public class LogSource {
             return mFilteredItems.get(index);
         }
 
-        private int mSearchResults = 0;
+        private int mSearchResults = -1;
 
         public int getSearchResults() {
             return mSearchResults;
@@ -262,12 +378,12 @@ public class LogSource {
                     start = mFilteredItems.size() - 1;
                 }
                 for (int i = start; i >= 0; i--) {
-                    if (mFilteredItems.get(i).searchMarker == 1) {
+                    if (isSearchResults(mFilteredItems.get(i))) {
                         return i;
                     }
                 }
                 for (int i = mFilteredItems.size() - 1; i > start; i--) {
-                    if (mFilteredItems.get(i).searchMarker == 1) {
+                    if (isSearchResults(mFilteredItems.get(i))) {
                         return i;
                     }
                 }
@@ -281,13 +397,13 @@ public class LogSource {
             }
             synchronized (mFilteredItems) {
                 for (int i = start; i < mFilteredItems.size(); i++) {
-                    if (mFilteredItems.get(i).searchMarker == 1) {
+                    if (isSearchResults(mFilteredItems.get(i))) {
                         return i;
                     }
                 }
 
                 for (int i = 0; i < start; i++) {
-                    if (mFilteredItems.get(i).searchMarker == 1) {
+                    if (isSearchResults(mFilteredItems.get(i))) {
                         return i;
                     }
                 }
@@ -295,38 +411,22 @@ public class LogSource {
             return -1;
         }
 
-        private static boolean strContains(String str, String sub, boolean caseSenstive) {
-            if (!caseSenstive) {
-                str.toLowerCase();
-                sub.toLowerCase();
-            }
-            return str.contains(sub);
-        }
-
         public void search(String txt, boolean caseSenstive) {
             if (mFilteredItems == null || mFilteredItems.size() <= 0) {
                 return;
             }
-            mSearchStr = txt;
-            mSearchCase = caseSenstive;
+            mSearchPattern = new StringPattern(txt, caseSenstive);
             int results = 0;
             synchronized (mFilteredItems) {
                 for (LogItem it : mFilteredItems) {
-                    it.searchMarker = 0;
-                    String slog = it.getText(4);
-                    if (slog != null) {
-                        if (strContains(slog, txt, caseSenstive)) {
-                            it.searchMarker = 1;
+                    if(isSearchResults(it)) {
                             results++;
-                        }
-                    }
+                     }
                 }
             }
-            if (results > 0 || results != mSearchResults) {
-                mSearchResults = results;
-                mLogChanged.set(true);
-                mListener.onSearchResult();
-            }
+            mSearchResults = results;
+            mLogChanged.set(true);
+            mListener.onSearchResult();
         }
     }
 

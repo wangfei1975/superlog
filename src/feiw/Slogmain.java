@@ -9,7 +9,11 @@ public final class Slogmain  {
     }
     
     public static void main(String[] args) {
-        mApp.run();
+        
+  //      StringPattern pt = new StringPattern("avi", false);
+//        pt.isContainedBy("a_vifdsa");
+ //       System.out.print(Character.toLowerCase('_'));
+       mApp.run();
     }
 
 }

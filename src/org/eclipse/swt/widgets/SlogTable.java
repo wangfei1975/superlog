@@ -70,11 +70,11 @@ public final class SlogTable extends Table {
                 final SystemConfigs cfgs = Slogmain.getApp().getConfigs();
                 Color bk = cfgs.getLogBackground(log.getLevel());
                 if (bk != null) {
-                item.setBackground(bk);
+                    item.setBackground(bk);
                 }
                 item.setForeground(cfgs.getLogForeground(log.getLevel()));
 
-                if (log.getSearchMarker() != 0) {
+                if (mLogView.isSearchResults(log)) {
                     item.setBackground(cfgs.getSearchMarkerBackground());
                     item.setImage(Resources.search_16);
                 }

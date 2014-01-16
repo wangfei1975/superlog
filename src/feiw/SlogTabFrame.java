@@ -238,15 +238,56 @@ public class SlogTabFrame extends CTabItem implements LogListener{
             }
             
         });
+        
+        com.addListener(SWT.Show, new Listener() {
+
+            @Override
+            public void handleEvent(Event event) {
+                
+                if (!mTable.isVisible() || mTable.isDisposed())
+                    return;
+                
+                Slogmain.getApp().getMainFrame().updateToolBars(SlogTabFrame.this);
+                
+                if (!mLogView.getChangedFlag() ||  mLogView.isPaused())
+                    return;
+                
+                int cnt = mLogView.size(); 
+                int cnto = mTable.getItemCount();
+                
+                //System.out.println("log changed old cnt = " + cnto + " new cnt = " + cnt);
+                mTable.setItemCount(0);
+                mTable.setRedraw(true);
+                mTable.setItemCount(cnt);
+                mLogView.setChangeFlag(false);
+
+                if (cnto != cnt) {
+                    mTable.setTopIndex(cnt - 2);
+                    mLineCountLabel.setText("" + cnt + " lines of log");
+                    updateUiSearchResults();
+                }
+            }
+            
+        });
  
+    }
+    
+    int mLastSearchResults = -1;
+    private void updateUiSearchResults() {
+        int nresults = mLogView.getSearchResults();
+        if (nresults != mLastSearchResults) {
+            mSearchResult.setText("Found " + nresults + " results of \"" + mLogView.getSearchPattern() + "\"");
+            mLastSearchResults  = nresults;
+        }
     }
     @Override
     public void onLogChanged() {
+ 
         Display display = getDisplay();
         display.asyncExec(new Runnable() {
             @Override
             public void run() {
-                if (mTable.isDisposed())
+                if (!mTable.isVisible() || mTable.isDisposed())
                     return;
                 if (!mLogView.getChangedFlag() ||  mLogView.isPaused())
                     return;
@@ -263,11 +304,9 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                 if (cnto != cnt) {
                     mTable.setTopIndex(cnt - 2);
                     mLineCountLabel.setText("" + cnt + " lines of log");
-//                    mLineCountLabel.update();
-                   // String txt = "" + cnt + " lines of log";
-                   // mStatusLabelLogs.setText(txt);
-                  //  mStatusLabelLogs.update();
+                    updateUiSearchResults();
                 }
+
             }
         });
     }
@@ -341,7 +380,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
      //   display.asyncExec(new Runnable() {
        //     @Override
         //    public void run() {
-                if (mTable.isDisposed())
+                if (!mTable.isVisible() || mTable.isDisposed())
                     return;
                 if (!mLogView.getChangedFlag())
                     return;
@@ -374,9 +413,8 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                         mTable.select(first);
                         mTable.setFocus();
                     }
-                    
-                    mSearchResult.setText("found " + nresults + " lines");
                 }
+                updateUiSearchResults();
                 Slogmain.getApp().getMainFrame().updateToolBars(this);
                 
          //   }

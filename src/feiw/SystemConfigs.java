@@ -71,7 +71,7 @@ public final class SystemConfigs {
     
     public Color getLogBackground(int level) {
         if (level < 5)
-        return mBackColors[level];
+            return mBackColors[level];
         else 
             return null;
     }
