@@ -15,7 +15,7 @@ import feiw.LogSource.StatusListener;
 public class QconnTabFrame extends SlogTabFrame implements  StatusListener {
 
     public QconnTabFrame(CTabFolder parent, String txt, int style, String ip, int port) {
-        super(parent, txt, style, new QconnLogSource(ip, port), null);
+        super(parent, txt, style, new QconnLogSource(ip, port), null, null);
         setImage(Resources.connected_32);
         mLogSrc.addStatusListener(this);
     }

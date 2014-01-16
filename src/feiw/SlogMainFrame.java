@@ -1,6 +1,7 @@
 package feiw;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -56,7 +57,7 @@ public final class SlogMainFrame {
 
     
     CoolBar mCoolBar = null;    
-    Map<String, ToolItem> mToolItems = new HashMap<String, ToolItem>(10);
+    List<ToolItem> mToolItems = new ArrayList<ToolItem>(10);
     CTabFolder mTabFolder;
     
     public Display getDisplay() {
@@ -67,7 +68,12 @@ public final class SlogMainFrame {
     }
     
     ToolItem getToolItem(String name) {
-        return mToolItems.get(name);
+        for (ToolItem it : mToolItems) {
+            if (name.equals(it.getData())) {
+                return it;
+            }
+        }
+         return null;
     }
     public SlogMainFrame(String caption, Display disp) {
         mDisplay = disp;
@@ -91,7 +97,7 @@ public final class SlogMainFrame {
             it.setToolTipText(itdes.mTipText);
             it.setImage(itdes.mImage);
             it.setDisabledImage(new Image(getDisplay(), itdes.mImage, SWT.IMAGE_GRAY));
-            mToolItems.put(itdes.mName, it);
+            mToolItems.add(it);
         }
         CoolItem item = new CoolItem(mCoolBar, SWT.NONE);
         Point p = tb.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -110,7 +116,7 @@ public final class SlogMainFrame {
             createToolBar(tdes);
         }
 
-        mToolItems.get(ToolBarDes.TN_NEXT).addSelectionListener(new SelectionAdapter() {
+        getToolItem(ToolBarDes.TN_NEXT).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
              
@@ -123,7 +129,7 @@ public final class SlogMainFrame {
            
         });
         
-        mToolItems.get(ToolBarDes.TN_PREV).addSelectionListener(new SelectionAdapter() {
+        getToolItem(ToolBarDes.TN_PREV).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                     SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
@@ -135,7 +141,7 @@ public final class SlogMainFrame {
         });
         
         
-        mToolItems.get(ToolBarDes.TN_SEARCH).addSelectionListener(new SelectionAdapter() {
+        getToolItem(ToolBarDes.TN_SEARCH).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 SearchDlg d = new SearchDlg(Slogmain.getApp().getMainFrame().getShell());
@@ -150,7 +156,7 @@ public final class SlogMainFrame {
            
         });
         
-        mToolItems.get(ToolBarDes.TN_CONNECT).addSelectionListener(new SelectionAdapter() {
+        getToolItem(ToolBarDes.TN_CONNECT).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 SystemConfigs.LogUrl lu = Slogmain.getApp().getConfigs().getLastLogUrl();
@@ -162,7 +168,7 @@ public final class SlogMainFrame {
             }
         });
         
-        mToolItems.get(ToolBarDes.TN_OPEN).addSelectionListener(new SelectionAdapter() {
+        getToolItem(ToolBarDes.TN_OPEN).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 FileDialog dialog = new FileDialog (getShell(), SWT.OPEN);
@@ -189,17 +195,17 @@ public final class SlogMainFrame {
             }
         });
         
-        mToolItems.get(ToolBarDes.TN_FILTER).addSelectionListener(new SelectionAdapter() {
+        getToolItem(ToolBarDes.TN_FILTER).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 FilterDlg fdlg = new FilterDlg(getShell());
                 if (fdlg.open() == SWT.OK) {
                     SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
-                    LogFilter f1 = LogFilter.newLogFilter(LogFilter.FIELD_LEVEL, LogFilter.OP_LESSTHEN, Integer.valueOf(7));
+                    LogFilter f1 = LogFilter.newLogFilter(LogFilter.FIELD_LEVEL, LogFilter.OP_LESSTHEN, Integer.valueOf(8));
                     LogFilter f2 = LogFilter.newLogFilter(LogFilter.FIELD_CONTENT, LogFilter.OP_CONTAINS, "avi");
-                   LogFilter f = f1.and(f2);
+                   LogFilter f = f1.or(f2);
                     FilterTabFrame ltab = new FilterTabFrame(mTabFolder, "\"" + f.getName() + "\" on [" + tbf.getText() + "]", SWT.FLAT|SWT.CLOSE|SWT.ICON, tbf.getLogSource(), 
-                             f);
+                             f, tbf.getLogView());
                     mTabFolder.setSelection(ltab);
                     updateToolBars(ltab);    
                 }
@@ -207,7 +213,7 @@ public final class SlogMainFrame {
             }
         });
         
-        mToolItems.get(ToolBarDes.TN_CLEAR).addSelectionListener(new SelectionAdapter() {
+        getToolItem(ToolBarDes.TN_CLEAR).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
@@ -215,7 +221,7 @@ public final class SlogMainFrame {
             }
         });
         
-        mToolItems.get(ToolBarDes.TN_PAUSE).addSelectionListener(new SelectionAdapter() {
+        getToolItem(ToolBarDes.TN_PAUSE).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
@@ -224,7 +230,7 @@ public final class SlogMainFrame {
                 }
             }
         });
-        mToolItems.get(ToolBarDes.TN_DISCONNECT).addSelectionListener(new SelectionAdapter() {
+        getToolItem(ToolBarDes.TN_DISCONNECT).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
@@ -253,7 +259,7 @@ public final class SlogMainFrame {
         }
     }
     void updateToolBars(SlogTabFrame it) {
-        for (ToolItem tit : mToolItems.values()) {
+        for (ToolItem tit : mToolItems) {
             if (it == null) {
                 updateToolItem(tit);
             } else {
@@ -275,6 +281,7 @@ public final class SlogMainFrame {
         mTabFolder.setUnselectedImageVisible(true);
         
         mTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
+        /*
         mTabFolder.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -291,9 +298,9 @@ public final class SlogMainFrame {
   //                  updateToolBars(it);
                 }
             }
- 
-            
+           
         });
+        */
         mTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
             public void close(CTabFolderEvent event) {
                 if (event.item instanceof SlogTabFrame) {
@@ -311,7 +318,7 @@ public final class SlogMainFrame {
             @Override
             public void handleEvent(Event e) {
                 
-                for (ToolItem it : mToolItems.values()) {
+                for (ToolItem it : mToolItems) {
                     if (it.isEnabled()) {
                         Integer key = (Integer) it.getData("KeyAccelerator");
                         if (key.intValue() == (e.stateMask|e.keyCode)) {

@@ -28,7 +28,7 @@ public class LogSource {
         public static final String FIELD_TIME = "time";
         public static final String FIELD_CONTENT = "content";
         
-        public abstract boolean filterLog(LogItem item);
+        public abstract boolean filterLog(final LogItem item);
         
         String mName;
         LogFilter(String n) {
@@ -42,7 +42,7 @@ public class LogSource {
         public LogFilter and(final LogFilter f) {
             return new LogFilter(getName() + " and " + f.getName()) {
                 @Override
-                public boolean filterLog(LogItem item) {
+                public boolean filterLog(final LogItem item) {
                    return LogFilter.this.filterLog(item) && f.filterLog(item);
                 }
             };
@@ -51,7 +51,7 @@ public class LogSource {
         public  LogFilter or(final LogFilter f) {
             return new LogFilter(getName() + " or " + f.getName()) {
                 @Override
-                public boolean filterLog(LogItem item) {
+                public boolean filterLog(final LogItem item) {
                    return LogFilter.this.filterLog(item) || f.filterLog(item);
                 }
             };
@@ -61,14 +61,14 @@ public class LogSource {
                 if (OP_EQUALS.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
-                        public boolean filterLog(LogItem item) {
+                        public boolean filterLog(final LogItem item) {
                             return item.getLevel() == ((Integer)dstObj).intValue();
                         }
                     };
                 } else if (OP_GREATERTHAN.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
-                        public boolean filterLog(LogItem item) {
+                        public boolean filterLog(final LogItem item) {
                             return item.getLevel() > ((Integer)dstObj).intValue();
                         }
                         
@@ -76,7 +76,7 @@ public class LogSource {
                 } else if (OP_LESSTHEN.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
-                        public boolean filterLog(LogItem item) {
+                        public boolean filterLog(final LogItem item) {
                             return item.getLevel() < ((Integer)dstObj).intValue();
                         }
                         
@@ -98,7 +98,7 @@ public class LogSource {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         private final StringPattern mPat = new StringPattern((String)dstObj, false);
                         @Override
-                        public boolean filterLog(LogItem item) {
+                        public boolean filterLog(final LogItem item) {
                             return mPat.isContainedBy(item.getText()) >= 0;
                         }
                     };
@@ -151,7 +151,7 @@ public class LogSource {
             if (!str.isEmpty()) {
                 LogItem it = new LogItem(str);
                 long curtime = System.currentTimeMillis();
-                if (is.available() < 1 || curtime - start_time > 100) {
+                if (is.available() == 0 || curtime - start_time > 100) {
                     addLogItem(it, true);
                     start_time = curtime;
                 } else {
@@ -161,7 +161,7 @@ public class LogSource {
             str = din.readLine();
         }
     }
-    protected void fetchLogsoo(InputStream is) throws IOException {
+    protected void fetchLogsaa(InputStream is) throws IOException {
         BufferedReader din = new BufferedReader(new InputStreamReader(is));
         String str = din.readLine();
         int newlines = 0;
@@ -266,7 +266,9 @@ public class LogSource {
         private AtomicBoolean mPaused = new AtomicBoolean(false);
 
         public final String getSearchPattern() {
+            if (mSearchPattern != null)
             return mSearchPattern.toString();
+            return "";
         }
         public boolean isPaused() {
             return mPaused.get();
@@ -298,24 +300,18 @@ public class LogSource {
         private LogView(LogListener listener, LogFilter filter, List<LogItem> source) {
             mListener = listener;
             mFilter = filter;
-            if (filter == null) {
-                mFilteredItems = source;
-                if (source.size() > 0) {
-                    notifyListener();
-                }
-                return;
-            }
-            mFilteredItems = (List<LogItem>) Collections.synchronizedList(new ArrayList<LogItem>(
-                    10000));
+            mFilteredItems = Collections.synchronizedList(new ArrayList<LogItem>(10000));
  
-            synchronized (source) {
-                for (LogItem it : source) {
-                    if (filter.filterLog(it)) {
-                        mFilteredItems.add(it);
+            if (source != null) {
+                synchronized (source) {
+                    for (LogItem it : source) {
+                        if (filter.filterLog(it)) {
+                            mFilteredItems.add(it);
+                        }
                     }
                 }
             }
- 
+
             if (mFilteredItems.size() > 0) {
                 notifyListener();
             }
@@ -327,18 +323,8 @@ public class LogSource {
             }
             return false;
         }
-        public void add(LogItem item, boolean notifylistner) {
-            if (mFilter == null) {
-                if (isSearchResults(item)) {
-                    mSearchResults++;
-                }
-                if (notifylistner) {
-                    // System.out.println("notifiy listener. log size = " +
-                    // mFilteredItems.size());
-                    notifyListener();
-
-                }
-            } else if (mFilter.filterLog(item)) {
+        public void add(final LogItem item, boolean notifylistner) {
+            if (mFilter == null || mFilter.filterLog(item)) {
                 if (isSearchResults(item)) {
                     mSearchResults++;
                 }
@@ -350,7 +336,8 @@ public class LogSource {
         }
 
         public void clear() {
-            mSearchResults = 0;
+            mSearchResults = -1;
+            mSearchPattern = null;
             mFilteredItems.clear();
             notifyListener();
         }
@@ -430,35 +417,32 @@ public class LogSource {
         }
     }
 
-    public void removeLogView(LogView v) {
+    public synchronized void removeLogView(LogView v) {
         mViews.remove(v);
         if (mViews.size() == 0) {
             disconnect();
         }
     }
 
-    public LogView newLogView(LogListener listener, LogFilter filter) {
-        LogView v = new LogView(listener, filter, mItems);
+    public synchronized LogView newLogView(LogListener listener, LogFilter filter, LogView parentView) {
+        LogView v = new LogView(listener, filter, parentView == null ? null:parentView.mFilteredItems);
         mViews.add(v);
         return v;
     }
 
-    public void addLogItem(LogItem item, boolean notifylistener) {
-        mItems.add(item);
-        synchronized (mViews) {
+    public synchronized void  addLogItem(final LogItem item, boolean notifylistener) {
             for (LogView v : mViews) {
                 v.add(item, notifylistener);
             }
-        }
     }
 
     public void disconnect() {
 
     }
 
-    List<LogItem> mItems = (List<LogItem>) Collections.synchronizedList(new ArrayList<LogItem>(
-            10000));
-    List<LogView> mViews = (List<LogView>) Collections.synchronizedList(new ArrayList<LogView>(5));
+   // List<LogItem> mItems = (List<LogItem>) Collections.synchronizedList(new ArrayList<LogItem>(
+     //       10000));
+    List<LogView> mViews = new ArrayList<LogView>(5);
 
     List<StatusListener> mStatusListeners = (List<StatusListener>) Collections
             .synchronizedList(new ArrayList<StatusListener>(5));

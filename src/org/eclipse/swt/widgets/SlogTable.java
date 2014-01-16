@@ -29,8 +29,10 @@ public final class SlogTable extends Table {
         super(parent, style | SWT.BORDER | SWT.VIRTUAL | SWT.MULTI);
         setLinesVisible(true);
         setHeaderVisible(true);
-        String[] title = { "Flag", "Line", "Time", "Sev", "Major", "Minor", "Args" };
-        int[] width = { 28, 50, 155, 30, 50, 50, 1000 };
+        
+        
+        final String[] title = { "Flag", "Line", "Time", "Sev", "Major", "Minor", "Args" };
+        final int[] width = { 28, 50, 155, 30, 40, 40, 1000 };
 
         for (int i = 0; i < title.length; i++) {
             TableColumn column = new TableColumn(this, SWT.NONE);
@@ -55,9 +57,9 @@ public final class SlogTable extends Table {
                     return;
                 }
 
-                TableItem item = (TableItem) e.item;
-                int index = SlogTable.this.indexOf(item);
-                LogItem log = mLogView.getLog(index);
+                final TableItem item = (TableItem) e.item;
+                final int index = SlogTable.this.indexOf(item);
+                final LogItem log = mLogView.getLog(index);
 
                 if (log == null) {
                     return;
@@ -73,7 +75,6 @@ public final class SlogTable extends Table {
                     item.setBackground(bk);
                 }
                 item.setForeground(cfgs.getLogForeground(log.getLevel()));
-
                 if (mLogView.isSearchResults(log)) {
                     item.setBackground(cfgs.getSearchMarkerBackground());
                     item.setImage(Resources.search_16);

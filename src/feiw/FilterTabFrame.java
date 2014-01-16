@@ -6,12 +6,13 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
 import feiw.LogSource.LogFilter;
+import feiw.LogSource.LogView;
 
 public class FilterTabFrame extends SlogTabFrame {
 
     public FilterTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc,
-            LogFilter logFilter) {
-        super(parent, txt, style, logsrc, logFilter);
+            LogFilter logFilter, LogView parentView) {
+        super(parent, txt, style, logsrc, logFilter, parentView);
         setImage(Resources.filter_32);
     }
     
