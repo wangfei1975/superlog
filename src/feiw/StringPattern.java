@@ -39,29 +39,13 @@ public final class StringPattern {
         }
         mTable = createTable(mPattern);
     }
+    
     public int isContainedBy(final String str) {
-        int r = -1;
         if (mCaseSenstive) {
-            r =  isCaseSenstiveContainedBy(str);
-            /*
-            if (r != str.indexOf(mOrgStr)) {
-                
-                  System.out.println("match error:: str = " + str);
-                  System.out.println("pattern =  " + mOrgStr);
-                
-            }
-            */
-        } else {
-            r =  isCaseInsenstiveContainedBy(str);
-        /*
-            if (r != str.toLowerCase().indexOf(mOrgStr.toLowerCase())) {
-            System.out.println("ci match error:: str = " + str);
-            System.out.println("pattern =  " + mOrgStr);
-            System.out.println("r =  " + r + "  index of = " + str.toLowerCase().indexOf(mOrgStr.toLowerCase()));
-            }  
-            */
-        }
-        return r;
+            return str.indexOf(mOrgStr);
+         } else {
+           return isCaseInsenstiveContainedBy(str);
+       }
     }
 
     private int isCaseInsenstiveContainedBy(final String str) {
@@ -69,9 +53,8 @@ public final class StringPattern {
         final int plen = mPattern.length;
         final char [] pat = mPattern;
         final int  [] t = mTable;
+        int m = 0, i = 0;
         
-        int m = 0;
-        int i = 0;
         while(((m+i) < slen) ) {
             if (Character.toLowerCase(str.charAt(m+i)) == pat[i]) {
                 if (i == plen - 1) {
@@ -86,6 +69,7 @@ public final class StringPattern {
  
         return -1;
     }
+    /*
     private int isCaseSenstiveContainedBy(final String str) {
         final int slen = str.length();
         final int plen = mPattern.length;
@@ -94,7 +78,7 @@ public final class StringPattern {
         
         int m = 0;
         int i = 0;
-        while(((m+i) < slen) && i < plen) {
+        while((m+i) < slen) {
             if (str.charAt(m+i) == pat[i]) {
                 if (i == plen - 1) {
                     return m;
@@ -107,5 +91,6 @@ public final class StringPattern {
         }
         return -1;
     }
+    */
    
 }

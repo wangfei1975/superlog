@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import feiw.LogSource.LogFilter;
 import feiw.LogSource.LogListener;
+import feiw.LogSource.LogParser;
 import feiw.LogSource.LogView;
 import feiw.LogSource.StatusListener;
 
@@ -248,34 +249,35 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         }
     }
 
-    void copyLog(int startColum) {
+    void copyLog(boolean verbose) {
         Clipboard cb = new Clipboard(getDisplay());
-        TableItem[] items = mTable.getSelection();
-        if (items == null || items.length <= 0) {
+        int sels[] = mTable.getSelectionIndices();
+        if (sels == null || sels.length <= 0) {
             return;
         }
-        final int cols = mTable.getColumnCount();
         StringBuffer txt = new StringBuffer();
-        for (int i = 0; i < items.length; i++) {
-            StringBuffer line = new StringBuffer();
-            for (int c = startColum; c < cols; c++) {
-                line.append(items[i].getText(c));
-                if (c < cols-1) {
-                    line.append(" ");
-                }
+        final LogView v = mLogView;
+        for (int i = 0; i < sels.length; i++) {
+
+            String l = v.getLog(sels[i]);
+            if (l != null) {
+            if (verbose) {
+                txt.append(l);
+            } else {
+                txt.append(LogParser.parseContent(l));
             }
-            txt.append(line);
-            if (i < items.length) {
+            if (i < sels.length) {
                 txt.append("\n");
+            }
             }
         }
         cb.setContents(new Object[] { txt.toString() }, new Transfer[] { TextTransfer.getInstance() });
     }
     public void onCopyAll() {
-        copyLog(2);
+        copyLog(true);
     }
     public void onCopy() {
-        copyLog(6);
+        copyLog(false);
     }
     private int getTableVisibleCount() {
         Rectangle rect = mTable.getClientArea ();

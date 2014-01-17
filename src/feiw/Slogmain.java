@@ -43,6 +43,8 @@ public final class Slogmain  {
         }
         return ret;
     }
+    
+    /*
     public static void testParse() {
         
         ArrayList<String> arr = new ArrayList<String>();
@@ -53,12 +55,77 @@ public final class Slogmain  {
           String str = din.readLine();
           while (str != null) {
               arr.add(str);
-              parseLog(str);
+            //  parseLog(str);
               str = din.readLine();
           }
           long endTime = System.currentTimeMillis();
           System.out.println("took " + (endTime - startTime) + " millseconds");
           is.close();
+          
+          
+          String targetstr = "Avi";
+          System.out.println("string KMP search test start: " + arr.size() + " strings ingore case:" );
+          startTime = System.currentTimeMillis();
+          StringPattern pt = new StringPattern(targetstr, false);
+          int results = 0;
+          for (String s : arr) {
+              if (pt.isContainedBy(s) >= 0) {
+                  results++;
+              }
+          }
+          endTime = System.currentTimeMillis();
+          System.out.println("found " + results + " results, took " + (endTime - startTime) + " millseconds");
+          
+          System.out.println("string KMP search test start: " + arr.size() + " strings case sensitive:" );
+          startTime = System.currentTimeMillis();
+           pt = new StringPattern(targetstr, true);
+           results = 0;
+          for (String s : arr) {
+              if (pt.isContainedBy(s) >= 0) {
+                  results++;
+              }
+          }
+          endTime = System.currentTimeMillis();
+          System.out.println("found " + results + " results, took " + (endTime - startTime) + " millseconds");
+          
+          System.out.println("string JAVA search test start: " + arr.size() + " strings ignore case:" );
+          startTime = System.currentTimeMillis();
+          String spt = targetstr.toLowerCase();
+          results = 0;
+          for (String s : arr) {
+              if (s.toLowerCase().contains(spt)) {
+                  results++;
+              }
+          }
+          endTime = System.currentTimeMillis();
+          System.out.println("found " + results + " results, took " + (endTime - startTime) + " millseconds");
+          
+          System.out.println("string JAVA search test start: " + arr.size() + " strings case senstive:" );
+          startTime = System.currentTimeMillis();
+           spt =targetstr;
+          results = 0;
+          for (String s : arr) {
+              if (s.contains(spt)) {
+                  results++;
+              }
+          }
+          endTime = System.currentTimeMillis();
+          System.out.println("found " + results + " results, took " + (endTime - startTime) + " millseconds");
+          
+          
+          
+          
+          System.out.println("string apache search test start: " + arr.size() + " strings case insensitive:" );
+          startTime = System.currentTimeMillis();
+           spt =targetstr;
+          results = 0;
+          for (String s : arr) {
+              if (org.apache.commons.lang3.StringUtils.containsIgnoreCase(s, spt)) {
+                  results++;
+              }
+          }
+          endTime = System.currentTimeMillis();
+          System.out.println("found " + results + " results, took " + (endTime - startTime) + " millseconds");
           
       } catch (FileNotFoundException e) {
           // TODO Auto-generated catch block
@@ -69,6 +136,7 @@ public final class Slogmain  {
       }
         
     }
+    */
     public static void main(String[] args) {
         
   //      StringPattern pt = new StringPattern("avi", false);
@@ -77,7 +145,7 @@ public final class Slogmain  {
        mApp.run();
         
    //     System.out.println(new SimpleDateFormat("MMM dd HH:mm:ss.SSS").format(new Date()));
-//        testParse();
+   //     testParse();
     }
 
 }

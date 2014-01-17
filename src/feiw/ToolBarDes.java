@@ -66,8 +66,8 @@ public final class ToolBarDes {
         
         add(new ToolBarDes(TBN_EDIT, new ToolItemDes [] {
                 new ToolItemDes(TN_CLEAR,   "Clear Logs", Resources.trash_32, SWT.PUSH, SWT.COMMAND|'r'),
-                new ToolItemDes(TN_COPY,    "Copy selection", Resources.copy_32, SWT.PUSH, SWT.COMMAND|'c'),
-                new ToolItemDes(TN_COPYALL,    "Copy selection(All columns)", Resources.copyall_32, SWT.PUSH, SWT.SHIFT|SWT.COMMAND|'c'),
+                new ToolItemDes(TN_COPY,    "Copy selection", Resources.copy_32, SWT.PUSH, SWT.SHIFT|SWT.COMMAND|'c'),
+                new ToolItemDes(TN_COPYALL,    "Copy selection(All columns)", Resources.copyall_32, SWT.PUSH, SWT.COMMAND|'c'),
                 new ToolItemDes(TN_SAVEAS,    "Save selection as", Resources.save_32, SWT.PUSH, SWT.COMMAND|'s'),
         }));
         

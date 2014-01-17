@@ -73,6 +73,7 @@ public final class SlogTable extends Table {
                 item.setText(2, LogParser.formatTime(d));
                 item.setText(3, Integer.toString(lev));
                 item.setText(4, LogParser.parseContent(log, d != null));
+                item.setData(log);
 
                 final SystemConfigs cfgs = Slogmain.getApp().getConfigs();
                 Color bk = cfgs.getLogBackground(lev);
@@ -80,10 +81,14 @@ public final class SlogTable extends Table {
                     item.setBackground(bk);
                 }
                 item.setForeground(cfgs.getLogForeground(lev));
+                
                 if (mLogView.isSearchResults(log)) {
-                    item.setBackground(cfgs.getSearchMarkerBackground());
                     item.setImage(Resources.search_16);
+                    if (lev >= 4) {
+                        item.setBackground(cfgs.getSearchMarkerBackground());
+                    }
                 }
+                  
             }
         });
 

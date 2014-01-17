@@ -59,7 +59,7 @@ public class LogSource {
         static private SimpleDateFormat mParser = mDfmt;
         
         public static boolean isQnxLog(final String log) {
-            if (log.length() > 37) {
+            if (log != null && log.length() > 37) {
                 if (log.charAt(3) == ' ' && log.charAt(6) == ' ') {
                     if (log.charAt(9) == ':' && log.charAt(12) == ':') {
                         char c = log.charAt(15);
@@ -96,7 +96,7 @@ public class LogSource {
         public static final String OP_LESSTHEN = " < ";
         public static final String FIELD_LEVEL = "level";
         public static final String FIELD_TIME = "time";
-        public static final String FIELD_CONTENT = "content";
+        public static final String FIELD_CONTENT = "args";
         
         public abstract boolean filterLog(final String item);
         
