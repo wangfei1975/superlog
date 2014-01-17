@@ -147,6 +147,7 @@ public class LogSource {
             mStatus = st;
         }
     }
+    long mNotifyTimeSpan = 200;
     protected void fetchLogs(InputStream is) throws IOException {
         BufferedReader din = new BufferedReader(new InputStreamReader(is));
         String str = din.readLine();
@@ -155,7 +156,7 @@ public class LogSource {
             if (!str.isEmpty()) {
                 LogItem it = new LogItem(str);
                 long curtime = System.currentTimeMillis();
-                if (is.available() == 0 || curtime - start_time > 200) {
+                if (is.available() == 0 || curtime - start_time > mNotifyTimeSpan) {
                     addLogItem(it, true);
                     start_time = curtime;
                 } else {

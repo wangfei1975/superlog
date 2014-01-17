@@ -43,19 +43,23 @@ public final class StringPattern {
         int r = -1;
         if (mCaseSenstive) {
             r =  isCaseSenstiveContainedBy(str);
+            /*
             if (r != str.indexOf(mOrgStr)) {
                 
                   System.out.println("match error:: str = " + str);
                   System.out.println("pattern =  " + mOrgStr);
                 
             }
+            */
         } else {
             r =  isCaseInsenstiveContainedBy(str);
+        /*
             if (r != str.toLowerCase().indexOf(mOrgStr.toLowerCase())) {
             System.out.println("ci match error:: str = " + str);
             System.out.println("pattern =  " + mOrgStr);
             System.out.println("r =  " + r + "  index of = " + str.toLowerCase().indexOf(mOrgStr.toLowerCase()));
-            }
+            }  
+            */
         }
         return r;
     }

@@ -22,6 +22,7 @@ public class FileLogSource extends LogSource {
               public void run() {
                   try {
                       setStatus(stConnected);
+                      mNotifyTimeSpan = 500;
                       fetchLogs(is);
                   } catch (IOException e) {
                       // TODO Auto-generated catch block

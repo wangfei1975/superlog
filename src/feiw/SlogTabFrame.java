@@ -321,7 +321,12 @@ public class SlogTabFrame extends CTabItem implements LogListener{
             }
         }
     }
-
+    public void onCopyAll() {
+        
+    }
+    public void onCopy() {
+        
+    }
     private int getTableVisibleCount() {
         Rectangle rect = mTable.getClientArea ();
         int itemHeight = mTable.getItemHeight ();

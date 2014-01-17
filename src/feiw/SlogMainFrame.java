@@ -311,7 +311,20 @@ public final class SlogMainFrame {
                 }
             }
         });
- 
+        getToolItem(ToolBarDes.TN_COPY).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                tbf.onCopy();
+            }
+        });
+        getToolItem(ToolBarDes.TN_COPYALL).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                tbf.onCopyAll();
+            }
+        });
     }
     
     void updateToolItem(ToolItem tit) {
