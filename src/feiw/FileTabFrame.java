@@ -11,6 +11,8 @@ public class FileTabFrame extends SlogTabFrame {
     public FileTabFrame(CTabFolder parent, String txt, int style, String fname) {
         super(parent, txt, style, new FileLogSource(fname), null, null);
         setImage(Resources.openfile_32);
+        ((FileLogSource)mLogSrc).load();
+
     }
     
     void updateToolItem(ToolItem tit) {

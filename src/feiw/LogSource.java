@@ -151,7 +151,7 @@ public class LogSource {
             if (!str.isEmpty()) {
                 LogItem it = new LogItem(str);
                 long curtime = System.currentTimeMillis();
-                if (is.available() == 0 || curtime - start_time > 100) {
+                if (is.available() == 0 || curtime - start_time > 200) {
                     addLogItem(it, true);
                     start_time = curtime;
                 } else {
