@@ -19,14 +19,31 @@ public class LogSource {
     public static final int stConnected = 2;
 
     public static class LogParser {
+        
+        public static boolean isQnxLog(final String log) {
+            if (log != null && log.length() > 37) {
+                if (log.charAt(3) == ' ' && log.charAt(6) == ' ') {
+                    if (log.charAt(9) == ':' && log.charAt(12) == ':') {
+                        char c = log.charAt(15);
+                        return c == '.' || c == ' ';
+                    }
+                }
+            }
+            return false;
+        }
         public static int parseLevel(final String log) {
-             int idx = log.indexOf("    ");
-             char ch =  log.charAt(idx + 4);
+            return parseLevel(log, isQnxLog(log));
+        }
+        public static int parseLevel(final String log, boolean qlog) {
+            if (qlog) {
+             char ch =  log.charAt(19 + 4);
              int r =  Character.digit(ch, 10);
              if (r < 0) {
                  return 7;
              }
              return r;
+            }
+            return 7;
         }
         public static final String parseContent(final String log) {
             return parseContent(log, isQnxLog(log));
@@ -58,17 +75,7 @@ public class LogSource {
         static final SimpleDateFormat mDfmts = new SimpleDateFormat("MMM dd HH:mm:ss");
         static private SimpleDateFormat mParser = mDfmt;
         
-        public static boolean isQnxLog(final String log) {
-            if (log != null && log.length() > 37) {
-                if (log.charAt(3) == ' ' && log.charAt(6) == ' ') {
-                    if (log.charAt(9) == ':' && log.charAt(12) == ':') {
-                        char c = log.charAt(15);
-                        return c == '.' || c == ' ';
-                    }
-                }
-            }
-            return false;
-        }
+
         public static final Date parseTime(final String log) {
             try {
                 return  mParser.parse(log);
@@ -217,7 +224,7 @@ public class LogSource {
             mStatus = st;
         }
     }
-    long mNotifyTimeSpan = 200;
+    long mNotifyTimeSpan = 300;
     protected void fetchLogs(InputStream is) throws IOException {
         BufferedReader din = new BufferedReader(new InputStreamReader(is));
         String str = din.readLine();

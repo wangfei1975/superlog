@@ -201,7 +201,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
             if (mLogView.isPaused()) {
                 setImage(Resources.connected_32);
                 mLogView.resume();
-                
+                updateLogUI();
             } else {
                 setImage(Resources.pause_32);
                 mLogView.pause();

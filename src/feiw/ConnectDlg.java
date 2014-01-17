@@ -106,7 +106,7 @@ public class ConnectDlg extends Dialog {
             public void widgetSelected(SelectionEvent event) {
                 ipaddr = text.getText();
                 port = Integer.parseInt(textport.getText());
-                selection = 1;
+                selection = SWT.OK;
                 shell.close();
             }
         });
@@ -119,7 +119,7 @@ public class ConnectDlg extends Dialog {
         cancel.setLayoutData(data);
         cancel.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
-                selection = 0;
+                selection = SWT.CANCEL;
                 shell.close();
             }
         });

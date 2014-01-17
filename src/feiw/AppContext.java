@@ -7,7 +7,7 @@ import org.eclipse.swt.widgets.Display;
 
 public class AppContext {
 
-    private SystemConfigs mConfigs;
+    
     private SlogMainFrame  mMainFrame;
     private Display mDisplay =  new Display();
 
@@ -15,12 +15,9 @@ public class AppContext {
     public Display getDisplay() {
         return mDisplay;
     }
-    public SystemConfigs getConfigs() {
-        return mConfigs;
-    }
     public AppContext(String caption){
         Resources.loadResources(this);
-        mConfigs = new SystemConfigs(mDisplay);
+        SystemConfigs.load(mDisplay);
         mMainFrame = new SlogMainFrame(caption, mDisplay);
     }
 

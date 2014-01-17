@@ -29,13 +29,13 @@ public final class SystemConfigs {
             return scheme + "://" + url + ":" + port;
         }
     }
-    private ArrayList<LogUrl> mRecentUrls = new ArrayList<LogUrl>(10);
+    private static ArrayList<LogUrl> mRecentUrls = new ArrayList<LogUrl>(10);
     
-    private Color [] mForeColors;
-    private Color [] mBackColors;
-    private Color mSearchBackColor;
+    private  static Color [] mForeColors;
+    private  static Color [] mBackColors;
+    private  static Color mSearchBackColor;
     
-    public SystemConfigs(Display disp) {
+    static void load(Display disp) {
         mForeColors = new Color[] {disp.getSystemColor(SWT.COLOR_BLACK),
                 disp.getSystemColor(SWT.COLOR_DARK_RED),
                 disp.getSystemColor(SWT.COLOR_WHITE),
@@ -58,35 +58,56 @@ public final class SystemConfigs {
         
         mRecentUrls.add(new LogUrl("qconn", "10.222.98.205", 8000));
         mRecentUrls.add(new LogUrl("qconn", "10.222.109.58", 8000));
-        mRecentUrls.add(new LogUrl("file", "Users/feiwang/qnx/abcd.log", 0));
-        
+        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_LEVEL, LogFilter.OP_LESSTHEN, Integer.valueOf(6)));
+        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_LEVEL, LogFilter.OP_LESSTHEN, Integer.valueOf(5)));
+        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_LEVEL, LogFilter.OP_LESSTHEN, Integer.valueOf(4)));
     }
 
-    public LogUrl getLastLogUrl() {
-        return mRecentUrls.get(0);
-    }
-    public Color getSearchMarkerBackground() {
+    public static Color getSearchMarkerBackground() {
         return mSearchBackColor;
     }
-    public Color getLogForeground(int level) {
+    public static Color getLogForeground(int level) {
         return mForeColors[level];
     }
     
-    public Color getLogBackground(int level) {
+    public static Color getLogBackground(int level) {
         if (level < 5)
             return mBackColors[level];
         else 
             return null;
     }
     
-    ArrayList <LogFilter> mRecentFilters = new ArrayList <LogFilter>(10);
+    static ArrayList <LogFilter> mRecentFilters = new ArrayList <LogFilter>(10);
     
-    public void addRecentFilter(LogFilter f) {
+    public static void addRecentFilter(LogFilter f) {
         mRecentFilters.add(0, f);
     }
-    public LogFilter getRecentFilter(int i) {
+    public static LogFilter getRecentFilter(int i) {
         if (i < mRecentFilters.size()) {
             return mRecentFilters.get(i);
+        }
+        return null;
+    }
+    
+    static  ArrayList <String> mRecentFiles = new ArrayList <String>(10);
+    
+    static public void addRecentFile(String f) {
+        mRecentFiles.add(0, f);
+    }
+    static public String getRecentFile(int i) {
+        if (i < mRecentFiles.size()) {
+            return mRecentFiles.get(i);
+        }
+        return null;
+    }
+    
+    static public void addRecentUrl(LogUrl u) {
+        mRecentUrls.add(0, u);
+    }
+
+    static public LogUrl getRecentUrl(int i) {
+        if (i < mRecentUrls.size()) {
+            return mRecentUrls.get(i);
         }
         return null;
     }

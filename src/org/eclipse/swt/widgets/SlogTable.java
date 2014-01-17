@@ -67,25 +67,28 @@ public final class SlogTable extends Table {
                 if (log == null) {
                     return;
                 }
-                Date d = LogParser.parseTime(log);
-                int lev = LogParser.parseLevel(log);
                 item.setText(1, Integer.toString(index));
-                item.setText(2, LogParser.formatTime(d));
-                item.setText(3, Integer.toString(lev));
-                item.setText(4, LogParser.parseContent(log, d != null));
-                item.setData(log);
-
-                final SystemConfigs cfgs = Slogmain.getApp().getConfigs();
-                Color bk = cfgs.getLogBackground(lev);
+                int lev = 7;
+                if (LogParser.isQnxLog(log)) {
+                    Date d = LogParser.parseTime(log);
+                    lev = LogParser.parseLevel(log, true);
+                    item.setText(2, LogParser.formatTime(d));
+                    item.setText(3, Integer.toString(lev));
+                    item.setText(4, LogParser.parseContent(log, true));
+                } else {
+                    item.setText(4, log);
+                }
+                
+                Color bk = SystemConfigs.getLogBackground(lev);
                 if (bk != null) {
                     item.setBackground(bk);
                 }
-                item.setForeground(cfgs.getLogForeground(lev));
+                item.setForeground(SystemConfigs.getLogForeground(lev));
                 
                 if (mLogView.isSearchResults(log)) {
                     item.setImage(Resources.search_16);
                     if (lev >= 4) {
-                        item.setBackground(cfgs.getSearchMarkerBackground());
+                        item.setBackground(SystemConfigs.getSearchMarkerBackground());
                     }
                 }
                   
