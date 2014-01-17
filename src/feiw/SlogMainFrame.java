@@ -46,7 +46,6 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
 import feiw.LogSource.LogFilter;
-import feiw.LogSource.LogItem;
 import feiw.ToolBarDes.ToolItemDes;
 
 public final class SlogMainFrame {

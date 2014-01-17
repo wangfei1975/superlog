@@ -1,5 +1,7 @@
 package org.eclipse.swt.widgets;
 
+import java.util.Date;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
@@ -12,10 +14,10 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
+import feiw.LogSource.LogParser;
 import feiw.Resources;
 import feiw.Slogmain;
 import feiw.SystemConfigs;
-import feiw.LogSource.LogItem;
 import feiw.LogSource.LogView;
 
 public final class SlogTable extends Table {
@@ -31,8 +33,9 @@ public final class SlogTable extends Table {
         setHeaderVisible(true);
         
         
-        final String[] title = { "Flag", "Line", "Time", "Sev", "Major", "Minor", "Args" };
-        final int[] width = { 28, 50, 155, 30, 40, 40, 1000 };
+        //final String[] title = { "Flag", "Line", "Time", "Level", "Major", "Minor", "Args" };
+        final String[] title = { "Flag", "Line", "Time", "Level", "Args" };
+        final int[] width = { 28, 50, 155, 30, 1000 };
 
         for (int i = 0; i < title.length; i++) {
             TableColumn column = new TableColumn(this, SWT.NONE);
@@ -59,22 +62,24 @@ public final class SlogTable extends Table {
 
                 final TableItem item = (TableItem) e.item;
                 final int index = SlogTable.this.indexOf(item);
-                final LogItem log = mLogView.getLog(index);
+                final String log = mLogView.getLog(index);
 
                 if (log == null) {
                     return;
                 }
-                item.setText(1, "" + index);
-                for (int i = 0; i < log.getTextCount(); i++) {
-                    item.setText(i + 2, log.getText(i) == null ? "" : log.getText(i));
-                }
+                Date d = LogParser.parseTime(log);
+                int lev = LogParser.parseLevel(log);
+                item.setText(1, Integer.toString(index));
+                item.setText(2, LogParser.formatTime(d));
+                item.setText(3, Integer.toString(lev));
+                item.setText(4, LogParser.parseContent(log, d != null));
 
                 final SystemConfigs cfgs = Slogmain.getApp().getConfigs();
-                Color bk = cfgs.getLogBackground(log.getLevel());
+                Color bk = cfgs.getLogBackground(lev);
                 if (bk != null) {
                     item.setBackground(bk);
                 }
-                item.setForeground(cfgs.getLogForeground(log.getLevel()));
+                item.setForeground(cfgs.getLogForeground(lev));
                 if (mLogView.isSearchResults(log)) {
                     item.setBackground(cfgs.getSearchMarkerBackground());
                     item.setImage(Resources.search_16);
