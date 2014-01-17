@@ -5,6 +5,9 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -26,6 +29,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.SlogTable;
+import org.eclipse.swt.widgets.TableItem;
 
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -69,84 +73,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
             tit.setEnabled(mLogView.getSearchResults() > 0);
         }
     }
-/*
-    void createToolItems(ToolBar tb) {
-        ToolItem it = new ToolItem(tb, SWT.PUSH);
-       // it.setText("Find");
-        it.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event event) {
-                SearchDlg d = new SearchDlg(Slogmain.getApp().getMainFrame().getShell());
-                 d.open();
-            }
-        });
-        
-        it.setImage(Resources.search_32);
-        
-        it = new ToolItem(tb, SWT.PUSH);
-      //  it.setText("Next");
-        it.setImage(Resources.down_32);
-    //    ti.addListener(SWT.Selection, onClickSearchNext);
-        it.setData("Next");
-
-        it = new ToolItem(tb, SWT.PUSH);
-   //     it.setText("Prev");
-      //  ti.addListener(SWT.Selection, onClickSearchPrev);
-        it.setData("Prev");
-        it.setImage(Resources.up_32);
-
-
-        
-        it = new ToolItem(tb, SWT.SEPARATOR);
-        it = new ToolItem(tb, SWT.DROP_DOWN);
-      //  it.setText("Pause (Running)     ");
-        it.setImage(Resources.filter_32);
-        //mToolPause.addListener(SWT.Selection, onClickPause);
-        it.setData("Filter");
-        
-        DropdownSelectionListener listenerOne = new DropdownSelectionListener(it);
-        listenerOne.add("Option One for One");
-        listenerOne.add("Option Two for One");
-        listenerOne.add("Option Three for One");
-        it.addSelectionListener(listenerOne);
-        it.setEnabled(false);
- 
-
-        it.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event event) {
-                
-                FilterTabFrame ltab = new FilterTabFrame(getParent(), getText(), SWT.FLAT|SWT.CLOSE|SWT.ICON, mLogSrc, new LogFilter() {
-                    @Override
-                    public boolean filterLog(LogItem item) {
-                        return (item.getLevel() <= 5);
-                     }
-                    
-                });
-                
-                getParent().setSelection(ltab);
-            }
-        });
     
-    }
-
-    void createToolbar(Composite parent) {
-        CoolBar coolbar = new CoolBar(parent, SWT.FLAT);
-        ToolBar tb = new ToolBar(coolbar, SWT.FLAT);
-        coolbar.setBackground(new Color(getDisplay(), 255,255,255));
-        
-    
-        
-     //   createToolItems(tb);
- 
-        CoolItem item = new CoolItem(coolbar, SWT.FLAT);
-        Point p = tb.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-        tb.setSize(p);
-        Point p2 = item.computeSize(p.x, p.y);
-        item.setControl(tb);
-        item.setSize(p2);
-
-        coolbar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
-    }
-      */
     public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter, LogView parentLogView) {
         super(parent, style);
         setText(txt);
@@ -321,11 +248,35 @@ public class SlogTabFrame extends CTabItem implements LogListener{
             }
         }
     }
+
+    void copyLog(int startColum) {
+        Clipboard cb = new Clipboard(getDisplay());
+        TableItem[] items = mTable.getSelection();
+        if (items == null || items.length <= 0) {
+            return;
+        }
+        final int cols = mTable.getColumnCount();
+        StringBuffer txt = new StringBuffer();
+        for (int i = 0; i < items.length; i++) {
+            StringBuffer line = new StringBuffer();
+            for (int c = startColum; c < cols; c++) {
+                line.append(items[i].getText(c));
+                if (c < cols-1) {
+                    line.append(" ");
+                }
+            }
+            txt.append(line);
+            if (i < items.length) {
+                txt.append("\n");
+            }
+        }
+        cb.setContents(new Object[] { txt.toString() }, new Transfer[] { TextTransfer.getInstance() });
+    }
     public void onCopyAll() {
-        
+        copyLog(2);
     }
     public void onCopy() {
-        
+        copyLog(6);
     }
     private int getTableVisibleCount() {
         Rectangle rect = mTable.getClientArea ();
