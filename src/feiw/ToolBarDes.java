@@ -56,7 +56,7 @@ public final class ToolBarDes {
         add(new ToolBarDes(TBN_FILE, new ToolItemDes [] { 
                 new ToolItemDes(TN_CONNECT,   "Connect to a QCONN device", Resources.connected_32, SWT.PUSH, SWT.COMMAND|'d'),
                 new ToolItemDes(TN_OPEN,      "Open a Log file", Resources.openfile_32, SWT.PUSH, SWT.COMMAND|'o'),
-                new ToolItemDes(TN_FILTER,    "Open a Filted view", Resources.filter_32, SWT.PUSH, 0),
+                new ToolItemDes(TN_FILTER,    "Open a Filted view", Resources.filter_32, SWT.DROP_DOWN, 0),
         }));
         add(new ToolBarDes(TBN_SEARCH, new ToolItemDes [] { 
                 new ToolItemDes(TN_SEARCH,   "Search", Resources.search_32, SWT.PUSH, SWT.COMMAND|'f'),

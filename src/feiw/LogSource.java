@@ -20,10 +20,10 @@ public class LogSource {
 
     
     public static abstract class LogFilter {
-        public static final String OP_EQUALS = "=";
+        public static final String OP_EQUALS = " = ";
         public static final String OP_CONTAINS = "contains";
-        public static final String OP_GREATERTHAN = ">";
-        public static final String OP_LESSTHEN = "<";
+        public static final String OP_GREATERTHAN = " > ";
+        public static final String OP_LESSTHEN = " < ";
         public static final String FIELD_LEVEL = "level";
         public static final String FIELD_TIME = "time";
         public static final String FIELD_CONTENT = "content";
@@ -32,6 +32,10 @@ public class LogSource {
         
         String mName;
         LogFilter(String n) {
+            mName = n;
+        }
+        
+        void setName(String n) {
             mName = n;
         }
         

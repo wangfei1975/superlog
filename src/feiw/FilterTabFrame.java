@@ -28,13 +28,22 @@ public class FilterTabFrame extends SlogTabFrame {
                 tit.setEnabled(false);  
             }  else if (tn.equals(ToolBarDes.TN_PAUSE)) {
                 tit.setEnabled(false);
-            } else if (tn.equals(ToolBarDes.TN_CLEAR)) {
-                tit.setEnabled(false);
             } else {
-                tit.setEnabled(true);
+                super.updateToolItem(tit);
             }
         } else {
-            tit.setEnabled(true);
+            if (tn.equals(ToolBarDes.TN_DISCONNECT)) {
+                tit.setEnabled(mLogSrc.getStatus() == LogSource.stConnected);  
+            }  else if (tn.equals(ToolBarDes.TN_PAUSE)) {
+                if (mLogSrc.getStatus() == LogSource.stConnected) {
+                    tit.setToolTipText(mLogView.isPaused() ? "Resume" : "Pause");
+                    tit.setImage(mLogView.isPaused() ?  Resources.go_32: Resources.pause_32);
+                    } else {
+                        tit.setEnabled(false);
+                    }
+            } else {
+                super.updateToolItem(tit);
+            }
         }
     }
 }

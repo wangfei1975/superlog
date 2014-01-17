@@ -56,45 +56,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
     public SlogTable getTable() {
         return mTable;
     }
-    
-    class DropdownSelectionListener extends SelectionAdapter {
-        private ToolItem dropdown;
 
-        private Menu menu;
-
-        public DropdownSelectionListener(ToolItem dropdown) {
-          this.dropdown = dropdown;
-          menu = new Menu(dropdown.getParent().getShell());
-        }
-
-        public void add(String item) {
-          MenuItem menuItem = new MenuItem(menu, SWT.NONE);
-          menuItem.setText(item);
-          menuItem.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent event) {
-              MenuItem selected = (MenuItem) event.widget;
-            //  dropdown.setText(selected.getText());
-              System.out.println(selected.getText() + " Pressed");
-            }
-          });
-        }
-
-        public void widgetSelected(SelectionEvent event) {
-          if (!dropdown.getEnabled()) {
-              return;
-          }
-          if (event.detail == SWT.ARROW) {
-            ToolItem item = (ToolItem) event.widget;
-            Rectangle rect = item.getBounds();
-            Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
-            menu.setLocation(pt.x, pt.y + rect.height);
-            menu.setVisible(true);
-          } else {
-            System.out.println(dropdown.getText() + " Pressed");
-          }
-        }
-      }
-    
     void updateToolItem(ToolItem tit) {
         String tn = (String)tit.getData();
         if (tn == null || tn.isEmpty()) {
@@ -107,7 +69,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
             tit.setEnabled(mLogView.getSearchResults() > 0);
         }
     }
-
+/*
     void createToolItems(ToolBar tb) {
         ToolItem it = new ToolItem(tb, SWT.PUSH);
        // it.setText("Find");
@@ -147,7 +109,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         listenerOne.add("Option Three for One");
         it.addSelectionListener(listenerOne);
         it.setEnabled(false);
-/*
+ 
 
         it.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
@@ -163,9 +125,9 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                 getParent().setSelection(ltab);
             }
         });
-        */
+    
     }
- 
+
     void createToolbar(Composite parent) {
         CoolBar coolbar = new CoolBar(parent, SWT.FLAT);
         ToolBar tb = new ToolBar(coolbar, SWT.FLAT);
@@ -173,7 +135,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         
     
         
-        createToolItems(tb);
+     //   createToolItems(tb);
  
         CoolItem item = new CoolItem(coolbar, SWT.FLAT);
         Point p = tb.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -184,6 +146,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
 
         coolbar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
     }
+      */
     public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter, LogView parentLogView) {
         super(parent, style);
         setText(txt);

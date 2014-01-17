@@ -1,10 +1,13 @@
 package feiw;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
+
+import feiw.LogSource.LogFilter;
 
  
 
@@ -76,5 +79,15 @@ public final class SystemConfigs {
             return null;
     }
     
+    ArrayList <LogFilter> mRecentFilters = new ArrayList <LogFilter>(10);
     
+    public void addRecentFilter(LogFilter f) {
+        mRecentFilters.add(0, f);
+    }
+    public LogFilter getRecentFilter(int i) {
+        if (i < mRecentFilters.size()) {
+            return mRecentFilters.get(i);
+        }
+        return null;
+    }
 }

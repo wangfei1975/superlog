@@ -24,6 +24,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -46,7 +47,6 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import feiw.LogSource.LogFilter;
 import feiw.LogSource.LogItem;
-import feiw.SlogTabFrame.DropdownSelectionListener;
 import feiw.ToolBarDes.ToolItemDes;
 
 public final class SlogMainFrame {
@@ -108,6 +108,75 @@ public final class SlogMainFrame {
         
     }
     
+    class DropdownSelectionListener extends SelectionAdapter {
+        private ToolItem dropdown;
+
+        private Menu menu;
+
+        public DropdownSelectionListener(ToolItem dropdown) {
+          this.dropdown = dropdown;
+          menu = new Menu(dropdown.getParent().getShell());
+        }
+
+        public void clear() {
+            menu.dispose();
+            menu = new Menu(dropdown.getParent().getShell());
+        }
+        public void add(String item, final Object o) {
+          MenuItem menuItem = new MenuItem(menu, SWT.NONE);
+          menuItem.setText(item);
+          menuItem.setImage(Resources.filter_32);
+          menuItem.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+              MenuItem selected = (MenuItem) event.widget;
+            //  dropdown.setText(selected.getText());
+            //  System.out.println(selected.getText() + " Pressed");
+              if (o instanceof LogFilter) {
+                  LogFilter f = (LogFilter)o;
+              SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+              FilterTabFrame ltab = new FilterTabFrame(mTabFolder, "\"" + f.getName() + "\" on [" + tbf.getText() + "]", SWT.FLAT|SWT.CLOSE|SWT.ICON, tbf.getLogSource(), 
+                      f, tbf.getLogView());
+             mTabFolder.setSelection(ltab);
+             updateToolBars(ltab);
+              }
+
+            }
+          });
+        }
+
+        public void widgetSelected(SelectionEvent event) {
+          if (!dropdown.getEnabled()) {
+              return;
+          }
+          if (event.detail == SWT.ARROW) {
+            ToolItem item = (ToolItem) event.widget;
+            Rectangle rect = item.getBounds();
+            Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
+            menu.setLocation(pt.x, pt.y + rect.height);
+            menu.setVisible(true);
+          } else {
+              FilterDlg fdlg = new FilterDlg(getShell());
+              if (fdlg.open() == SWT.OK) {
+                  SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                  LogFilter f = fdlg.getFilter();
+                  FilterTabFrame ltab = new FilterTabFrame(mTabFolder, "\"" + f.getName() + "\" on [" + tbf.getText() + "]", SWT.FLAT|SWT.CLOSE|SWT.ICON, tbf.getLogSource(), 
+                           f, tbf.getLogView());
+                  mTabFolder.setSelection(ltab);
+                  Slogmain.getApp().getConfigs().addRecentFilter(f);
+                  clear();
+                  for (int i = 0; i < 5; i++) {
+                       f = Slogmain.getApp().getConfigs().getRecentFilter(i);
+                      if (f != null) {
+                          add(f.getName(), f);
+                      }
+                  }
+                  updateToolBars(ltab);
+              }
+          }
+        }
+      }
+    
+    DropdownSelectionListener mFilterDropDownListener;
     void createToolBars() {
         mCoolBar = new CoolBar(getShell(), SWT.FLAT);
         mCoolBar.setBackground(new Color(getDisplay(), 255,255,255));
@@ -119,12 +188,10 @@ public final class SlogMainFrame {
         getToolItem(ToolBarDes.TN_NEXT).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-             
                     SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
                     if (tbf != null) {
                         tbf.onNext();
                     }
-            
             }
            
         });
@@ -156,6 +223,7 @@ public final class SlogMainFrame {
            
         });
         
+
         getToolItem(ToolBarDes.TN_CONNECT).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -194,25 +262,29 @@ public final class SlogMainFrame {
                 }
             }
         });
-        
+        mFilterDropDownListener = new DropdownSelectionListener(getToolItem(ToolBarDes.TN_FILTER));
+        getToolItem(ToolBarDes.TN_FILTER).addSelectionListener(mFilterDropDownListener);
+        /*
         getToolItem(ToolBarDes.TN_FILTER).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
+                if (!getToolItem(ToolBarDes.TN_FILTER).isEnabled()) {
+                    return;
+                }
                 FilterDlg fdlg = new FilterDlg(getShell());
                 if (fdlg.open() == SWT.OK) {
                     SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
-                    LogFilter f1 = LogFilter.newLogFilter(LogFilter.FIELD_LEVEL, LogFilter.OP_LESSTHEN, Integer.valueOf(8));
-                    LogFilter f2 = LogFilter.newLogFilter(LogFilter.FIELD_CONTENT, LogFilter.OP_CONTAINS, "avi");
-                   LogFilter f = f1.or(f2);
+                    LogFilter f = fdlg.getFilter();
                     FilterTabFrame ltab = new FilterTabFrame(mTabFolder, "\"" + f.getName() + "\" on [" + tbf.getText() + "]", SWT.FLAT|SWT.CLOSE|SWT.ICON, tbf.getLogSource(), 
                              f, tbf.getLogView());
                     mTabFolder.setSelection(ltab);
-                    updateToolBars(ltab);    
+                    Slogmain.getApp().getConfigs().addRecentFilter(f);
+                    updateToolBars(ltab);
                 }
                 
             }
         });
-        
+        */
         getToolItem(ToolBarDes.TN_CLEAR).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
