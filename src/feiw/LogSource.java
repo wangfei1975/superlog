@@ -1,10 +1,12 @@
 package feiw;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Method;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -224,13 +226,17 @@ public class LogSource {
             mStatus = st;
         }
     }
+    
+
     long mNotifyTimeSpan = 300;
     protected void fetchLogs(InputStream is) throws IOException {
         BufferedReader din = new BufferedReader(new InputStreamReader(is));
+        int line = 0;
         String str = din.readLine();
         long start_time = System.currentTimeMillis();
         while (str != null) {
             if (!str.isEmpty()) {
+                line++;
                 long curtime = System.currentTimeMillis();
                 if (is.available() == 0 || curtime - start_time > mNotifyTimeSpan) {
                     addLogItem(str, true);
@@ -241,6 +247,7 @@ public class LogSource {
             }
             str = din.readLine();
         }
+        System.out.println(" log lines = " + line);
     }
  
 /*
@@ -347,18 +354,24 @@ public class LogSource {
         }
 
         private void notifyListener() {
-            mLogChanged.set(true);
-            if (mListener != null && !mPaused.get()) {
+            if (mListener != null && !mPaused.get() && mLogChanged.get()) {
                 mListener.onLogChanged();
+                mLogChanged.set(false);
             }
         }
-
-        public boolean getChangedFlag() {
-            return mLogChanged.get();
-        }
-
-        public void setChangeFlag(boolean flag) {
-            mLogChanged.set(flag);
+ 
+        public void writeLogs(OutputStream os) throws IOException  {
+            BufferedWriter dw = new BufferedWriter(new OutputStreamWriter(os));
+            synchronized (mFilteredItems) {
+                final int s = mFilteredItems.size();
+                int i = 0; 
+                for (i = 0; i < s-1; i++ ) {
+                    dw.write(mFilteredItems.get(i));
+                    dw.write('\n');
+                }
+                dw.write(mFilteredItems.get(i));
+            }
+            dw.flush();
         }
 
         private LogView(LogListener listener, LogFilter filter, List<String> source) {
@@ -377,6 +390,7 @@ public class LogSource {
             }
 
             if (mFilteredItems.size() > 0) {
+                mLogChanged.set(true);
                 notifyListener();
             }
         }
@@ -393,6 +407,7 @@ public class LogSource {
                     mSearchResults++;
                 }
                 mFilteredItems.add(item);
+                mLogChanged.set(true);
                 if (notifylistner) {
                     notifyListener();
                 }
@@ -400,10 +415,13 @@ public class LogSource {
         }
 
         public void clear() {
-            mSearchResults = -1;
-            mSearchPattern = null;
-            mFilteredItems.clear();
-            notifyListener();
+            if (mFilteredItems.size() > 0) {
+                mSearchResults = -1;
+                mSearchPattern = null;
+                mFilteredItems.clear();
+                mLogChanged.set(true);
+                notifyListener();
+            }
         }
 
         public int size() {
@@ -500,6 +518,11 @@ public class LogSource {
             }
     }
 
+    public synchronized void notifyViews() {
+        for (LogView v : mViews) {
+            v.notifyListener();
+        }
+    }
     public void disconnect() {
 
     }

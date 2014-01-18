@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -95,8 +96,10 @@ public final class SlogMainFrame {
             it.setData(itdes.mName);
             it.setData("KeyAccelerator", new Integer(itdes.mKeyAccelerator));
             it.setToolTipText(itdes.mTipText);
-            it.setImage(itdes.mImage);
-            it.setDisabledImage(new Image(getDisplay(), itdes.mImage, SWT.IMAGE_GRAY));
+            if (itdes.mImage != null) {
+                it.setImage(itdes.mImage);
+                it.setDisabledImage(new Image(getDisplay(), itdes.mImage, SWT.IMAGE_GRAY));
+            }
             mToolItems.add(it);
         }
         CoolItem item = new CoolItem(mCoolBar, SWT.NONE);
@@ -379,6 +382,41 @@ public final class SlogMainFrame {
                 tbf.onCopyAll();
             }
         });
+        
+        getToolItem(ToolBarDes.TN_SAVEAS).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                FileDialog dialog = new FileDialog (getShell(), SWT.SAVE);
+                final String [] filterNames = new String [] {"Log Files", "All Files (*)"};
+                final String [] filterExtensions = new String [] {"*.log;*.txt;", "*"};
+                dialog.setFilterNames (filterNames);
+                dialog.setFilterExtensions (filterExtensions);
+                String fname = dialog.open();
+                if (fname != null) {
+                    SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                    tbf.onSaveAs(fname);
+                }
+            }
+        });
+        
+        getToolItem(ToolBarDes.TN_PREFERENCE).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                MessageBox m = new MessageBox(getShell(), SWT.OK|SWT.ICON_INFORMATION);
+                m.setText("Preference");
+                m.setMessage("TODO.");
+                m.open();
+            }
+        });
+        getToolItem(ToolBarDes.TN_HELP).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                MessageBox m = new MessageBox(getShell(), SWT.OK|SWT.ICON_INFORMATION);
+                m.setText("About SuperLog");
+                m.setMessage("TODO.");
+                m.open();
+            }
+        });
     }
     
     void updateToolItem(ToolItem tit) {
@@ -392,6 +430,8 @@ public final class SlogMainFrame {
         } else if (tn.equals(ToolBarDes.TN_OPEN)) {
             tit.setEnabled(true);
         } else if (tn.equals(ToolBarDes.TN_PREFERENCE)) {
+            tit.setEnabled(true);
+        } else if (tn.equals(ToolBarDes.TN_HELP)) {
             tit.setEnabled(true);
         } else {
             tit.setEnabled(false);

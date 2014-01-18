@@ -50,13 +50,18 @@ public final class ToolBarDes {
     public static final String TN_DISCONNECT = "Disconnect";
     public static final String TN_PAUSE = "Pause";
     public static final String TN_PREFERENCE = "Preference";
+    public static final String TN_HELP = "Help";
     
     @SuppressWarnings("serial")
     static public final ArrayList<ToolBarDes> TOOBARS = new ArrayList <ToolBarDes>(5){ {
         add(new ToolBarDes(TBN_FILE, new ToolItemDes [] { 
                 new ToolItemDes(TN_CONNECT,   "Connect to a QCONN device", Resources.connected_32, SWT.DROP_DOWN, SWT.COMMAND|'d'),
+              //  new ToolItemDes(null,   null, null, SWT.SEPARATOR, 0),
                 new ToolItemDes(TN_OPEN,      "Open a Log file", Resources.openfile_32, SWT.DROP_DOWN, SWT.COMMAND|'o'),
-                new ToolItemDes(TN_FILTER,    "Open a Filted view", Resources.filter_32, SWT.DROP_DOWN, 0),
+                new ToolItemDes(TN_SAVEAS,    "Save Logs as", Resources.save_32, SWT.PUSH, SWT.COMMAND|'s'),
+        }));
+        add(new ToolBarDes("TN_FILTER", new ToolItemDes[] {
+                new ToolItemDes(TN_FILTER,    "Open a Filted view", Resources.filter_32, SWT.DROP_DOWN, 0),                
         }));
         add(new ToolBarDes(TBN_SEARCH, new ToolItemDes [] { 
                 new ToolItemDes(TN_SEARCH,   "Search", Resources.search_32, SWT.PUSH, SWT.COMMAND|'f'),
@@ -68,7 +73,6 @@ public final class ToolBarDes {
                 new ToolItemDes(TN_CLEAR,   "Clear Logs", Resources.trash_32, SWT.PUSH, SWT.COMMAND|'r'),
                 new ToolItemDes(TN_COPY,    "Copy selection", Resources.copy_32, SWT.PUSH, SWT.SHIFT|SWT.COMMAND|'c'),
                 new ToolItemDes(TN_COPYALL,    "Copy selection(All columns)", Resources.copyall_32, SWT.PUSH, SWT.COMMAND|'c'),
-                new ToolItemDes(TN_SAVEAS,    "Save selection as", Resources.save_32, SWT.PUSH, SWT.COMMAND|'s'),
         }));
         
         add(new ToolBarDes(TBN_TARGET, new ToolItemDes [] { 
@@ -77,7 +81,7 @@ public final class ToolBarDes {
         }));
         add(new ToolBarDes(TBN_CONFIG, new ToolItemDes [] { 
                 new ToolItemDes(TN_PREFERENCE,   "Preference", Resources.config_32, SWT.PUSH, 0),
-                new ToolItemDes(TN_PREFERENCE,   "Help", Resources.help_32, SWT.PUSH, 0),
+                new ToolItemDes(TN_HELP,   "Help", Resources.help_32, SWT.PUSH, 0),
         }));
     }};
         

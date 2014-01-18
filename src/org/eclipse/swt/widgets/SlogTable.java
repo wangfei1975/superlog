@@ -84,7 +84,6 @@ public final class SlogTable extends Table {
                     item.setBackground(bk);
                 }
                 item.setForeground(SystemConfigs.getLogForeground(lev));
-                
                 if (mLogView.isSearchResults(log)) {
                     item.setImage(Resources.search_16);
                     if (lev >= 4) {

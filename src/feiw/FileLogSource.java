@@ -27,7 +27,9 @@ public class FileLogSource extends LogSource {
                       setStatus(stConnected);
                       long start_time = System.currentTimeMillis();
                       fetchLogs(is);
+                      notifyViews();
                       System.out.println("loading time = " + (System.currentTimeMillis() - start_time));
+                     
                   } catch (IOException e) {
                       // TODO Auto-generated catch block
                       e.printStackTrace();

@@ -1,5 +1,8 @@
 package feiw;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -28,6 +31,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.SlogTable;
 import org.eclipse.swt.widgets.TableItem;
 
@@ -71,6 +75,9 @@ public class SlogTabFrame extends CTabItem implements LogListener{
           tit.setEnabled(mTable.getSelectionCount() > 0);    
         } else if (tn.equals(ToolBarDes.TN_NEXT) || tn.equals(ToolBarDes.TN_PREV)) {
             tit.setEnabled(mLogView.getSearchResults() > 0);
+        } else if (tn.equals(ToolBarDes.TN_SAVEAS)) {
+          //  tit.setEnabled(!(mLogSrc instanceof FileLogSource));
+            tit.setEnabled(true);
         }
     }
     
@@ -98,7 +105,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         
         
          mLineCountLabel = new Label(com, SWT.BORDER);
-         mLineCountLabel.setText("0 lines of log          ");
+         mLineCountLabel.setText("0 lines                ");
          mLineCountLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
          
          Label lb = new Label(com, SWT.SEPARATOR);
@@ -162,23 +169,24 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         if (!mVisible||mTable.isDisposed() || !mTable.isVisible())
             return;
         
-        if (!mLogView.getChangedFlag() ||  mLogView.isPaused())
+        if (mLogView.isPaused())
             return;
         
         final int cnt = mLogView.size(); 
         final int cnto = mTable.getItemCount();
         
-        //System.out.println("log changed old cnt = " + cnto + " new cnt = " + cnt);
-        mTable.setItemCount(0);
-        mTable.setRedraw(true);
-        mTable.setItemCount(cnt);
-        mLogView.setChangeFlag(false);
 
         if (cnto != cnt) {
+            System.out.println("log changed old cnt = " + cnto + " new cnt = " + cnt);
+          //  mTable.setItemCount(0);
+            mTable.setRedraw(true);
+            mTable.setItemCount(cnt);
             mTable.setTopIndex(cnt - 2);
-            mLineCountLabel.setText("" + cnt + " lines of log");
+            mLineCountLabel.setText("" + cnt + " lines");
+            mLineCountLabel.pack();
             updateSearchUI();
         }
+       // 
     }
     
 
@@ -279,6 +287,20 @@ public class SlogTabFrame extends CTabItem implements LogListener{
     public void onCopy() {
         copyLog(false);
     }
+    
+    public void onSaveAs(String fname) {
+        try {
+            FileOutputStream os = new FileOutputStream(fname);
+            mLogView.writeLogs(os);
+            os.close();
+        } catch (FileNotFoundException e) {
+           MessageBox m = new MessageBox(null, SWT.OK|SWT.ICON_ERROR);
+           m.setMessage("Cound not open " + fname + " ");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
     private int getTableVisibleCount() {
         Rectangle rect = mTable.getClientArea ();
         int itemHeight = mTable.getItemHeight ();
@@ -297,27 +319,25 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         //    public void run() {
                 if (mTable.isDisposed() || !mTable.isVisible())
                     return;
-                if (!mLogView.getChangedFlag())
-                    return;
                 
                 int top = mTable.getTopIndex();
 
                 int nresults = mLogView.getSearchResults();
                 if (nresults == 0) {
-                    mTable.setItemCount(0);
+                     mTable.setItemCount(0);
                     mTable.setRedraw(true);
                     mTable.setItemCount(mLogView.size());
-                    mLogView.setChangeFlag(false);
+ 
                     mTable.setTopIndex(top);
 
                 } else {
                     int first = mLogView.getNextSearchResult(0);
 
                     if (first >= 0) {
-                        mTable.setItemCount(0);
-                        mTable.setRedraw(true);
+                         mTable.setItemCount(0);
+                         mTable.setRedraw(true);
                         mTable.setItemCount(mLogView.size());
-                        mLogView.setChangeFlag(false);
+ 
                         int visibleCount = getTableVisibleCount();
                         
                         if (first < top || first >= top + visibleCount) {
