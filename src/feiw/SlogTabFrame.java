@@ -155,15 +155,19 @@ public class SlogTabFrame extends CTabItem implements LogListener{
 
  
     }
-    int mLastSearchResults = -1;
+    int mLastSearchResults = 0;
     boolean mVisible = false;
     private void updateSearchUI() {
         int nresults = mLogView.getSearchResults();
         //System.out.println("nresults = " + nresults + " last results = " + mLastSearchResults);
-        if (nresults != mLastSearchResults && nresults >= 0) {
-            mSearchResult.setText("Found " + nresults + " results of \"" + mLogView.getSearchPattern() + "\"");
-            mLastSearchResults  = nresults;
+        if (nresults != mLastSearchResults) {
+            if (nresults >= 0) {
+                mSearchResult.setText("Found " + nresults + " results of \"" + mLogView.getSearchPattern() + "\"");
+            } else  if (nresults < 0){
+                mSearchResult.setText("");
+            }
         }
+        mLastSearchResults  = nresults;
     }
     private void updateLogUI() {
         if (!mVisible||mTable.isDisposed() || !mTable.isVisible())
@@ -310,6 +314,9 @@ public class SlogTabFrame extends CTabItem implements LogListener{
     
     public void onSearch(String txt, boolean caseSensitive) {
         mLogView.search(txt, caseSensitive);
+    }
+    public void onClear() {
+        mLogView.clear();
     }
     @Override
     public void onSearchResult() {

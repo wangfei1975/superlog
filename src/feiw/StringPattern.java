@@ -1,17 +1,55 @@
 package feiw;
+
 public final class StringPattern {
-    private final String   mOrgStr;
-    private final char []  mPattern;
-    private final int  []  mTable;
-    private final boolean  mCaseSenstive;
+    private final String mPattern;
+    private final char[] mLowCasePattern;
+    private final int[] mTable;
+    private final boolean mCaseSensitive;
+
     public final String toString() {
-        return mOrgStr;
+        return mPattern;
     }
-    private int [] createTable(final char[] pattern) {
+
+    public StringPattern(final String pattern, final boolean caseSensitive) {
+        mPattern = pattern;
+        mCaseSensitive = caseSensitive;
+        if (!caseSensitive) {
+            mLowCasePattern = pattern.toLowerCase().toCharArray();
+            mTable = createTable(mLowCasePattern);
+        } else {
+            mLowCasePattern = null;
+            mTable = null;
+        }
+    }
+
+    public int isContainedBy(final String str) {
+        if (mCaseSensitive) {
+            return str.indexOf(mPattern);
+        }
+        
+        final int slen = str.length();
+        final int plen = mLowCasePattern.length;
+        final char[] pat = mLowCasePattern;
+        final int[] t = mTable;
+        int m = 0, i = 0;
+        while (((m + i) < slen)) {
+            if (Character.toLowerCase(str.charAt(m + i)) == pat[i]) {
+                if (i == plen - 1) {
+                    return m;
+                }
+                i++;
+            } else {
+                m += i - t[i];
+                i = t[i] > -1 ? t[i] : 0;
+            }
+        }
+        return -1;
+    }
+
+    static private int[] createTable(final char[] pattern) {
         int patlen = pattern.length;
         int[] t = new int[patlen];
-        int i = 2;
-        int j = 0;
+        int i = 2, j = 0;
         t[0] = -1;
         t[1] = 0;
         while (i < patlen) {
@@ -29,68 +67,4 @@ public final class StringPattern {
         }
         return t;
     }
-    public StringPattern(final String pattern, final boolean caseSenstive) {
-        mOrgStr = pattern;
-        mCaseSenstive = caseSenstive;
-        if (!caseSenstive) {
-            mPattern = pattern.toLowerCase().toCharArray();
-        } else {
-            mPattern = pattern.toCharArray();
-        }
-        mTable = createTable(mPattern);
-    }
-    
-    public int isContainedBy(final String str) {
-        if (mCaseSenstive) {
-            return str.indexOf(mOrgStr);
-         } else {
-           return isCaseInsenstiveContainedBy(str);
-       }
-    }
-
-    private int isCaseInsenstiveContainedBy(final String str) {
-        final int slen = str.length();
-        final int plen = mPattern.length;
-        final char [] pat = mPattern;
-        final int  [] t = mTable;
-        int m = 0, i = 0;
-        
-        while(((m+i) < slen) ) {
-            if (Character.toLowerCase(str.charAt(m+i)) == pat[i]) {
-                if (i == plen - 1) {
-                    return m;
-                }
-                i++;
-            } else {
-                m += i - t[i];
-                i = t[i] > -1 ? t[i] : 0;
-            }
-        }
- 
-        return -1;
-    }
-    /*
-    private int isCaseSenstiveContainedBy(final String str) {
-        final int slen = str.length();
-        final int plen = mPattern.length;
-        final char [] pat = mPattern;
-        final int  [] t = mTable;
-        
-        int m = 0;
-        int i = 0;
-        while((m+i) < slen) {
-            if (str.charAt(m+i) == pat[i]) {
-                if (i == plen - 1) {
-                    return m;
-                }
-                i++;
-            } else {
-                m += i - t[i];
-                i = t[i] > -1 ? t[i] : 0;
-            }
-        }
-        return -1;
-    }
-    */
-   
 }

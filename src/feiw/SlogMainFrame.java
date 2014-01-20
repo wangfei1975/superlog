@@ -346,7 +346,7 @@ public final class SlogMainFrame {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
-                tbf.getLogView().clear();
+                tbf.onClear();
             }
         });
         
@@ -496,7 +496,6 @@ public final class SlogMainFrame {
         getDisplay().addFilter(SWT.KeyDown, new Listener() {
             @Override
             public void handleEvent(Event e) {
-                
                 for (ToolItem it : mToolItems) {
                     if (it.isEnabled()) {
                         Integer key = (Integer) it.getData("KeyAccelerator");
