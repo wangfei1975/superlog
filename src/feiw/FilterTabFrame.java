@@ -11,8 +11,8 @@ import feiw.LogSource.LogView;
 public class FilterTabFrame extends SlogTabFrame {
 
     public FilterTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc,
-            LogFilter logFilter, LogView parentView) {
-        super(parent, txt, style, logsrc, logFilter, parentView);
+            LogFilter logFilter, LogParser logParser, LogView parentView) {
+        super(parent, txt, style, logsrc, logFilter, logParser, parentView);
         setImage(Resources.filter_32);
     }
     

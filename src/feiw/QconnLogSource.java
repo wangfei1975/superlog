@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -14,22 +15,31 @@ public final class QconnLogSource extends LogSource {
     private Socket mSock;
     private int mRemotepid = 0;
  
-    public QconnLogSource(final String ip, final int port) {
+    public QconnLogSource(final String ip, final int port) throws DeviceNotConnected {
         super();
-        setStatus(stConnecting);
         mServerIp = ip;
         mServerPort = port;
+        setStatus(stConnecting);
+        
+        Socket sock = new Socket();
+        try {
+            sock.connect(new InetSocketAddress(ip, port), 1000);
+            sock.setKeepAlive(true);
+        } catch (IOException e1) {
+            throw new DeviceNotConnected("could connect to qconn://" + ip + ":" + port);
+        }    
+        mSock = sock;
+        
         new Thread() {
             public void run() {
                 try {
-                    Socket sock = new Socket(ip, port);
-                    mSock = sock;
+                    setStatus(stConnecting);
+
     
-                    sock.setKeepAlive(true);
-                    DataOutputStream out = new DataOutputStream(sock.getOutputStream());
+                    DataOutputStream out = new DataOutputStream(mSock.getOutputStream());
 
                     BufferedReader din = new BufferedReader(new InputStreamReader(
-                            sock.getInputStream()));
+                            mSock.getInputStream()));
 
                     String str = din.readLine();
                     System.out.print(str + "\n");
@@ -37,11 +47,11 @@ public final class QconnLogSource extends LogSource {
                     System.out.print(din.readLine() + "\n");
                     out.writeBytes("start slay -f sloginfo\r\n");
                     System.out.print(din.readLine() + "\n");
-                    sock.close();
-                    sock = new Socket(ip, port);
+                    mSock.close();
+                    mSock = new Socket(ip, port);
                 
-                     out = new DataOutputStream(sock.getOutputStream());
-                     din = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+                     out = new DataOutputStream(mSock.getOutputStream());
+                     din = new BufferedReader(new InputStreamReader(mSock.getInputStream()));
                   //  sock.setKeepAlive(true);
                       str = din.readLine();
                     System.out.print(str + "\n");
@@ -69,16 +79,16 @@ public final class QconnLogSource extends LogSource {
 
                     if (mRemotepid == 0) {
                         setStatus(stIdle);
-                        sock.close();
+                        mSock.close();
                         mSock = null;
                         return;
                     }
                     
-                    mSock = sock;
+                    mSock = mSock;
                     ret = din.readLine();
                     setStatus(stConnected);
-                    fetchLogs(sock.getInputStream());
-                    sock.close();
+                    fetchLogs(mSock.getInputStream());
+                    mSock.close();
                     setStatus(stIdle);
                 } catch (IOException e) {
 //                    e.printStackTrace();

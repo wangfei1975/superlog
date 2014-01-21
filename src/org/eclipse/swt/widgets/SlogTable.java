@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import feiw.LogSource.LogParser;
+import feiw.LogParser;
 import feiw.Resources;
 import feiw.Slogmain;
 import feiw.SystemConfigs;
@@ -27,15 +27,16 @@ public final class SlogTable extends Table {
     public void setLogView(LogView v) {
         mLogView = v;
     }
-    public SlogTable(Composite parent, int style) {
+    public SlogTable(Composite parent, int style, LogView v) {
         super(parent, style | SWT.BORDER | SWT.VIRTUAL | SWT.MULTI);
+        mLogView = v;
         setLinesVisible(true);
         setHeaderVisible(true);
         
         
         //final String[] title = { "Flag", "Line", "Time", "Level", "Major", "Minor", "Args" };
-        final String[] title = { "Flag", "Line", "Time", "Level", "Args" };
-        final int[] width = { 28, 50, 155, 30, 1000 };
+        final String[] title = mLogView.getLogParser().getTableHeader();
+        final int[] width = mLogView.getLogParser().getHeaderWidth();
 
         for (int i = 0; i < title.length; i++) {
             TableColumn column = new TableColumn(this, SWT.NONE);
@@ -62,35 +63,9 @@ public final class SlogTable extends Table {
 
                 final TableItem item = (TableItem) e.item;
                 final int index = SlogTable.this.indexOf(item);
-                final String log = mLogView.getLog(index);
-
-                if (log == null) {
-                    return;
-                }
                 item.setText(1, Integer.toString(index));
-                int lev = 7;
-                if (LogParser.isQnxLog(log)) {
-                    Date d = LogParser.parseTime(log);
-                    lev = LogParser.parseLevel(log, true);
-                    item.setText(2, LogParser.formatTime(d));
-                    item.setText(3, Integer.toString(lev));
-                    item.setText(4, LogParser.parseContent(log, true));
-                } else {
-                    item.setText(4, log);
-                }
                 
-                Color bk = SystemConfigs.getLogBackground(lev);
-                if (bk != null) {
-                    item.setBackground(bk);
-                }
-                item.setForeground(SystemConfigs.getLogForeground(lev));
-                if (mLogView.isSearchResults(log)) {
-                    item.setImage(Resources.search_16);
-                    if (lev >= 4) {
-                        item.setBackground(SystemConfigs.getSearchMarkerBackground());
-                    }
-                }
-                  
+                mLogView.getLogParser().updateTableItem(mLogView.getLog(index), item, mLogView.getSearchPattern());
             }
         });
 

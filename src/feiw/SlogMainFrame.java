@@ -1,4 +1,5 @@
 package feiw;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -212,11 +213,20 @@ public final class SlogMainFrame {
                 SystemConfigs.LogUrl lu = SystemConfigs.getRecentUrl(0);
                 ConnectDlg dlg = new ConnectDlg(getShell(), lu.url, lu.port);
                 if (dlg.open() == SWT.OK) {
-                    QconnTabFrame ltab = new QconnTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, dlg.getIp(), dlg.getPort());
-                    mTabFolder.setSelection(ltab);
-                    SystemConfigs.addRecentUrl(new LogUrl("qconn", dlg.getIp(), dlg.getPort()));
-                    init();
-                    updateToolBars(ltab);
+                    QconnTabFrame ltab;
+                    try {
+                        ltab = new QconnTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, dlg.getIp(), dlg.getPort());
+                        mTabFolder.setSelection(ltab);
+                        SystemConfigs.addRecentUrl(new LogUrl("qconn", dlg.getIp(), dlg.getPort()));
+                        init();
+                        updateToolBars(ltab);
+                    } catch (DeviceNotConnected e) {
+                        MessageBox m = new MessageBox(getShell(), SWT.OK|SWT.ICON_ERROR);
+                        m.setText("Error");
+                        m.setMessage(e.getMessage());
+                        m.open();
+                    }
+                
                 }
             }
 
@@ -224,9 +234,18 @@ public final class SlogMainFrame {
             public void onListSelected(Object o) {
                 if (o instanceof LogUrl) {
                     LogUrl lu = (LogUrl)o;
-                    QconnTabFrame ltab = new QconnTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, lu.url, lu.port);
-                    mTabFolder.setSelection(ltab);
-                    updateToolBars(ltab);
+                    QconnTabFrame ltab;
+                    try {
+                        ltab = new QconnTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, lu.url, lu.port);
+                        mTabFolder.setSelection(ltab);
+                        updateToolBars(ltab);
+                    } catch (DeviceNotConnected e) {
+                        MessageBox m = new MessageBox(getShell(), SWT.OK|SWT.ICON_ERROR);
+                        m.setText("Error");
+                        m.setMessage(e.getMessage());
+                        m.open();
+                    }
+          
                 }
 
             }
@@ -265,12 +284,19 @@ public final class SlogMainFrame {
             //    dialog.setFilterPath (filterPath);
                 String fname = dialog.open();
                 if (fname != null) {
-                    FileTabFrame ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT|SWT.CLOSE|SWT.ICON, fname);
-                    mTabFolder.setSelection(ftb);
-                    
-                    SystemConfigs.addRecentFile(fname);
-                    init();
-                    updateToolBars(ftb);
+                    FileTabFrame ftb;
+                    try {
+                        ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT|SWT.CLOSE|SWT.ICON, fname);
+                        mTabFolder.setSelection(ftb);
+                        
+                        SystemConfigs.addRecentFile(fname);
+                        init();
+                        updateToolBars(ftb);
+                    } catch (FileNotFoundException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                  
                     
                 }
                 
@@ -281,9 +307,16 @@ public final class SlogMainFrame {
                
                 if (o instanceof String) {
                     String fname = (String)o;
-                    FileTabFrame ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT|SWT.CLOSE|SWT.ICON, fname);
-                    mTabFolder.setSelection(ftb);
-                    updateToolBars(ftb);
+                    FileTabFrame ftb;
+                    try {
+                        ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT|SWT.CLOSE|SWT.ICON, fname);
+                        mTabFolder.setSelection(ftb);
+                        updateToolBars(ftb);
+                    } catch (FileNotFoundException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                   
                 }
                 
             }
@@ -305,7 +338,7 @@ public final class SlogMainFrame {
             private FilterTabFrame openFilterView(LogFilter f) {
                 SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
                 FilterTabFrame ltab = new FilterTabFrame(mTabFolder, "\"" + f.getName() + "\" on [" + tbf.getText() + "]", SWT.FLAT|SWT.CLOSE|SWT.ICON, tbf.getLogSource(), 
-                         f, tbf.getLogView());
+                         f, tbf.getLogView().getLogParser(), tbf.getLogView());
                 mTabFolder.setSelection(ltab);
                 return ltab;
             }
@@ -417,6 +450,24 @@ public final class SlogMainFrame {
                 m.open();
             }
         });
+        
+        getToolItem(ToolBarDes.TN_CONNECTANDROID).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                try {
+                  
+                    SlogTabFrame ltab = new AndroidTabFrame(mTabFolder,  SWT.FLAT|SWT.CLOSE|SWT.ICON);
+                    mTabFolder.setSelection(ltab);
+                    updateToolBars(ltab);
+                } catch (DeviceNotConnected e1) {
+                    MessageBox m = new MessageBox(getShell(), SWT.OK|SWT.ICON_ERROR);
+                    m.setText("Error");
+                    m.setMessage(e1.getMessage());
+                    m.open();
+                }
+             
+            }
+        });
     }
     
     void updateToolItem(ToolItem tit) {
@@ -432,6 +483,8 @@ public final class SlogMainFrame {
         } else if (tn.equals(ToolBarDes.TN_PREFERENCE)) {
             tit.setEnabled(true);
         } else if (tn.equals(ToolBarDes.TN_HELP)) {
+            tit.setEnabled(true);
+        } else if (tn.equals(ToolBarDes.TN_CONNECTANDROID)) {
             tit.setEnabled(true);
         } else {
             tit.setEnabled(false);

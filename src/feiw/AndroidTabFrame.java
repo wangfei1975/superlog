@@ -1,22 +1,17 @@
 package feiw;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
-import feiw.LogSource.LogFilter;
 import feiw.LogSource.StatusListener;
 
-public class QconnTabFrame extends SlogTabFrame implements  StatusListener {
+public class AndroidTabFrame extends SlogTabFrame implements  StatusListener {
 
-    public QconnTabFrame(CTabFolder parent, String txt, int style, String ip, int port) throws DeviceNotConnected {
-        super(parent, txt, style, new QconnLogSource(ip, port), null, new LogParser.QnxLogParser(), null);
-        setImage(Resources.disconnected_32);
+    public AndroidTabFrame(CTabFolder parent, int style) throws DeviceNotConnected {
+        super(parent, "adb logcat", SWT.FLAT|SWT.CLOSE|SWT.ICON,  new AndroidLogSource(), null, new LogParser.AndroidThreadtimeLogParser(), null);
+        setImage(Resources.android_32);
         mLogSrc.addStatusListener(this);
     }
 
@@ -35,10 +30,7 @@ public class QconnTabFrame extends SlogTabFrame implements  StatusListener {
             super.updateToolItem(tit);
         }
     }
-    public void onClose() {
-        mLogSrc.removeStatusListener(this);
-        super.onClose();
-    }
+
     @Override
     public void onStatusChanged(int oldStatus, int newStatus) {
         if (getDisplay().isDisposed() || isDisposed()) {
@@ -47,16 +39,16 @@ public class QconnTabFrame extends SlogTabFrame implements  StatusListener {
         final Image img ;
         switch(newStatus) {
         case LogSource.stIdle:
-            img = Resources.disconnected_32;
+            img = Resources.disconnectedand_32;
             break;
         case LogSource.stConnecting:
-            img = Resources.disconnected_32;
+            img = Resources.disconnectedand_32;
             break;
         case LogSource.stConnected:
-            img = Resources.connected_32;
+            img = Resources.android_32;
             break;
          default:
-             img = Resources.connected_32;
+             img = Resources.disconnectedand_32;
                 break;
         }
        
@@ -65,22 +57,35 @@ public class QconnTabFrame extends SlogTabFrame implements  StatusListener {
             public void run() {
                 if (!isDisposed()) {
                     setImage(img);
-                    Slogmain.getApp().getMainFrame().updateToolBars(QconnTabFrame.this);
+                    Slogmain.getApp().getMainFrame().updateToolBars(AndroidTabFrame.this);
                //     mStatusLabel.setImage(img);
               //      mStatusLabel.update();
                 }
             }
            }
        );
-       
     }
-
-    
+    public void onClose() {
+        mLogSrc.removeStatusListener(this);
+        super.onClose();
+    }
     public void onDisconnect() {
         if (!isDisposed()) {
             mLogSrc.disconnect();
-            setImage(Resources.disconnected_32);
+            setImage(Resources.disconnectedand_32);
             Slogmain.getApp().getMainFrame().updateToolBars(this);
+        }
+    }
+    public void onPause() {
+        super.onPause();
+        if (!isDisposed()) {
+            if (mLogView.isPaused()) {
+                setImage(Resources.androidpause_32);
+           
+            } else {
+                setImage(Resources.android_32);
+             
+            }
         }
     }
 }

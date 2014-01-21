@@ -20,84 +20,6 @@ public class LogSource {
     public static final int stConnecting = 1;
     public static final int stConnected = 2;
 
-    public static class LogParser {
-        
-        public static boolean isQnxLog(final String log) {
-            if (log != null && log.length() > 37) {
-                if (log.charAt(3) == ' ' && log.charAt(6) == ' ') {
-                    if (log.charAt(9) == ':' && log.charAt(12) == ':') {
-                        char c = log.charAt(15);
-                        return c == '.' || c == ' ';
-                    }
-                }
-            }
-            return false;
-        }
-        public static int parseLevel(final String log) {
-            return parseLevel(log, isQnxLog(log));
-        }
-        public static int parseLevel(final String log, boolean qlog) {
-            if (qlog) {
-             char ch =  log.charAt(19 + 4);
-             int r =  Character.digit(ch, 10);
-             if (r < 0) {
-                 return 7;
-             }
-             return r;
-            }
-            return 7;
-        }
-        public static final String parseContent(final String log) {
-            return parseContent(log, isQnxLog(log));
-        }
-        public static final String parseContent(final String log, boolean qlog) {
-            if (qlog) {
-                /*
-                int idx = log.indexOf("    ");
-                if (idx > 0) {
-                    idx = log.indexOf("    ", idx+4);
-                    if (idx > 0) {
-                        idx = log.indexOf("    ", idx+4);
-                        if (idx > 0) {
-                            idx = log.indexOf(" ", idx + 4);
-                            if (idx > 0) {
-                                return log.substring(idx + 1);
-                            }
-                        }
-                    }
-                } */
-                return log.substring(37);
-                
-            } else {
-                return log;
-            }
-           
-        }
-        static final SimpleDateFormat mDfmt = new SimpleDateFormat("MMM dd HH:mm:ss.SSS"); //19 + 12 + 1 + 2 + 2 + 1
-        static final SimpleDateFormat mDfmts = new SimpleDateFormat("MMM dd HH:mm:ss");
-        static private SimpleDateFormat mParser = mDfmt;
-        
-
-        public static final Date parseTime(final String log) {
-            try {
-                return  mParser.parse(log);
-            } catch (ParseException e) {
-                try {
-                    mParser = mDfmts;
-                    return mParser.parse(log);
-                } catch (ParseException e1) {
-                    return null;
-                }
-            }
-        }
-        
-        public static final String formatTime(final Date d) {
-            if (d != null) {
-                return mDfmt.format(d);
-            }
-            return "";
-        }
-    }
     public static abstract class LogFilter {
         public static final String OP_EQUALS = " = ";
         public static final String OP_CONTAINS = "contains";
@@ -107,7 +29,7 @@ public class LogSource {
         public static final String FIELD_TIME = "time";
         public static final String FIELD_CONTENT = "args";
         
-        public abstract boolean filterLog(final String item);
+        public abstract boolean filterLog(final LogParser parser, final String item);
         
         String mName;
         LogFilter(String n) {
@@ -125,8 +47,8 @@ public class LogSource {
         public LogFilter and(final LogFilter f) {
             return new LogFilter(getName() + " and " + f.getName()) {
                 @Override
-                public boolean filterLog(final String item) {
-                   return LogFilter.this.filterLog(item) && f.filterLog(item);
+                public boolean filterLog(final LogParser parser, final String item) {
+                   return LogFilter.this.filterLog(parser, item) && f.filterLog(parser, item);
                 }
             };
         }
@@ -134,8 +56,8 @@ public class LogSource {
         public  LogFilter or(final LogFilter f) {
             return new LogFilter(getName() + " or " + f.getName()) {
                 @Override
-                public boolean filterLog(final String item) {
-                   return LogFilter.this.filterLog(item) || f.filterLog(item);
+                public boolean filterLog(final LogParser parser, final String item) {
+                   return LogFilter.this.filterLog(parser, item) || f.filterLog(parser, item);
                 }
             };
         }
@@ -144,23 +66,23 @@ public class LogSource {
                 if (OP_EQUALS.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
-                        public boolean filterLog(final String item) {
-                            return LogParser.parseLevel(item) == ((Integer)dstObj).intValue();
+                        public boolean filterLog(final LogParser parser, final String item) {
+                            return parser.parsePriority(item) == ((Integer)dstObj).intValue();
                         }
                     };
                 } else if (OP_GREATERTHAN.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
-                        public boolean filterLog(final String item) {
-                            return LogParser.parseLevel(item) > ((Integer)dstObj).intValue();
+                        public boolean filterLog(final LogParser parser, final String item) {
+                            return parser.parsePriority(item) > ((Integer)dstObj).intValue();
                         }
                         
                     };
                 } else if (OP_LESSTHEN.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
-                        public boolean filterLog(final String item) {
-                            return LogParser.parseLevel(item) < ((Integer)dstObj).intValue();
+                        public boolean filterLog(final LogParser parser, final String item) {
+                            return parser.parsePriority(item) < ((Integer)dstObj).intValue();
                         }
                         
                     };
@@ -181,8 +103,8 @@ public class LogSource {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         private final StringPattern mPat = new StringPattern((String)dstObj, false);
                         @Override
-                        public boolean filterLog(final String item) {
-                            return mPat.isContainedBy(LogParser.parseContent(item)) >= 0;
+                        public boolean filterLog(final LogParser parser, final String item) {
+                            return mPat.isContainedBy(parser.parseMessage(item)) >= 0;
                         }
                     };
                 }
@@ -219,7 +141,7 @@ public class LogSource {
     }
 
     protected synchronized void setStatus(int st) {
-        if (st != mStatus) {
+       if (st != mStatus) {
             for (StatusListener li : mStatusListeners) {
                 li.onStatusChanged(mStatus, st);
             }
@@ -332,14 +254,16 @@ public class LogSource {
         private LogListener mListener = null;
         private LogFilter mFilter = null;
         private StringPattern mSearchPattern = null;
+        private LogParser mParser;
 
         private AtomicBoolean mLogChanged = new AtomicBoolean(false);
         private AtomicBoolean mPaused = new AtomicBoolean(false);
 
-        public final String getSearchPattern() {
-            if (mSearchPattern != null)
-            return mSearchPattern.toString();
-            return "";
+        public LogParser getLogParser() {
+            return mParser;
+        }
+        public final StringPattern getSearchPattern() {
+           return mSearchPattern;
         }
         public boolean isPaused() {
             return mPaused.get();
@@ -374,15 +298,16 @@ public class LogSource {
             dw.flush();
         }
 
-        private LogView(LogListener listener, LogFilter filter, List<String> source) {
+        private LogView(LogListener listener, LogFilter filter, LogParser parser, List<String> source) {
             mListener = listener;
             mFilter = filter;
+            mParser = parser;
             mFilteredItems = Collections.synchronizedList(new ArrayList<String>());
  
             if (source != null) {
                 synchronized (source) {
                     for (String it : source) {
-                        if (filter.filterLog(it)) {
+                        if (filter.filterLog(parser, it)) {
                             mFilteredItems.add(it);
                         }
                     }
@@ -395,14 +320,14 @@ public class LogSource {
             }
         }
         
-        public boolean isSearchResults(final String item) {
+        public boolean isSearchResults(final String logmsg) {
             if (mSearchPattern != null) {
-                return mSearchPattern.isContainedBy(LogParser.parseContent(item)) >= 0;
+                return mSearchPattern.isContainedBy(logmsg) >= 0;
             }
             return false;
         }
         public void add(final String item, boolean notifylistner) {
-            if (mFilter == null || mFilter.filterLog(item)) {
+            if (mFilter == null || mFilter.filterLog(mParser, item)) {
                 if (isSearchResults(item)) {
                     mSearchResults++;
                 }
@@ -506,8 +431,8 @@ public class LogSource {
         }
     }
 
-    public synchronized LogView newLogView(LogListener listener, LogFilter filter, LogView parentView) {
-        LogView v = new LogView(listener, filter, parentView == null ? null:parentView.mFilteredItems);
+    public synchronized LogView newLogView(LogListener listener, LogFilter filter, LogParser parser, LogView parentView) {
+        LogView v = new LogView(listener, filter, parser, parentView == null ? null:parentView.mFilteredItems);
         mViews.add(v);
         return v;
     }

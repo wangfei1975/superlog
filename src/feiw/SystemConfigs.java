@@ -111,4 +111,8 @@ public final class SystemConfigs {
         }
         return null;
     }
+    
+    static public String getAdbPath() {
+        return "/Developer/SDKs/android-sdk/platform-tools/adb";
+    }
 }

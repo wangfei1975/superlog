@@ -36,6 +36,7 @@ public final class ToolBarDes {
     public static final String TBN_CONFIG = "CONFIG";
     
     public static final String TN_CONNECT = "Connect";
+    public static final String TN_CONNECTANDROID = "ConnectAndroid";
     public static final String TN_OPEN = "Open";
     public static final String TN_FILTER = "Filter";
     public static final String TN_CLEAR = "Clear";
@@ -56,6 +57,7 @@ public final class ToolBarDes {
     static public final ArrayList<ToolBarDes> TOOBARS = new ArrayList <ToolBarDes>(5){ {
         add(new ToolBarDes(TBN_FILE, new ToolItemDes [] { 
                 new ToolItemDes(TN_CONNECT,   "Connect to a QCONN device", Resources.connected_32, SWT.DROP_DOWN, SWT.COMMAND|'d'),
+                new ToolItemDes(TN_CONNECTANDROID,   "Connect to a Android device", Resources.android_32, SWT.PUSH, SWT.COMMAND|'a'),
               //  new ToolItemDes(null,   null, null, SWT.SEPARATOR, 0),
                 new ToolItemDes(TN_OPEN,      "Open a Log file", Resources.openfile_32, SWT.DROP_DOWN, SWT.COMMAND|'o'),
                 new ToolItemDes(TN_SAVEAS,    "Save Logs as", Resources.save_32, SWT.PUSH, SWT.COMMAND|'s'),

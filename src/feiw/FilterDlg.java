@@ -87,7 +87,7 @@ public class FilterDlg extends Dialog {
             } else {
                 v = value.getText();
             }
-           return LogFilter.newLogFilter(fie, op.getText(), v);
+           return LogFilter.newLogFilter(fie, op.getText(),  v);
         }
     };
     ArrayList <Rule> mRules = new ArrayList<Rule>(5);
@@ -193,6 +193,7 @@ public class FilterDlg extends Dialog {
         return r;
     }
     Text mName ;
+    LogParser mParser;
     private void createContents(final Shell shell) {
         GridLayout gly = new GridLayout(mLayoutCols, true);
    

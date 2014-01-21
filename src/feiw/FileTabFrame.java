@@ -1,5 +1,8 @@
 package feiw;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -8,8 +11,8 @@ import feiw.LogSource.LogFilter;
 
 public class FileTabFrame extends SlogTabFrame {
 
-    public FileTabFrame(CTabFolder parent, String txt, int style, String fname) {
-        super(parent, txt, style, new FileLogSource(fname), null, null);
+    public FileTabFrame(CTabFolder parent, String txt, int style, String fname) throws FileNotFoundException {
+        super(parent, txt, style, new FileLogSource(fname), null, LogParser.newLogParser(new FileInputStream(fname)), null);
         setImage(Resources.openfile_32);
         ((FileLogSource)mLogSrc).load();
 

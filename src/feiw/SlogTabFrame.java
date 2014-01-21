@@ -40,7 +40,6 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import feiw.LogSource.LogFilter;
 import feiw.LogSource.LogListener;
-import feiw.LogSource.LogParser;
 import feiw.LogSource.LogView;
 import feiw.LogSource.StatusListener;
 
@@ -81,8 +80,13 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         }
     }
     
-    public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter, LogView parentLogView) {
+    public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter, LogParser logParser, LogView parentLogView) {
         super(parent, style);
+        
+        mLogSrc = logsrc;
+        mLogView = mLogSrc.newLogView(this, logFilter, logParser, parentLogView);
+        
+        
         setText(txt);
         Composite com = new Composite(parent, style);
 
@@ -92,10 +96,10 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         
        //createToolbar(com);
 
-        SlogTable tb = new SlogTable(com, SWT.FLAT);
+        SlogTable tb = new SlogTable(com, SWT.FLAT, mLogView);
         tb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
         mTable = tb;
-       
+        mTable.setLogView(mLogView);
         
   //      mStatusLabel = new Label(com, SWT.BORDER_SOLID|SWT.ICON);
 //        mStatusLabel.setImage(logsrc.getStatus() == LogSource.stConnected ? Resources.connected_16 :Resources.disconnected_16);
@@ -117,9 +121,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
          mSearchResult.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
         
         setControl(com);
-        mLogSrc = logsrc;
-        mLogView = mLogSrc.newLogView(this, logFilter, parentLogView);
-        mTable.setLogView(mLogView);
+    
         
         mTable.addSelectionListener(new SelectionListener() {
 
@@ -273,14 +275,14 @@ public class SlogTabFrame extends CTabItem implements LogListener{
 
             String l = v.getLog(sels[i]);
             if (l != null) {
-            if (verbose) {
-                txt.append(l);
-            } else {
-                txt.append(LogParser.parseContent(l));
-            }
-            if (i < sels.length) {
-                txt.append("\n");
-            }
+                if (verbose) {
+                    txt.append(l);
+                } else {
+                    txt.append(v.getLogParser().parseMessage(l));
+                }
+                if (i < sels.length) {
+                    txt.append("\n");
+                }
             }
         }
         cb.setContents(new Object[] { txt.toString() }, new Transfer[] { TextTransfer.getInstance() });
