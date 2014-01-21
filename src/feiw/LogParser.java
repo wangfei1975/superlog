@@ -60,13 +60,14 @@ public class LogParser {
         String str;
         ArrayList<String> logs = new ArrayList<String>();
         try {
-            str = din.readLine().trim();
+            str = din.readLine();
             while (str != null && line < 100) {
+                str = str.trim();
                 if (!str.isEmpty()) {
                     line++;
                     logs.add(str);
                 }
-                str = din.readLine().trim();
+                str = din.readLine();
             }
 
             is.close();

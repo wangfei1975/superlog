@@ -157,6 +157,7 @@ public class LogSource {
         String str = din.readLine();
         long start_time = System.currentTimeMillis();
         while (str != null) {
+            str = str.trim();
             if (!str.isEmpty()) {
                 line++;
                 long curtime = System.currentTimeMillis();
