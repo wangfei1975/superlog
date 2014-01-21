@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.CoolBar;
 import org.eclipse.swt.widgets.CoolItem;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
@@ -454,8 +455,23 @@ public final class SlogMainFrame {
         getToolItem(ToolBarDes.TN_CONNECTANDROID).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
+                
+                if (!AndroidLogSource.checkAdb(SystemConfigs.getAdbPath() + "/adb")) {
+  
+                    String adbPath = null;
+                    do {
+                      
+                    DirectoryDialog dialog = new DirectoryDialog (getShell()); 
+                    dialog.setText("ADB not found, Please specify directory that contains ADB");
+                    adbPath = dialog.open();
+                    }while(adbPath != null && !AndroidLogSource.checkAdb(adbPath + "/adb"));
+                    if (adbPath == null) {
+                        return;
+                    }
+                    SystemConfigs.setAdbPath(adbPath);
+                }
                 try {
-                  
+                    
                     SlogTabFrame ltab = new AndroidTabFrame(mTabFolder,  SWT.FLAT|SWT.CLOSE|SWT.ICON);
                     mTabFolder.setSelection(ltab);
                     updateToolBars(ltab);

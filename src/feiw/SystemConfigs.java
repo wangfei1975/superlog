@@ -1,5 +1,9 @@
 package feiw;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -9,7 +13,6 @@ import org.eclipse.swt.widgets.Display;
 
 import feiw.LogSource.LogFilter;
 
- 
 
 public final class SystemConfigs {
 
@@ -112,7 +115,29 @@ public final class SystemConfigs {
         return null;
     }
     
+    static String mAdbPath = null;
     static public String getAdbPath() {
-        return "/Developer/SDKs/android-sdk/platform-tools/adb";
+        return mAdbPath; ///Developer/SDKs/android-sdk/platform-tools/adb";
+    }
+    static public void setAdbPath(String p) {
+        mAdbPath = p;
+    }
+    
+    void save() {
+        /*
+        String home =  System.getProperty("user.home");
+        File dir = new File(home);
+        if (dir.exists()) {
+            try {
+                FileOutputStream fo = new FileOutputStream(home + "/.superlog");
+                OutputStreamWriter wr = new OutputStreamWriter(fo);
+                
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+        }
+        */
     }
 }

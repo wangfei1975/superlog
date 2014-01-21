@@ -9,12 +9,23 @@ import java.net.Socket;
 public class AndroidLogSource extends LogSource {
 
     Process mAdbProcess;
+    
+    static boolean checkAdb(String adbpath) {
+        try {
+            Process p = Runtime.getRuntime().exec(adbpath + " version");
+            final BufferedReader rd = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String s = rd.readLine();
+            return (s.contains("Android Debug Bridge version"));
+        } catch (IOException e) {
+        }
+        return false;
+    }
     public AndroidLogSource() throws DeviceNotConnected {
         super();
         setStatus(stConnecting);
 
             try {
-                mAdbProcess = Runtime.getRuntime().exec(SystemConfigs.getAdbPath() + "  logcat -vthreadtime");
+                mAdbProcess = Runtime.getRuntime().exec(SystemConfigs.getAdbPath() + "/adb logcat -vthreadtime");
                 final BufferedReader rd = new BufferedReader(new InputStreamReader(mAdbProcess.getInputStream()));
                 String s = rd.readLine();
                 if (s.contains("waiting for device")) {
