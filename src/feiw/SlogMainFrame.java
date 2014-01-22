@@ -437,7 +437,7 @@ public final class SlogMainFrame {
                 }
             }
         });
-        
+        /*
         getToolItem(ToolBarDes.TN_PREFERENCE).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -447,12 +447,13 @@ public final class SlogMainFrame {
                 m.open();
             }
         });
+        */
         getToolItem(ToolBarDes.TN_HELP).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 MessageBox m = new MessageBox(getShell(), SWT.OK|SWT.ICON_INFORMATION);
                 m.setText("About SuperLog");
-                m.setMessage("TODO.");
+                m.setMessage("SuperLog Version 1.0.0\n");
                 m.open();
             }
         });

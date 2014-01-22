@@ -68,7 +68,7 @@ public final class SystemConfigs {
     }
     
     public final long LIVE_LOG_NOTIFYTIME = 300;
-    
+    public final String copyright = "wangfei1975@gmail.com";
     public static final class LogUrl {
         public String scheme;
         public String url;
