@@ -1,8 +1,6 @@
 package feiw;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
 import feiw.LogSource.LogFilter;

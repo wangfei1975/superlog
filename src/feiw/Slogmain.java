@@ -1,23 +1,5 @@
 package feiw;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-
-import org.eclipse.swt.graphics.Color;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import feiw.LogSource.LogFilter;
-import feiw.LogSource.LogFilter.InvalidLogFilterStringException;
-import feiw.SystemConfigs.ColorDeserializer;
-import feiw.SystemConfigs.ColorSerializer;
 
 
 public final class Slogmain  {

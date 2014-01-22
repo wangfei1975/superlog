@@ -6,8 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -435,7 +433,10 @@ public class LogParser {
             if (taste(log)) {
                 int idx = log.indexOf(':', 32);
                 if (idx >= 0) {
-                    return log.substring(32, idx).trim();
+                    if (idx +2 < log.length())
+                    return log.substring(32, idx).trim(); 
+                    else 
+                        return "";
               }
             }
             return null;
@@ -461,7 +462,10 @@ public class LogParser {
                 pri = AndroidLogParser.mapLogPriority(alogpri);
                 int idx = log.indexOf(':', 32);
                 if (idx >= 0) {
+                   if (idx + 2 < log.length())
                     msg = log.substring(idx + 2);
+                   else 
+                        msg = "";
                     item.setText(4, log.substring(33, idx));
                 }
             }  

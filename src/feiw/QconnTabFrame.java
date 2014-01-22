@@ -1,15 +1,9 @@
 package feiw;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
-import feiw.LogSource.LogFilter;
 import feiw.LogSource.StatusListener;
 
 public class QconnTabFrame extends SlogTabFrame implements  StatusListener {

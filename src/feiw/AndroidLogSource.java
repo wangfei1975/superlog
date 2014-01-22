@@ -1,12 +1,9 @@
 package feiw;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,7 +37,7 @@ public class AndroidLogSource extends LogSource {
 
                 String s = rd.readLine();
                 if (s.contains("waiting for device")) {
-                    throw new DeviceNotConnected("No Android connected");
+                    throw new DeviceNotConnected("No Android Device connected");
                 }
                 addLogItem(s, false);
                 setStatus(stConnected);
@@ -57,7 +54,7 @@ public class AndroidLogSource extends LogSource {
                 }.start();
           
             } catch (IOException e1) {
-                throw new DeviceNotConnected("No Android connected");
+                throw new DeviceNotConnected("No Android Device connected");
             }
  
 

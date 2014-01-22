@@ -1,7 +1,5 @@
 package feiw;
 
-import java.util.ArrayList;
-
 import org.eclipse.swt.widgets.Display;
 
 

@@ -1,9 +1,7 @@
 package org.eclipse.swt.widgets;
 
-import java.util.Date;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
@@ -14,10 +12,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import feiw.LogParser;
-import feiw.Resources;
-import feiw.Slogmain;
-import feiw.SystemConfigs;
 import feiw.LogSource.LogView;
 
 public final class SlogTable extends Table {

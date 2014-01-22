@@ -62,14 +62,14 @@ public final class ToolBarDes {
         }
         
         add(new ToolBarDes(TBN_FILE, new ToolItemDes [] { 
-                new ToolItemDes(TN_CONNECT,   "Connect to a QCONN device", Resources.connected_32, SWT.DROP_DOWN, cmdkey|'d'),
-                new ToolItemDes(TN_CONNECTANDROID,   "Connect to a Android device", Resources.android_32, SWT.PUSH, cmdkey|'a'),
+                new ToolItemDes(TN_CONNECT,   "Connect to QCONN device", Resources.connected_32, SWT.DROP_DOWN, cmdkey|'d'),
+                new ToolItemDes(TN_CONNECTANDROID,   "Connect to Android device", Resources.android_32, SWT.PUSH, cmdkey|'a'),
               //  new ToolItemDes(null,   null, null, SWT.SEPARATOR, 0),
-                new ToolItemDes(TN_OPEN,      "Open a Log file", Resources.openfile_32, SWT.DROP_DOWN, cmdkey|'o'),
+                new ToolItemDes(TN_OPEN,      "Open Log file", Resources.openfile_32, SWT.DROP_DOWN, cmdkey|'o'),
                 new ToolItemDes(TN_SAVEAS,    "Save Logs as", Resources.save_32, SWT.PUSH, cmdkey|'s'),
         }));
         add(new ToolBarDes("TN_FILTER", new ToolItemDes[] {
-                new ToolItemDes(TN_FILTER,    "Open a Filted view", Resources.filter_32, SWT.DROP_DOWN, 0),                
+                new ToolItemDes(TN_FILTER,    "Open Filted view", Resources.filter_32, SWT.DROP_DOWN, 0),                
         }));
         add(new ToolBarDes(TBN_SEARCH, new ToolItemDes [] { 
                 new ToolItemDes(TN_SEARCH,   "Search", Resources.search_32, SWT.PUSH, cmdkey|'f'),

@@ -75,6 +75,7 @@ public class ConnectDlg extends Dialog {
     private void createContents(final Shell shell) {
         shell.setLayout(new GridLayout(2, true));
 
+        shell.setText("Input qconn target IP and port");
         // Show the message
         Label label = new Label(shell, SWT.NONE);
         label.setText(message);
