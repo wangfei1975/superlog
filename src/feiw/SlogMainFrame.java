@@ -486,7 +486,6 @@ public final class SlogMainFrame {
                     m.setMessage(e1.getMessage());
                     m.open();
                 }
-             
             }
         });
     }
