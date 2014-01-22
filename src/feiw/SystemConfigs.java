@@ -240,7 +240,7 @@ public final class SystemConfigs {
                 Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeAdapter(Color.class, new ColorSerializer())
                         .registerTypeAdapter(Color.class, new ColorDeserializer()).create();
                 SystemConfigs cfg = gson.fromJson(new InputStreamReader(fi, "UTF-8"), SystemConfigs.class);
-                cfg.initDefault();
+              //  cfg.initDefault();
                 return cfg;
                 
             } catch (FileNotFoundException e) {
