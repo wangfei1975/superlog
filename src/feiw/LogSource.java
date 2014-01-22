@@ -21,13 +21,19 @@ public class LogSource {
     public static final int stConnected = 2;
 
     public static abstract class LogFilter {
-        public static final String OP_EQUALS = " = ";
+        public static final String OP_EQUALS = "=";
         public static final String OP_CONTAINS = "contains";
-        public static final String OP_GREATERTHAN = " > ";
-        public static final String OP_LESSTHEN = " < ";
-        public static final String FIELD_LEVEL = "level";
+        public static final String OP_GREATERTHAN = ">";
+        public static final String OP_LESSTHEN = "<";
+        
+        public static final String FIELD_PRIORITY = "priority";
+        public static final String FIELD_TAG = "tag";
         public static final String FIELD_TIME = "time";
-        public static final String FIELD_CONTENT = "args";
+        public static final String FIELD_CONTENT = "message";
+        
+        public static final String FILTER_OP_AND = "and";
+        public static final String FILTER_OP_OR =  "or";
+        
         
         public abstract boolean filterLog(final LogParser parser, final String item);
         
@@ -43,9 +49,45 @@ public class LogSource {
         String getName() {
             return mName;
         }
+        public String toString() {
+            return mName;
+        }
+        
+        @SuppressWarnings("serial")
+        static class InvalidLogFilterStringException extends Exception {
+          public  InvalidLogFilterStringException(String s) {
+                super(s);
+            }
+        }
+        static LogFilter fromString(String s) throws InvalidLogFilterStringException {
+            String fs[] = s.split(FILTER_OP_AND);
+            if (fs != null && fs.length > 0) {
+                System.out.println(fs[0]);
+            }
+            int idx = s.indexOf(FILTER_OP_AND);
+            if (idx > 0) {
+                return fromString(s.substring(0, idx)).and(fromString(s.substring(idx + FILTER_OP_AND.length())));
+            }
+            idx = s.indexOf(FILTER_OP_OR);
+            if (idx > 0) {
+                return fromString(s.substring(0, idx)).or(fromString(s.substring(idx + FILTER_OP_OR.length())));
+            }
+            
+            String [] txt = s.split(" ");
+            if (txt == null || txt.length != 3 || txt[0] == null || txt[1] == null || txt[2] == null) {
+                throw new InvalidLogFilterStringException("invalid log filter string: " + s);
+            }
+            
+            Object o = txt[2];
+            if (txt[0].equals(FIELD_PRIORITY)) {
+                o = Integer.parseInt(txt[2]);
+            }
+            return newLogFilter(txt[0], txt[1], o);
+            
+        }
         
         public LogFilter and(final LogFilter f) {
-            return new LogFilter(getName() + " and " + f.getName()) {
+            return new LogFilter(getName() + FILTER_OP_AND + f.getName()) {
                 @Override
                 public boolean filterLog(final LogParser parser, final String item) {
                    return LogFilter.this.filterLog(parser, item) && f.filterLog(parser, item);
@@ -54,7 +96,7 @@ public class LogSource {
         }
         
         public  LogFilter or(final LogFilter f) {
-            return new LogFilter(getName() + " or " + f.getName()) {
+            return new LogFilter(getName() + FILTER_OP_OR + f.getName()) {
                 @Override
                 public boolean filterLog(final LogParser parser, final String item) {
                    return LogFilter.this.filterLog(parser, item) || f.filterLog(parser, item);
@@ -62,7 +104,7 @@ public class LogSource {
             };
         }
             public static LogFilter newLogFilter(String field, String op, final Object dstObj) {
-            if (FIELD_LEVEL.equals(field)) {
+            if (FIELD_PRIORITY.equals(field)) {
                 if (OP_EQUALS.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
@@ -108,6 +150,23 @@ public class LogSource {
                         }
                     };
                 }
+            } else if (FIELD_TAG.equals(field)) {
+                if (OP_EQUALS.equals(op)) {
+                    return new LogFilter(field + " " + op + " " + dstObj) {
+                        @Override
+                        public boolean filterLog(final LogParser parser, final String item) {
+                            return dstObj.equals(parser.parseTag(item));
+                        }
+                    };
+                } else if (OP_CONTAINS.equals(op)) {
+                    return new LogFilter(field + " " + op + " " + dstObj) {
+                        @Override
+                        public boolean filterLog(final LogParser parser, final String item) {
+                            String tag = parser.parseTag(item);
+                            return (tag != null) && tag.contains((String)dstObj);
+                        }
+                    };
+                }
             }
             return null;
         }
@@ -150,7 +209,7 @@ public class LogSource {
     }
     
 
-    long mNotifyTimeSpan = 300;
+    protected long mNotifyTimeSpan = SystemConfigs.instance().LIVE_LOG_NOTIFYTIME;
     protected void fetchLogs(InputStream is) throws IOException {
         BufferedReader din = new BufferedReader(new InputStreamReader(is));
         int line = 0;

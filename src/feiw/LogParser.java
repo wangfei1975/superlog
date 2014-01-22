@@ -178,6 +178,7 @@ public class LogParser {
         public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
             int pri = 7;
             String msg;
+            SystemConfigs scfgs = SystemConfigs.instance();
             if (taste(log)) {
                 item.setText(2, log.substring(0, 16));
                 char chpri = log.charAt(19);
@@ -189,15 +190,15 @@ public class LogParser {
             }
             item.setText(4, msg);
 
-            Color bk = SystemConfigs.getLogBackground(pri);
+            Color bk = scfgs.getLogBackground(pri);
             if (bk != null) {
                 item.setBackground(bk);
             }
-            item.setForeground(SystemConfigs.getLogForeground(pri));
+            item.setForeground(scfgs.getLogForeground(pri));
             if (searchPat != null && searchPat.isContainedBy(msg) >= 0) {
                 item.setImage(Resources.search_16);
                 if (pri >= 4) {
-                    item.setBackground(SystemConfigs.getSearchMarkerBackground());
+                    item.setBackground(scfgs.getSearchMarkerBackground());
                 }
             }
         }
@@ -241,9 +242,25 @@ public class LogParser {
             }
             return log;
         }
+        public String parseTag(final String log) {
+            if (taste(log)) {
+                int idx1 = log.indexOf('(', 21);
+                if (idx1 >= 0) {
+                    return log.substring(21, idx1).trim();
+              }
+            }
+            return null;
+        }
+        public int parsePriority(final String log) {
+            if (taste(log)) {
+                return AndroidLogParser.mapLogPriority(log.charAt(19));
+            }
+            return 7;
+        }
         public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
             int pri = 7;
             String msg = log;
+            SystemConfigs scfgs = SystemConfigs.instance();
             if (taste(log)) {
                 item.setText(2, log.substring(0, 19));
                 char alogpri = log.charAt(19);
@@ -264,15 +281,15 @@ public class LogParser {
             }  
             item.setText(6, msg);
 
-            Color bk = SystemConfigs.getLogBackground(pri);
+            Color bk = scfgs.getLogBackground(pri);
             if (bk != null) {
                 item.setBackground(bk);
             }
-            item.setForeground(SystemConfigs.getLogForeground(pri));
+            item.setForeground(scfgs.getLogForeground(pri));
             if (searchPat != null && searchPat.isContainedBy(msg) >= 0) {
                 item.setImage(Resources.search_16);
                 if (pri >= 4) {
-                    item.setBackground(SystemConfigs.getSearchMarkerBackground());
+                    item.setBackground(scfgs.getSearchMarkerBackground());
                 }
             }
         }
@@ -324,6 +341,15 @@ public class LogParser {
         public String[] getTableHeader() {
             return mTableHeader;
         }
+        public String parseTag(final String log) {
+            if (taste(log)) {
+                int idx1 = log.indexOf('(', 2);
+                if (idx1 >= 0) {
+                    return log.substring(2, idx1).trim();
+              }
+            }
+            return null;
+        }
         public String parseMessage(final String log) {
             if (taste(log)) {
                 int idx = log.indexOf(':', 2);
@@ -333,9 +359,16 @@ public class LogParser {
             }
             return log;
         }
+        public int parsePriority(final String log) {
+            if (taste(log)) {
+                return AndroidLogParser.mapLogPriority(log.charAt(0));
+            }
+            return 7;
+        }
         public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
             int pri = 7;
             String msg = log;
+            SystemConfigs scfgs = SystemConfigs.instance();
             if (taste(log)) {
                 item.setText(2, "");
                 char alogpri = log.charAt(0);
@@ -352,22 +385,21 @@ public class LogParser {
             }  
             item.setText(4, msg);
 
-            Color bk = SystemConfigs.getLogBackground(pri);
+            Color bk = scfgs.getLogBackground(pri);
             if (bk != null) {
                 item.setBackground(bk);
             }
-            item.setForeground(SystemConfigs.getLogForeground(pri));
+            item.setForeground(scfgs.getLogForeground(pri));
             if (searchPat != null && searchPat.isContainedBy(msg) >= 0) {
                 item.setImage(Resources.search_16);
                 if (pri >= 4) {
-                    item.setBackground(SystemConfigs.getSearchMarkerBackground());
+                    item.setBackground(scfgs.getSearchMarkerBackground());
                 }
             }
         }
     }
     public static final class AndroidThreadtimeLogParser extends LogParser{
         public static boolean taste(final String log) {
-            //01-17 20:28:35.599 D/ConnectivityService(  367): Attempting to switch to mobile 
             //01-17 20:28:35.379   367   424 D Ethernet: Interface eth0 link down
             //01-17 21:52:50.409  1330  1330 V GCMBroadcastReceiver: GCM IntentService class: com.espn.notifications.EspnGcmIntentService
 
@@ -399,6 +431,15 @@ public class LogParser {
         public String[] getTableHeader() {
             return mTableHeader;
         }
+        public String parseTag(final String log) {
+            if (taste(log)) {
+                int idx = log.indexOf(':', 32);
+                if (idx >= 0) {
+                    return log.substring(32, idx).trim();
+              }
+            }
+            return null;
+        }
         public String parseMessage(final String log) {
             if (taste(log)) {
                 int idx = log.indexOf(':', 32);
@@ -412,6 +453,7 @@ public class LogParser {
         public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
             int pri = 7;
             String msg = log;
+            SystemConfigs scfgs = SystemConfigs.instance();
             if (taste(log)) {
                 item.setText(2, log.substring(0, 18));
                 char alogpri = log.charAt(31);
@@ -425,15 +467,15 @@ public class LogParser {
             }  
             item.setText(5, msg);
 
-            Color bk = SystemConfigs.getLogBackground(pri);
+            Color bk = scfgs.getLogBackground(pri);
             if (bk != null) {
                 item.setBackground(bk);
             }
-            item.setForeground(SystemConfigs.getLogForeground(pri));
+            item.setForeground(scfgs.getLogForeground(pri));
             if (searchPat != null && searchPat.isContainedBy(msg) >= 0) {
                 item.setImage(Resources.search_16);
                 if (pri >= 4) {
-                    item.setBackground(SystemConfigs.getSearchMarkerBackground());
+                    item.setBackground(scfgs.getSearchMarkerBackground());
                 }
             }
         }
@@ -477,6 +519,7 @@ public class LogParser {
         public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
             int pri = 7;
             String msg;
+            SystemConfigs scfgs = SystemConfigs.instance();
             if (taste(log)) {
                 item.setText(2, log.substring(0, 20));
                 char chpri = log.charAt(23);
@@ -488,15 +531,15 @@ public class LogParser {
             }
             item.setText(4, msg);
 
-            Color bk = SystemConfigs.getLogBackground(pri);
+            Color bk = scfgs.getLogBackground(pri);
             if (bk != null) {
                 item.setBackground(bk);
             }
-            item.setForeground(SystemConfigs.getLogForeground(pri));
+            item.setForeground(scfgs.getLogForeground(pri));
             if (searchPat != null && searchPat.isContainedBy(msg) >= 0) {
                 item.setImage(Resources.search_16);
                 if (pri >= 4) {
-                    item.setBackground(SystemConfigs.getSearchMarkerBackground());
+                    item.setBackground(scfgs.getSearchMarkerBackground());
                 }
             }
         }

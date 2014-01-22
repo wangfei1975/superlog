@@ -53,7 +53,6 @@ import feiw.SystemConfigs.LogUrl;
 import feiw.ToolBarDes.ToolItemDes;
 
 public final class SlogMainFrame {
-    
 
     private Display mDisplay;
     private Shell   mShell;
@@ -94,22 +93,27 @@ public final class SlogMainFrame {
         ToolBar tb = new ToolBar(mCoolBar, SWT.FLAT);
         tb.setData(tbdes.mName);
         for (ToolItemDes itdes : tbdes.mItems) {
+//            System.out.println("create tool bar " + itdes.mName);
             ToolItem it = new ToolItem(tb, itdes.mStyle);
             it.setData(itdes.mName);
             it.setData("KeyAccelerator", new Integer(itdes.mKeyAccelerator));
             it.setToolTipText(itdes.mTipText);
             if (itdes.mImage != null) {
-                it.setImage(itdes.mImage);
-                it.setDisabledImage(new Image(getDisplay(), itdes.mImage, SWT.IMAGE_GRAY));
+               it.setImage(itdes.mImage);
+               it.setDisabledImage(new Image(getDisplay(), itdes.mImage, SWT.IMAGE_GRAY));
             }
             mToolItems.add(it);
         }
+        
         CoolItem item = new CoolItem(mCoolBar, SWT.NONE);
         Point p = tb.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+        p.x += 2;
         tb.setSize(p);
-        Point p2 = item.computeSize(p.x, p.y);
+        Point p2 = item.computeSize(p.x+2, p.y);
         item.setControl(tb);
+
         item.setSize(p2);
+        tb.pack();        
         
     }
     
@@ -160,7 +164,13 @@ public final class SlogMainFrame {
         }
       }
     
-   
+    public FilterTabFrame openFilterView(LogFilter f) {
+        SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+        FilterTabFrame ltab = new FilterTabFrame(mTabFolder, "\"" + f.getName() + "\" on [" + tbf.getText() + "]", SWT.FLAT|SWT.CLOSE|SWT.ICON, tbf.getLogSource(), 
+                 f, tbf.getLogView().getLogParser(), tbf.getLogView());
+        mTabFolder.setSelection(ltab);
+        return ltab;
+    }
     void createToolBars() {
         mCoolBar = new CoolBar(getShell(), SWT.FLAT);
         mCoolBar.setBackground(new Color(getDisplay(), 255,255,255));
@@ -211,14 +221,15 @@ public final class SlogMainFrame {
         getToolItem(ToolBarDes.TN_CONNECT).addSelectionListener(new DropdownListener(getToolItem(ToolBarDes.TN_CONNECT)) {
             @Override
             public void onToolSelected(ToolItem dropdown) {
-                SystemConfigs.LogUrl lu = SystemConfigs.getRecentUrl(0);
-                ConnectDlg dlg = new ConnectDlg(getShell(), lu.url, lu.port);
+                SystemConfigs.LogUrl lu = SystemConfigs.instance().getRecentUrl(0);
+                ConnectDlg dlg = new ConnectDlg(getShell(), lu == null ? "10.222.98.205":lu.url, lu==null?8000:lu.port);
                 if (dlg.open() == SWT.OK) {
                     QconnTabFrame ltab;
                     try {
-                        ltab = new QconnTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, dlg.getIp(), dlg.getPort());
+                        String title = "qconn://" + dlg.getIp() + ":" + dlg.getPort();
+                        ltab = new QconnTabFrame(mTabFolder, title, SWT.FLAT|SWT.CLOSE|SWT.ICON, dlg.getIp(), dlg.getPort());
                         mTabFolder.setSelection(ltab);
-                        SystemConfigs.addRecentUrl(new LogUrl("qconn", dlg.getIp(), dlg.getPort()));
+                        SystemConfigs.instance().addRecentUrl(new LogUrl("qconn", dlg.getIp(), dlg.getPort()));
                         init();
                         updateToolBars(ltab);
                     } catch (DeviceNotConnected e) {
@@ -255,7 +266,7 @@ public final class SlogMainFrame {
             public void init() {
                 clearList();
                 for (int i = 0; i < 5; i++) {
-                     LogUrl lu = SystemConfigs.getRecentUrl(i);
+                     LogUrl lu = SystemConfigs.instance().getRecentUrl(i);
                     if (lu != null) {
                         addListItem(lu.toString(), Resources.connected_16, lu);
                     }
@@ -290,7 +301,7 @@ public final class SlogMainFrame {
                         ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT|SWT.CLOSE|SWT.ICON, fname);
                         mTabFolder.setSelection(ftb);
                         
-                        SystemConfigs.addRecentFile(fname);
+                        SystemConfigs.instance().addRecentFile(fname);
                         init();
                         updateToolBars(ftb);
                     } catch (FileNotFoundException e) {
@@ -326,7 +337,7 @@ public final class SlogMainFrame {
             public void init() {
                 clearList();
                 for (int i = 0; i < 5; i++) {
-                    String fname = SystemConfigs.getRecentFile(i);
+                    String fname = SystemConfigs.instance().getRecentFile(i);
                     if (fname != null) {
                         addListItem(fname, Resources.openfile_16, fname);
                     }
@@ -336,30 +347,24 @@ public final class SlogMainFrame {
         });
  
         getToolItem(ToolBarDes.TN_FILTER).addSelectionListener(new DropdownListener(getToolItem(ToolBarDes.TN_FILTER)) {
-            private FilterTabFrame openFilterView(LogFilter f) {
-                SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
-                FilterTabFrame ltab = new FilterTabFrame(mTabFolder, "\"" + f.getName() + "\" on [" + tbf.getText() + "]", SWT.FLAT|SWT.CLOSE|SWT.ICON, tbf.getLogSource(), 
-                         f, tbf.getLogView().getLogParser(), tbf.getLogView());
-                mTabFolder.setSelection(ltab);
-                return ltab;
-            }
+
             @Override
             public void onToolSelected(ToolItem dropdown) {
-                FilterDlg fdlg = new FilterDlg(getShell());
+                SlogTabFrame ctab = (SlogTabFrame)mTabFolder.getSelection();
+                FilterDlg fdlg = new FilterDlg(getShell(), ctab.getLogView(), null);
                 if (fdlg.open() != SWT.OK) {
                     return;
                 }
                 LogFilter f = fdlg.getFilter();
-                FilterTabFrame tbf = openFilterView(f);
-                SystemConfigs.addRecentFilter(f);
+                openFilterView(f);
+                SystemConfigs.instance().addRecentFilter(f);
                 init();
-                updateToolBars(tbf);
             }
 
             @Override
             public void onListSelected(final Object o) {
                 if (o instanceof LogFilter) {
-                     updateToolBars(openFilterView((LogFilter)o));
+                     openFilterView((LogFilter)o);
                 }
                 
             }
@@ -367,7 +372,7 @@ public final class SlogMainFrame {
             public void init() {
                 clearList();
                 for (int i = 0; i < 5; i++) {
-                     LogFilter f = SystemConfigs.getRecentFilter(i);
+                     LogFilter f = SystemConfigs.instance().getRecentFilter(i);
                     if (f != null) {
                         addListItem(f.getName(), Resources.filter_16, f);
                     }
@@ -456,7 +461,7 @@ public final class SlogMainFrame {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 
-                if (!AndroidLogSource.checkAdb(SystemConfigs.getAdbPath() + "/adb")) {
+                if (!AndroidLogSource.checkAdb(SystemConfigs.instance().getAdbPath() + "/adb")) {
   
                     String adbPath = null;
                     do {
@@ -468,7 +473,7 @@ public final class SlogMainFrame {
                     if (adbPath == null) {
                         return;
                     }
-                    SystemConfigs.setAdbPath(adbPath);
+                    SystemConfigs.instance().setAdbPath(adbPath);
                 }
                 try {
                     
@@ -487,6 +492,7 @@ public final class SlogMainFrame {
     }
     
     void updateToolItem(ToolItem tit) {
+   
         String tn = (String)tit.getData();
         if (tn == null || tn.isEmpty()) {
             tit.setEnabled(false);
@@ -505,6 +511,7 @@ public final class SlogMainFrame {
         } else {
             tit.setEnabled(false);
         }
+ 
     }
     void updateToolBars(SlogTabFrame it) {
         for (ToolItem tit : mToolItems) {
@@ -514,7 +521,7 @@ public final class SlogMainFrame {
                 it.updateToolItem(tit);
             }
         }
-        mCoolBar.update();
+        mCoolBar.pack(true);
     }
     protected Control createContents() {
 
@@ -603,6 +610,7 @@ public final class SlogMainFrame {
             if (!display.readAndDispatch())
                 display.sleep();
         }
+        SystemConfigs.instance().save();
         display.dispose();
     }
 }

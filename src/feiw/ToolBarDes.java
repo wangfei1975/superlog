@@ -55,26 +55,32 @@ public final class ToolBarDes {
     
     @SuppressWarnings("serial")
     static public final ArrayList<ToolBarDes> TOOBARS = new ArrayList <ToolBarDes>(5){ {
+        
+        int cmdkey = SWT.COMMAND;
+        if (SWT.getPlatform().contains("win")) {
+            cmdkey = SWT.CONTROL;
+        }
+        
         add(new ToolBarDes(TBN_FILE, new ToolItemDes [] { 
-                new ToolItemDes(TN_CONNECT,   "Connect to a QCONN device", Resources.connected_32, SWT.DROP_DOWN, SWT.COMMAND|'d'),
-                new ToolItemDes(TN_CONNECTANDROID,   "Connect to a Android device", Resources.android_32, SWT.PUSH, SWT.COMMAND|'a'),
+                new ToolItemDes(TN_CONNECT,   "Connect to a QCONN device", Resources.connected_32, SWT.DROP_DOWN, cmdkey|'d'),
+                new ToolItemDes(TN_CONNECTANDROID,   "Connect to a Android device", Resources.android_32, SWT.PUSH, cmdkey|'a'),
               //  new ToolItemDes(null,   null, null, SWT.SEPARATOR, 0),
-                new ToolItemDes(TN_OPEN,      "Open a Log file", Resources.openfile_32, SWT.DROP_DOWN, SWT.COMMAND|'o'),
-                new ToolItemDes(TN_SAVEAS,    "Save Logs as", Resources.save_32, SWT.PUSH, SWT.COMMAND|'s'),
+                new ToolItemDes(TN_OPEN,      "Open a Log file", Resources.openfile_32, SWT.DROP_DOWN, cmdkey|'o'),
+                new ToolItemDes(TN_SAVEAS,    "Save Logs as", Resources.save_32, SWT.PUSH, cmdkey|'s'),
         }));
         add(new ToolBarDes("TN_FILTER", new ToolItemDes[] {
                 new ToolItemDes(TN_FILTER,    "Open a Filted view", Resources.filter_32, SWT.DROP_DOWN, 0),                
         }));
         add(new ToolBarDes(TBN_SEARCH, new ToolItemDes [] { 
-                new ToolItemDes(TN_SEARCH,   "Search", Resources.search_32, SWT.PUSH, SWT.COMMAND|'f'),
-                new ToolItemDes(TN_NEXT,   "Next Result", Resources.down_32, SWT.PUSH, SWT.COMMAND|'n'),
-                new ToolItemDes(TN_PREV,   "Previous Result", Resources.up_32, SWT.PUSH, SWT.COMMAND|'p'),
+                new ToolItemDes(TN_SEARCH,   "Search", Resources.search_32, SWT.PUSH, cmdkey|'f'),
+                new ToolItemDes(TN_NEXT,   "Next Result", Resources.down_32, SWT.PUSH, cmdkey|'n'),
+                new ToolItemDes(TN_PREV,   "Previous Result", Resources.up_32, SWT.PUSH, cmdkey|'p'),
         }));
         
         add(new ToolBarDes(TBN_EDIT, new ToolItemDes [] {
-                new ToolItemDes(TN_CLEAR,   "Clear Logs", Resources.trash_32, SWT.PUSH, SWT.COMMAND|'r'),
-                new ToolItemDes(TN_COPY,    "Copy selection", Resources.copy_32, SWT.PUSH, SWT.SHIFT|SWT.COMMAND|'c'),
-                new ToolItemDes(TN_COPYALL,    "Copy selection(All columns)", Resources.copyall_32, SWT.PUSH, SWT.COMMAND|'c'),
+                new ToolItemDes(TN_CLEAR,   "Clear Logs", Resources.trash_32, SWT.PUSH, cmdkey|'r'),
+                new ToolItemDes(TN_COPY,    "Copy selection", Resources.copy_32, SWT.PUSH, SWT.SHIFT|cmdkey|'c'),
+                new ToolItemDes(TN_COPYALL,    "Copy selection(All columns)", Resources.copyall_32, SWT.PUSH, cmdkey|'c'),
         }));
         
         add(new ToolBarDes(TBN_TARGET, new ToolItemDes [] { 

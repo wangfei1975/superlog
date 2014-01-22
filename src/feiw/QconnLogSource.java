@@ -40,36 +40,38 @@ public final class QconnLogSource extends LogSource {
 
                     BufferedReader din = new BufferedReader(new InputStreamReader(
                             mSock.getInputStream()));
-
-                    String str = din.readLine();
-                    System.out.print(str + "\n");
-                    out.writeBytes("service launcher\r\n");
-                    System.out.print(din.readLine() + "\n");
-                    out.writeBytes("start slay -f sloginfo\r\n");
-                    System.out.print(din.readLine() + "\n");
-                    mSock.close();
-                    mSock = new Socket(ip, port);
-                
-                     out = new DataOutputStream(mSock.getOutputStream());
-                     din = new BufferedReader(new InputStreamReader(mSock.getInputStream()));
+ 
+                     din.readLine();
+                    //System.out.print(str + "\n");
+                  //  out.writeBytes("service launcher\r\n");
+                  //  System.out.print(din.readLine() + "\n");
+                  //  out.writeBytes("start slay -f sloginfo\r\n");
+                  //  System.out.println(din.readLine());
+                  //  mSock.close();
+                  //  mSock = new Socket(ip, port);
+           
+                    // out = new DataOutputStream(mSock.getOutputStream());
+                    // din = new BufferedReader(new InputStreamReader(mSock.getInputStream()));
+                         
                   //  sock.setKeepAlive(true);
-                      str = din.readLine();
-                    System.out.print(str + "\n");
+                        //str = din.readLine();
+                     //System.out.println(str);
                     out.writeBytes("service launcher\r\n");
-                    System.out.print(din.readLine() + "\n");
+                   System.out.println(din.readLine());
                     out.writeBytes("start sloginfo sloginfo -t -c -w\r\n");
                     String ret = din.readLine();
+                    System.out.println(ret);
                     if (ret.startsWith("OK")) {
                         System.out.print("launch success, pid is:" + ret.substring(3) + "\n");
                         mRemotepid = Integer.parseInt(ret.substring(3));
 
                     } else {
                         out.writeBytes("service launcher\r\n");
-                        System.out.print(din.readLine() + "\n");
-                        out.writeBytes("start /bin/sloginfo sloginfo -c -w\r\n");
+                       // System.out.print(din.readLine() + "\n");
+                        out.writeBytes("start /bin/sloginfo sloginfo -t -c -w\r\n");
                         ret = din.readLine();
                         if (ret.startsWith("OK")) {
-                            System.out.print("launch success, pid is:" + ret.substring(3) + "\n");
+                          //  System.out.print("launch success, pid is:" + ret.substring(3) + "\n");
                             mRemotepid = Integer.parseInt(ret.substring(3));
                             //skip sloginfo header
                         } else {
@@ -84,7 +86,7 @@ public final class QconnLogSource extends LogSource {
                         return;
                     }
                     
-                    mSock = mSock;
+                   // mSock = mSock;
                     ret = din.readLine();
                     setStatus(stConnected);
                     fetchLogs(mSock.getInputStream());
@@ -119,7 +121,7 @@ public final class QconnLogSource extends LogSource {
             // out.writeBytes(killcmd);
 
             // System.out.print(din.readLine() + "\n");
-            String killcmd = "start slay -f sloginfo " + mRemotepid + "\r\n";
+            String killcmd = "start slay slay -f " + mRemotepid + "\r\n";
             System.out.print(killcmd);
             out.writeBytes(killcmd);
             System.out.print(din.readLine() + "\n");

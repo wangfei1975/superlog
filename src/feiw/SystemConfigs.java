@@ -1,22 +1,73 @@
 package feiw;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import com.google.gson.JsonSyntaxException;
 
 import feiw.LogSource.LogFilter;
 
 
 public final class SystemConfigs {
 
-    public static final int MIN_NOTIFY_COUNT = 100;
+    private static String CFG_FNAME = null;
+    private static SystemConfigs mCfgs = null;
+    static {
+        if (SWT.getPlatform().contains("win")) {
+            String path = System.getenv("APPDATA");
+            if (!path.endsWith("\\")) {
+                path += "\\";
+            }
+            File dir = new File(path);
+            if (dir.exists() && dir.canWrite()) {
+                CFG_FNAME =  path + "superlog.cfg";
+            }
+        } else {
+            String path =  System.getProperty("user.home");
+            if (!path.endsWith("/")) {
+                path += "/";
+            }
+            File dir = new File(path);
+            if (dir.exists() && dir.canWrite()) {
+                CFG_FNAME =  path + ".superlog";
+            }
+        }
+        System.out.println("config file:" + CFG_FNAME);
+        mCfgs = load();
+    }
+    
+
+
+    public static SystemConfigs instance() {
+      //  mCfgs.toJson();
+        return mCfgs;
+    }
+    
+    public final long LIVE_LOG_NOTIFYTIME = 300;
     
     public static final class LogUrl {
         public String scheme;
@@ -31,113 +82,199 @@ public final class SystemConfigs {
         public String toString() {
             return scheme + "://" + url + ":" + port;
         }
+        public boolean equals(Object o) {
+            if (o instanceof LogUrl) {
+                return ((LogUrl) o).url.equals(url) && (((LogUrl) o).port == port);
+            }
+            return false;
+        }
     }
-    private static ArrayList<LogUrl> mRecentUrls = new ArrayList<LogUrl>(10);
+    private  ArrayList<LogUrl> mRecentUrls = new ArrayList<LogUrl>(10);
     
-    private  static Color [] mForeColors;
-    private  static Color [] mBackColors;
-    private  static Color mSearchBackColor;
-    
-    static void load(Display disp) {
-        mForeColors = new Color[] {disp.getSystemColor(SWT.COLOR_BLACK),
-                disp.getSystemColor(SWT.COLOR_DARK_RED),
-                disp.getSystemColor(SWT.COLOR_WHITE),
-                disp.getSystemColor(SWT.COLOR_BLUE),
-                disp.getSystemColor(SWT.COLOR_DARK_BLUE),
-                disp.getSystemColor(SWT.COLOR_DARK_GREEN),
-                disp.getSystemColor(SWT.COLOR_BLACK),
-                disp.getSystemColor(SWT.COLOR_DARK_GRAY)
-                }; 
-        mBackColors = new Color[] {disp.getSystemColor(SWT.COLOR_WHITE),
-                disp.getSystemColor(SWT.COLOR_WHITE),
-                disp.getSystemColor(SWT.COLOR_RED),
-                disp.getSystemColor(SWT.COLOR_YELLOW),
-                disp.getSystemColor(SWT.COLOR_WHITE),
-                disp.getSystemColor(SWT.COLOR_WHITE),
-                disp.getSystemColor(SWT.COLOR_WHITE),
-                disp.getSystemColor(SWT.COLOR_WHITE)
-                }; 
-        mSearchBackColor = disp.getSystemColor(SWT.COLOR_INFO_BACKGROUND);
+    private class Colors {
+        private  Color [] mForeColors;
+        private  Color [] mBackColors;
+        private  Color mSearchBackColor;
         
-        mRecentUrls.add(new LogUrl("qconn", "10.222.98.205", 8000));
-        mRecentUrls.add(new LogUrl("qconn", "10.222.109.58", 8000));
-        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_LEVEL, LogFilter.OP_LESSTHEN, Integer.valueOf(6)));
-        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_LEVEL, LogFilter.OP_LESSTHEN, Integer.valueOf(5)));
-        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_LEVEL, LogFilter.OP_LESSTHEN, Integer.valueOf(4)));
+        public Colors() {
+            Display disp = Display.getCurrent();
+            mForeColors = new Color[] {disp.getSystemColor(SWT.COLOR_BLACK),
+                    disp.getSystemColor(SWT.COLOR_DARK_RED),
+                    disp.getSystemColor(SWT.COLOR_WHITE),
+                    disp.getSystemColor(SWT.COLOR_BLUE),
+                    disp.getSystemColor(SWT.COLOR_DARK_BLUE),
+                    disp.getSystemColor(SWT.COLOR_DARK_GREEN),
+                    disp.getSystemColor(SWT.COLOR_BLACK),
+                    disp.getSystemColor(SWT.COLOR_DARK_GRAY)
+                    }; 
+            mBackColors = new Color[] {disp.getSystemColor(SWT.COLOR_WHITE),
+                    disp.getSystemColor(SWT.COLOR_WHITE),
+                    disp.getSystemColor(SWT.COLOR_RED),
+                    disp.getSystemColor(SWT.COLOR_YELLOW),
+                    disp.getSystemColor(SWT.COLOR_WHITE),
+                    disp.getSystemColor(SWT.COLOR_WHITE),
+                    disp.getSystemColor(SWT.COLOR_WHITE),
+                    disp.getSystemColor(SWT.COLOR_WHITE)
+                    }; 
+            mSearchBackColor = disp.getSystemColor(SWT.COLOR_INFO_BACKGROUND);
+        }
+    }
+    Colors mColors = new Colors();
+    
+    public static class ColorSerializer implements JsonSerializer<Color> {
+        @Override
+        public JsonElement serialize(Color arg0, Type arg1, JsonSerializationContext arg2) {
+            return arg2.serialize(arg0.getRGB());
+        }
+    }
+    public static class ColorDeserializer implements JsonDeserializer<Color> {
+        @Override
+        public Color deserialize(JsonElement arg0, Type arg1, JsonDeserializationContext arg2)
+                throws JsonParseException {
+           return  new Color(Display.getCurrent(), (RGB)(arg2.deserialize(arg0, RGB.class)));
+            
+        }
+        
+    }
+    
+    private void initDefault() {
+    
+  //     mRecentUrls.add(new LogUrl("qconn", "10.222.98.205", 8000));
+    //    mRecentUrls.add(new LogUrl("qconn", "10.222.109.58", 8000));
+        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, Integer.valueOf(7)));
+        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, Integer.valueOf(6)));
+        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, Integer.valueOf(5)));
+    }
+    private SystemConfigs () {
+        initDefault();
+        //addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, Integer.valueOf(6)));
+        //addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, Integer.valueOf(5)));
+        //addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, Integer.valueOf(4)));
+
     }
 
-    public static Color getSearchMarkerBackground() {
-        return mSearchBackColor;
+    public Color getSearchMarkerBackground() {
+        return mColors.mSearchBackColor;
     }
-    public static Color getLogForeground(int level) {
-        return mForeColors[level];
+    public Color getLogForeground(int level) {
+        return mColors.mForeColors[level];
     }
     
-    public static Color getLogBackground(int level) {
+    public Color getLogBackground(int level) {
         if (level < 5)
-            return mBackColors[level];
+            return mColors.mBackColors[level];
         else 
             return null;
     }
     
-    static ArrayList <LogFilter> mRecentFilters = new ArrayList <LogFilter>(10);
+    transient ArrayList <LogFilter> mRecentFilters = new ArrayList <LogFilter>(10);
     
-    public static void addRecentFilter(LogFilter f) {
+    public void addRecentFilter(LogFilter f) {
+        //TODO: no duplicate.
         mRecentFilters.add(0, f);
     }
-    public static LogFilter getRecentFilter(int i) {
+    public LogFilter getRecentFilter(int i) {
         if (i < mRecentFilters.size()) {
             return mRecentFilters.get(i);
         }
         return null;
     }
     
-    static  ArrayList <String> mRecentFiles = new ArrayList <String>(10);
+     ArrayList <String> mRecentFiles = new ArrayList <String>(10);
     
-    static public void addRecentFile(String f) {
+    public void addRecentFile(String f) {
+        if (mRecentFiles.contains(f)) {
+            mRecentFiles.remove(f);
+        }
         mRecentFiles.add(0, f);
+        if (mRecentFiles.size() > 10) {
+            mRecentFiles.remove(mRecentFiles.size() - 1);
+        }
+        
     }
-    static public String getRecentFile(int i) {
+    public String getRecentFile(int i) {
         if (i < mRecentFiles.size()) {
             return mRecentFiles.get(i);
         }
         return null;
     }
     
-    static public void addRecentUrl(LogUrl u) {
+    public void addRecentUrl(LogUrl u) {
+        if (mRecentUrls.contains(u)) {
+            mRecentUrls.remove(u);
+        }
         mRecentUrls.add(0, u);
+        if (mRecentUrls.size() > 10) {
+            mRecentUrls.remove(mRecentUrls.size() - 1);
+        }
     }
 
-    static public LogUrl getRecentUrl(int i) {
+    public LogUrl getRecentUrl(int i) {
         if (i < mRecentUrls.size()) {
             return mRecentUrls.get(i);
         }
         return null;
     }
     
-    static String mAdbPath = "/Developer/SDKs/android-sdk/platform-tools/";
-    static public String getAdbPath() {
+    String mAdbPath = "/Developer/SDKs/android-sdk/platform-tools/";
+    public String getAdbPath() {
         return mAdbPath; ///Developer/SDKs/android-sdk/platform-tools/adb";
     }
-    static public void setAdbPath(String p) {
+    public void setAdbPath(String p) {
         mAdbPath = p;
     }
     
-    void save() {
-        /*
-        String home =  System.getProperty("user.home");
-        File dir = new File(home);
-        if (dir.exists()) {
+    public String toJson() {
+        Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeAdapter(Color.class, new ColorSerializer())
+                .create();
+        
+        String s = gson.toJson(this);
+       
+        return s;
+    }
+    private static SystemConfigs load() {
+        File cfgfile = new File(CFG_FNAME);
+        if (cfgfile.exists()) {
             try {
-                FileOutputStream fo = new FileOutputStream(home + "/.superlog");
-                OutputStreamWriter wr = new OutputStreamWriter(fo);
+                FileInputStream fi = new FileInputStream(cfgfile);
+                Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeAdapter(Color.class, new ColorSerializer())
+                        .registerTypeAdapter(Color.class, new ColorDeserializer()).create();
+                SystemConfigs cfg = gson.fromJson(new InputStreamReader(fi, "UTF-8"), SystemConfigs.class);
+                cfg.initDefault();
+                return cfg;
                 
             } catch (FileNotFoundException e) {
+             //   e.printStackTrace();
+            } catch (JsonSyntaxException e) {
+             //   e.printStackTrace();
+            } catch (JsonIOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        return new SystemConfigs();
+    }
+    void save() {
+ 
+       
+        if (CFG_FNAME != null) {
+            try {
+                FileOutputStream fo = new FileOutputStream(CFG_FNAME);
+                OutputStreamWriter wr = new OutputStreamWriter(fo);
+                wr.write(toJson());
+                wr.flush();
+                fo.close();
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             
         }
-        */
     }
 }

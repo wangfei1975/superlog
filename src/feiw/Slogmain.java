@@ -9,6 +9,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import org.eclipse.swt.graphics.Color;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import feiw.LogSource.LogFilter;
+import feiw.LogSource.LogFilter.InvalidLogFilterStringException;
+import feiw.SystemConfigs.ColorDeserializer;
+import feiw.SystemConfigs.ColorSerializer;
+
+
 public final class Slogmain  {
  
     static AppContext mApp = new AppContext("SuperLog");
@@ -16,6 +27,7 @@ public final class Slogmain  {
     static public AppContext getApp() {
         return mApp;
     }
+    /*
     static final String[] seperator = { "    ", " ", " ", " " };
     public static String[] parseLog(final String str) {
         final String [] ret = new String[5];
@@ -43,7 +55,7 @@ public final class Slogmain  {
         }
         return ret;
     }
-    
+    */
     /*
     public static void testParse() {
         
@@ -137,13 +149,25 @@ public final class Slogmain  {
         
     }
     */
+ 
     public static void main(String[] args) {
+ 
+//            Gson gson = new Gson();
+   //     Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
+        /*
+        String js = SystemConfigs.instance().toJson();
+        System.out.println(js);
+        Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeAdapter(Color.class, new SystemConfigs.ColorSerializer())
+                .registerTypeAdapter(Color.class, new ColorDeserializer()).create();
         
+        SystemConfigs cfgs = gson.fromJson(js, SystemConfigs.class);
+        System.out.println(cfgs.toJson());
+        */
   //      StringPattern pt = new StringPattern("avi", false);
 //        pt.isContainedBy("a_vifdsa");
- //       System.out.print(Character.toLowerCase('_'));
        mApp.run();
         
+       
    //     System.out.println(new SimpleDateFormat("MMM dd HH:mm:ss.SSS").format(new Date()));
    //     testParse();
     }

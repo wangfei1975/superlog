@@ -23,7 +23,6 @@ public class FileLogSource extends LogSource {
           new Thread() {
               public void run() {
                   try {
-                      mNotifyTimeSpan = 300;
                       setStatus(stConnected);
                       long start_time = System.currentTimeMillis();
                       fetchLogs(is);

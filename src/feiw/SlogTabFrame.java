@@ -11,6 +11,9 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -80,6 +83,102 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         }
     }
     
+    void createContextMenu(int x, int y) {
+        Menu menu = new Menu(mTable);
+        MenuItem menuItem = new MenuItem(menu, SWT.NONE);
+        menuItem.setText("Copy Selected Items");
+        Integer kacc = (Integer)Slogmain.getApp().getMainFrame().getToolItem(ToolBarDes.TN_COPYALL).getData("KeyAccelerator");
+        if (kacc != null) {
+            menuItem.setAccelerator(kacc.intValue());
+        }
+        menuItem.setImage(Resources.copyall_16);
+        menuItem.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                onCopyAll();
+            }
+          });
+        menuItem = new MenuItem(menu, SWT.NONE);
+        menuItem.setText("Copy Selected Items (Message Only)");
+       // menuItem.setAccelerator(SWT.SHIFT|SWT.COMMAND | 'c');
+        kacc = (Integer)Slogmain.getApp().getMainFrame().getToolItem(ToolBarDes.TN_COPY).getData("KeyAccelerator");
+        if (kacc != null) {
+            menuItem.setAccelerator(kacc.intValue());
+        }
+        menuItem.setImage(Resources.copy_16);
+        menuItem.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                onCopy();
+            }
+          });
+        menuItem = new MenuItem(menu, SWT.SEPARATOR);
+        
+        
+        SelectionAdapter lisener = new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                 Object o = event.widget.getData();
+                 if (o instanceof Integer) {
+                     LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, o);
+                     Slogmain.getApp().getMainFrame().openFilterView(f);
+                 }
+            }
+          };
+        menuItem = new MenuItem(menu, SWT.NONE);
+        menuItem.setText("Filter  [Priority < Verbos(7)]");
+        menuItem.setImage(Resources.filter_16);
+        menuItem.setData(Integer.valueOf(7));
+        menuItem.addSelectionListener(lisener);
+
+        menuItem = new MenuItem(menu, SWT.NONE);
+        menuItem.setText("Filter  [Priority < Debug(6)]");
+        menuItem.setImage(Resources.filter_16);
+        menuItem.setData(Integer.valueOf(6));
+        menuItem.addSelectionListener(lisener);
+        
+        menuItem = new MenuItem(menu, SWT.NONE);
+        menuItem.setText("Filter  [Priority < Information(5)]");
+        menuItem.setImage(Resources.filter_16);
+        menuItem.setData(Integer.valueOf(5));
+        menuItem.addSelectionListener(lisener);
+        
+        int it = mTable.getSelectionIndex();
+        if (it >= 0) {
+           String log = mLogView.getLog(it);
+           final String tag = mLogView.getLogParser().parseTag(log);
+           if (tag != null && !tag.trim().isEmpty()) {
+               menuItem = new MenuItem(menu, SWT.NONE);
+               menuItem.setText("Filter  [Tag = \"" + tag.trim() + "\"]");
+               menuItem.setImage(Resources.filter_16);
+               menuItem.addSelectionListener(new SelectionAdapter() {
+                   public void widgetSelected(SelectionEvent event) {
+                           LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim());
+                           Slogmain.getApp().getMainFrame().openFilterView(f);
+                  } 
+               });
+           }
+        }
+        
+        menuItem = new MenuItem(menu, SWT.NONE);
+        menuItem.setText("Filter  [Message contains ...]");
+        menuItem.setImage(Resources.filter_16);
+        menuItem.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                FilterDlg fdlg = new FilterDlg(getParent().getShell(), getLogView(), LogFilter.FIELD_CONTENT);
+                if (fdlg.open() != SWT.OK) {
+                    return;
+                }
+                LogFilter f = fdlg.getFilter();
+                Slogmain.getApp().getMainFrame().openFilterView(f);
+                SystemConfigs.instance().addRecentFilter(f);
+       } 
+        });
+        
+        
+      
+        menu.setLocation(mTable.toDisplay(x, y));
+        menu.setVisible(true);
+    }
+    
+    
     public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter, LogParser logParser, LogView parentLogView) {
         super(parent, style);
         
@@ -141,6 +240,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         com.addListener(SWT.Show, new Listener() {
             @Override
             public void handleEvent(Event event) {
+                //System.out.println("tab frame showing");
                 mVisible = true;
                 Slogmain.getApp().getMainFrame().updateToolBars(SlogTabFrame.this);
                 updateLogUI();
@@ -154,8 +254,16 @@ public class SlogTabFrame extends CTabItem implements LogListener{
             }
             
         });
-
- 
+        
+        mTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseUp(MouseEvent e) {
+                if (e.button == 3) {
+                    createContextMenu(e.x, e.y);
+                }
+            }
+            
+        });
     }
     int mLastSearchResults = 0;
     boolean mVisible = false;
@@ -172,7 +280,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         mLastSearchResults  = nresults;
     }
     private void updateLogUI() {
-        if (!mVisible||mTable.isDisposed() || !mTable.isVisible())
+        if (!mVisible||mTable.isDisposed())// || !mTable.isVisible())
             return;
         
         if (mLogView.isPaused())
@@ -183,7 +291,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         
 
         if (cnto != cnt) {
-            System.out.println("log changed old cnt = " + cnto + " new cnt = " + cnt);
+            //System.out.println("log changed old cnt = " + cnto + " new cnt = " + cnt);
           //  mTable.setItemCount(0);
             mTable.setRedraw(true);
             mTable.setItemCount(cnt);

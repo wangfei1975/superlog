@@ -17,7 +17,6 @@ public class AppContext {
     }
     public AppContext(String caption){
         Resources.loadResources(this);
-        SystemConfigs.load(mDisplay);
         mMainFrame = new SlogMainFrame(caption, mDisplay);
     }
 
@@ -28,6 +27,7 @@ public class AppContext {
     public void run() {
         mMainFrame.run();
         Resources.freeResources(this);
+     
     }
     
 }

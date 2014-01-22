@@ -28,6 +28,9 @@ public final class Resources {
     public static Image trash_32 = null;
     public static Image copy_32 = null;
     public static Image copyall_32 = null;
+    public static Image copy_16 = null;
+    public static Image copyall_16 = null;
+    
     public static Image save_32 = null;
     public static Image search_16 = null;
     public static Image config_32 = null;
@@ -67,6 +70,8 @@ public final class Resources {
         trash_32 = loadIcon(ctx, "trash_32");
         copy_32 = loadIcon(ctx, "copy_32");
         copyall_32 = loadIcon(ctx, "copyall_32");
+        copy_16 = loadIcon(ctx, "copy_16");
+        copyall_16 = loadIcon(ctx, "copyall_16");
         save_32 = loadIcon(ctx, "save_32");
         search_16 = loadIcon(ctx, "search_16");
         config_32 = loadIcon(ctx, "config_32");

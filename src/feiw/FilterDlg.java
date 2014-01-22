@@ -23,13 +23,25 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import feiw.LogSource.LogFilter;
+import feiw.LogSource.LogView;
 
 
 public class FilterDlg extends Dialog {
 
     int mSelection = SWT.CANCEL;
-    public FilterDlg(Shell parent) {
+    final LogView mLogView;
+    String mDefaultField;
+    boolean mHasTagField = false;
+    public FilterDlg(Shell parent, final LogView logView, String defaultField) {
         super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+        mLogView = logView;
+        String [] hd = logView.getLogParser().getTableHeader();
+        for (int i = 0; i < hd.length; i++) {
+            if (hd[i].toLowerCase().equals(LogFilter.FIELD_TAG)) {
+                mHasTagField = true;
+            }
+        }
+        mDefaultField = defaultField;
      }
     public int open() {
         // Create the dialog window
@@ -37,6 +49,7 @@ public class FilterDlg extends Dialog {
         createContents(shell);
         shell.setText("Filter Builder");
         shell.pack();
+        
 
         Rectangle shellBounds = getParent().getBounds();
 
@@ -70,7 +83,7 @@ public class FilterDlg extends Dialog {
                 return "Rule " + index + " Value is empty";
             }
             String fie = field.getText();
-            if (fie.equals(LogFilter.FIELD_LEVEL)) {
+            if (fie.equals(LogFilter.FIELD_PRIORITY)) {
                 try {
                  Integer.parseInt(v);
                 } catch (NumberFormatException e) {
@@ -82,7 +95,7 @@ public class FilterDlg extends Dialog {
         LogFilter toFilter() {
             String fie = field.getText();
             Object v;
-            if (fie.equals(LogFilter.FIELD_LEVEL)) {
+            if (fie.equals(LogFilter.FIELD_PRIORITY)) {
                 v = Integer.parseInt(value.getText());
             } else {
                 v = value.getText();
@@ -100,7 +113,7 @@ public class FilterDlg extends Dialog {
         return mFilter;
     }
     
-    private Rule createUIRule(final Composite parent, int index) {
+    private Rule createUIRule(final Composite parent, int index, String defaultField) {
         
         final Rule r = new Rule();
         r.holder = new Composite(parent, SWT.NONE);
@@ -126,9 +139,12 @@ public class FilterDlg extends Dialog {
         g.setLayout(gly);
         final Combo comb = new Combo(g, SWT.DROP_DOWN | SWT.READ_ONLY);
         comb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-        comb.add(LogFilter.FIELD_LEVEL);
+        comb.add(LogFilter.FIELD_PRIORITY);
         comb.add(LogFilter.FIELD_CONTENT);
    //     comb.add(LogFilter.FIELD_TIME);
+        if (mHasTagField) {
+            comb.add(LogFilter.FIELD_TAG);
+        }
         comb.select(0);
         r.field = comb;
                         
@@ -151,7 +167,11 @@ public class FilterDlg extends Dialog {
                      combop.add(LogFilter.OP_GREATERTHAN);
                      combop.add(LogFilter.OP_EQUALS);
                      combop.select(0);
+                 } else if (comb.getSelectionIndex() == 1) {
+                     combop.add(LogFilter.OP_CONTAINS);
+                     combop.select(0);
                  } else {
+                     combop.add(LogFilter.OP_EQUALS);
                      combop.add(LogFilter.OP_CONTAINS);
                      combop.select(0);
                  }
@@ -164,13 +184,20 @@ public class FilterDlg extends Dialog {
             }
             
         });
-        
+        if (defaultField != null) {
+            if (defaultField.equals(LogFilter.FIELD_CONTENT)) {
+                comb.select(1);
+            } else if (mHasTagField && defaultField.equals(LogFilter.FIELD_TAG)) {
+                comb.select(2);
+            }
+        }
+        comb.notifyListeners(SWT.Selection, null);
                                        
         final Text text = new Text(g, SWT.BORDER);
 
         text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-         
         r.value = text;
+        text.setFocus();
         Button b = new Button(g, SWT.PUSH);
         b.setText("-");
         b.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, false, false, 1, 1));
@@ -223,11 +250,11 @@ public class FilterDlg extends Dialog {
         b.setText("+");
         b.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
         
-        mRules.add(createUIRule(g, 0));
+        mRules.add(createUIRule(g, 0, mDefaultField));
 
         b.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
-                mRules.add(createUIRule(g, mRules.size()));
+                mRules.add(createUIRule(g, mRules.size(), mDefaultField));
                 g.pack(true);
                 g.layout(true);
                 shell.pack(true);

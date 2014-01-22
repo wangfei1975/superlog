@@ -28,7 +28,7 @@ public final class SlogTable extends Table {
         mLogView = v;
     }
     public SlogTable(Composite parent, int style, LogView v) {
-        super(parent, style | SWT.BORDER | SWT.VIRTUAL | SWT.MULTI);
+        super(parent, style | SWT.BORDER | SWT.VIRTUAL | SWT.MULTI | SWT.FULL_SELECTION);
         mLogView = v;
         setLinesVisible(true);
         setHeaderVisible(true);
@@ -45,16 +45,22 @@ public final class SlogTable extends Table {
             column.setWidth(width[i]);
             
         }
-
+      
         FontData[] fontData = getFont().getFontData();
 
         for (int i = 0; i < fontData.length; i++) {
-            fontData[i].setHeight(18);
+            fontData[i].setHeight(16);
         }
+        Font ff ;
         Display display = getShell().getDisplay();
-        Font font = new Font(display, "Monaco", 14, 0);
-        setFont(font);
-
+        if (SWT.getPlatform().contains("win32")) {
+            ff = new Font(display, "Couier New", 14, 0);  
+            System.out.println("windows: " + SWT.getPlatform());
+        } else {
+          ff = new Font(display, "Monaco", 14, 0);
+        }
+        setFont(ff);
+   
         addListener(SWT.SetData, new Listener() {
             public void handleEvent(Event e) {
                 if (mLogView == null) {

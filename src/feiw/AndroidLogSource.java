@@ -25,7 +25,7 @@ public class AndroidLogSource extends LogSource {
         setStatus(stConnecting);
 
             try {
-                mAdbProcess = Runtime.getRuntime().exec(SystemConfigs.getAdbPath() + "/adb logcat -vthreadtime");
+                mAdbProcess = Runtime.getRuntime().exec(SystemConfigs.instance().getAdbPath() + "/adb logcat -vthreadtime");
                 final BufferedReader rd = new BufferedReader(new InputStreamReader(mAdbProcess.getInputStream()));
                 String s = rd.readLine();
                 if (s.contains("waiting for device")) {
