@@ -31,6 +31,8 @@ import feiw.LogSource.LogFilter;
 
 
 public final class SystemConfigs {
+    
+    public static final int RECENTLIST_SIZE = 6;
 
     private static String CFG_FNAME = null;
     private static SystemConfigs mCfgs = null;

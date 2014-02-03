@@ -136,6 +136,7 @@ public final class SlogMainFrame {
               return;
           }
           if (event.detail == SWT.ARROW) {
+            init();
             ToolItem item = (ToolItem) event.widget;
             Rectangle rect = item.getBounds();
             Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
@@ -152,6 +153,7 @@ public final class SlogMainFrame {
         FilterTabFrame ltab = new FilterTabFrame(mTabFolder, "\"" + f.getName() + "\" on [" + tbf.getText() + "]", SWT.FLAT|SWT.CLOSE|SWT.ICON, tbf.getLogSource(), 
                  f, tbf.getLogView().getLogParser(), tbf.getLogView());
         mTabFolder.setSelection(ltab);
+        SystemConfigs.instance().addRecentFilter(f);
         return ltab;
     }
     void createToolBars() {
@@ -213,7 +215,6 @@ public final class SlogMainFrame {
                         ltab = new QconnTabFrame(mTabFolder, title, SWT.FLAT|SWT.CLOSE|SWT.ICON, dlg.getIp(), dlg.getPort());
                         mTabFolder.setSelection(ltab);
                         SystemConfigs.instance().addRecentUrl(new LogUrl("qconn", dlg.getIp(), dlg.getPort()));
-                        init();
                         updateToolBars(ltab);
                     } catch (DeviceNotConnected e) {
                         MessageBox m = new MessageBox(getShell(), SWT.OK|SWT.ICON_ERROR);
@@ -233,6 +234,7 @@ public final class SlogMainFrame {
                     try {
                         ltab = new QconnTabFrame(mTabFolder, lu.toString(), SWT.FLAT|SWT.CLOSE|SWT.ICON, lu.url, lu.port);
                         mTabFolder.setSelection(ltab);
+                        SystemConfigs.instance().addRecentUrl(new LogUrl("qconn", lu.url, lu.port));
                         updateToolBars(ltab);
                     } catch (DeviceNotConnected e) {
                         MessageBox m = new MessageBox(getShell(), SWT.OK|SWT.ICON_ERROR);
@@ -248,7 +250,7 @@ public final class SlogMainFrame {
             @Override
             public void init() {
                 clearList();
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < SystemConfigs.RECENTLIST_SIZE; i++) {
                      LogUrl lu = SystemConfigs.instance().getRecentUrl(i);
                     if (lu != null) {
                         addListItem(lu.toString(), Resources.connected_16, lu);
@@ -283,9 +285,8 @@ public final class SlogMainFrame {
                     try {
                         ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT|SWT.CLOSE|SWT.ICON, fname);
                         mTabFolder.setSelection(ftb);
-                        
+  
                         SystemConfigs.instance().addRecentFile(fname);
-                        init();
                         updateToolBars(ftb);
                     } catch (FileNotFoundException e) {
                         // TODO Auto-generated catch block
@@ -306,7 +307,9 @@ public final class SlogMainFrame {
                     try {
                         ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT|SWT.CLOSE|SWT.ICON, fname);
                         mTabFolder.setSelection(ftb);
+                        SystemConfigs.instance().addRecentFile(fname);
                         updateToolBars(ftb);
+
                     } catch (FileNotFoundException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
@@ -319,7 +322,7 @@ public final class SlogMainFrame {
             @Override
             public void init() {
                 clearList();
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < SystemConfigs.RECENTLIST_SIZE; i++) {
                     String fname = SystemConfigs.instance().getRecentFile(i);
                     if (fname != null) {
                         addListItem(fname, Resources.openfile_16, fname);
@@ -334,14 +337,12 @@ public final class SlogMainFrame {
             @Override
             public void onToolSelected(ToolItem dropdown) {
                 SlogTabFrame ctab = (SlogTabFrame)mTabFolder.getSelection();
-                FilterDlg fdlg = new FilterDlg(getShell(), ctab.getLogView(), null);
+                FilterDlg fdlg = new FilterDlg(getShell(), ctab.getLogView(), LogFilter.FIELD_CONTENT);
                 if (fdlg.open() != SWT.OK) {
                     return;
                 }
                 LogFilter f = fdlg.getFilter();
                 openFilterView(f);
-                SystemConfigs.instance().addRecentFilter(f);
-                init();
             }
 
             @Override
@@ -354,7 +355,7 @@ public final class SlogMainFrame {
             @Override
             public void init() {
                 clearList();
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < SystemConfigs.RECENTLIST_SIZE; i++) {
                      LogFilter f = SystemConfigs.instance().getRecentFilter(i);
                     if (f != null) {
                         addListItem(f.getName(), Resources.filter_16, f);
