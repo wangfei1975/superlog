@@ -313,11 +313,15 @@ public class LogSource {
         private StringPattern mSearchPattern = null;
         private LogParser mParser;
 
+        private int       mRollLines;
         private AtomicBoolean mLogChanged = new AtomicBoolean(false);
         private AtomicBoolean mPaused = new AtomicBoolean(false);
 
         public LogParser getLogParser() {
             return mParser;
+        }
+        public int  getRollLines() {
+            return mRollLines;
         }
         public final StringPattern getSearchPattern() {
            return mSearchPattern;
@@ -355,11 +359,13 @@ public class LogSource {
             dw.flush();
         }
 
-        private LogView(LogListener listener, LogFilter filter, LogParser parser, List<String> source) {
+        private LogView(LogListener listener, LogFilter filter, LogParser parser, List<String> source, int rolllines) {
             mListener = listener;
             mFilter = filter;
             mParser = parser;
+            mRollLines = rolllines;
             mFilteredItems = Collections.synchronizedList(new ArrayList<String>());
+            
  
             if (source != null) {
                 synchronized (source) {
@@ -387,6 +393,9 @@ public class LogSource {
             if (mFilter == null || mFilter.filterLog(mParser, item)) {
                 if (isSearchResults(item)) {
                     mSearchResults++;
+                }
+                if (mRollLines > 0 && mFilteredItems.size() >= mRollLines) {
+                    mFilteredItems.remove(0);
                 }
                 mFilteredItems.add(item);
                 mLogChanged.set(true);
@@ -486,10 +495,11 @@ public class LogSource {
         if (mViews.size() == 0) {
             disconnect();
         }
-    }
-
+    }       
+    
+    int mRollLines = -1;
     public synchronized LogView newLogView(LogListener listener, LogFilter filter, LogParser parser, LogView parentView) {
-        LogView v = new LogView(listener, filter, parser, parentView == null ? null:parentView.mFilteredItems);
+        LogView v = new LogView(listener, filter, parser, parentView == null ? null:parentView.mFilteredItems, mRollLines);
         mViews.add(v);
         return v;
     }

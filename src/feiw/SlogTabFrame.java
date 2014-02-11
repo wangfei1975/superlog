@@ -3,6 +3,7 @@ package feiw;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -267,7 +268,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         mLastSearchResults  = nresults;
     }
     private void updateLogUI() {
-        if (!mVisible||mTable.isDisposed())// || !mTable.isVisible())
+        if (!mVisible||mTable.isDisposed())
             return;
         
         if (mLogView.isPaused())
@@ -275,9 +276,16 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         
         final int cnt = mLogView.size(); 
         final int cnto = mTable.getItemCount();
-        
-
-        if (cnto != cnt) {
+        final int rolls = mLogView.getRollLines();
+        if (rolls > 0 && cnt >= rolls) {
+            mTable.setRedraw(true);
+            mTable.setItemCount(0);
+            mTable.setItemCount(cnt);
+            mTable.setTopIndex(cnt - 2);
+            mLineCountLabel.setText("" + cnt + " lines");
+            mLineCountLabel.pack();
+            updateSearchUI();
+        } else if (cnto != cnt) {
             //System.out.println("log changed old cnt = " + cnto + " new cnt = " + cnt);
           //  mTable.setItemCount(0);
             mTable.setRedraw(true);
@@ -291,17 +299,21 @@ public class SlogTabFrame extends CTabItem implements LogListener{
     }
     
 
+    AtomicBoolean mLogChangPosted = new AtomicBoolean(false);
     @Override
     public void onLogChanged() {
- 
-        if (mVisible) {
-        Display display = getDisplay();
-        display.asyncExec(new Runnable() {
-            @Override
-            public void run() {
-                updateLogUI();
-            }
-        });
+
+        if (mVisible && !mLogChangPosted.get()) {
+            mLogChangPosted.set(true);
+            Display display = getDisplay();
+            display.asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                    mLogChangPosted.set(false);
+                    updateLogUI();
+                }
+            });
+
         }
     }
 

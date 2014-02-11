@@ -23,6 +23,7 @@ public class AndroidLogSource extends LogSource {
     }
     public AndroidLogSource() throws DeviceNotConnected {
         super();
+        mRollLines = SystemConfigs.instance().getLogRollingLines();
         setStatus(stConnecting);
 
             try {

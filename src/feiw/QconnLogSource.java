@@ -17,6 +17,7 @@ public final class QconnLogSource extends LogSource {
  
     public QconnLogSource(final String ip, final int port) throws DeviceNotConnected {
         super();
+        mRollLines = SystemConfigs.instance().getLogRollingLines();
         mServerIp = ip;
         mServerPort = port;
         setStatus(stConnecting);
@@ -107,7 +108,14 @@ public final class QconnLogSource extends LogSource {
 
         try {
             mSock.close();
-            mSock = new Socket(mServerIp, mServerPort);
+            Socket sock = new Socket();
+            try {
+                sock.connect(new InetSocketAddress(mServerIp, mServerPort), 1000);
+                sock.setKeepAlive(true);
+            } catch (IOException e1) {
+                return;
+            }    
+            mSock = sock;
             DataOutputStream out = new DataOutputStream(mSock.getOutputStream());
 
             BufferedReader din = new BufferedReader(new InputStreamReader(mSock.getInputStream()));

@@ -553,9 +553,11 @@ public final class SlogMainFrame {
         });
         
         mTabFolder.setFocus();
+        
         getDisplay().addFilter(SWT.KeyDown, new Listener() {
             @Override
             public void handleEvent(Event e) {
+              
                 for (ToolItem it : mToolItems) {
                     if (it.isEnabled()) {
                         Integer key = (Integer) it.getData("KeyAccelerator");
@@ -566,10 +568,13 @@ public final class SlogMainFrame {
                     }
                 }
                 /*
-                if(((e.stateMask & SWT.COMMAND) == SWT.COMMAND) && (e.keyCode == 'f')) {
-                    ToolItem it =  mToolItems.get(ToolBarDes.TN_SEARCH);
-                    if (it.isEnabled()) {
-                        mToolItems.get(ToolBarDes.TN_SEARCH).notifyListeners(SWT.Selection, null);
+                if(((e.stateMask & SWT.COMMAND) == SWT.COMMAND) && (e.keyCode == SWT.ARROW_RIGHT)) {
+                    System.out.print(" mask = " + e.stateMask + " key code = " + e.keyCode);
+                    int sidx = mTabFolder.getSelectionIndex();
+                    if (sidx+1 < mTabFolder.getItemCount()) {
+                        mTabFolder.setSelection(sidx+1);
+                    } else if (sidx != 0){
+                        mTabFolder.setSelection(0);
                     }
                 }
                 */
