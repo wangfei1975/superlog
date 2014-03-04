@@ -139,7 +139,7 @@ public class LogParser {
 
         public static boolean taste(final String log) {
             // MMM dd HH:mm:ss 7 20 2 m
-            if (log.length() > 33 && log.charAt(32) == ' ') {
+            if (log.length() > 33 && (log.charAt(32) == ' ' || log.charAt(33) == ' ')) {
                 if (log.charAt(3) == ' ' && log.charAt(6) == ' ') {
                     if (log.charAt(9) == ':' && log.charAt(12) == ':') {
                         if (log.charAt(15) == ' ' && log.charAt(16) == ' ' && log.charAt(17) == ' '
