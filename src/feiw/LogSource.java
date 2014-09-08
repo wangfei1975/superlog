@@ -226,7 +226,7 @@ public class LogSource {
             }
             str = din.readLine();
         }
-        System.out.println(" log lines = " + line);
+        //System.out.println(" log lines = " + line);
     }
  
 /*

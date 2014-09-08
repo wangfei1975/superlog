@@ -331,7 +331,34 @@ public final class SlogMainFrame {
                 
             }
         });
+        getToolItem(ToolBarDes.TN_OPENFIFO).addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                FileDialog dialog = new FileDialog (getShell(), SWT.SAVE);
+                String [] filterNames = new String [] {"Fifo", "All Files (*)"};
+                String [] filterExtensions = new String [] {"*"};
  
+                dialog.setFilterNames (filterNames);
+                dialog.setFilterExtensions (filterExtensions);
+            //    dialog.setFilterPath (filterPath);
+                String fname = dialog.open();
+                if (fname != null) {
+                    FifoTabFrame ftb;
+               
+                        try {
+							ftb = new FifoTabFrame(mTabFolder, fname, SWT.FLAT|SWT.CLOSE|SWT.ICON, fname);
+							  mTabFolder.setSelection(ftb);
+							  
+		                        SystemConfigs.instance().addRecentFile(fname);
+		                        updateToolBars(ftb);
+						} catch (DeviceNotConnected e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+                }
+            }
+        });
+        
         getToolItem(ToolBarDes.TN_FILTER).addSelectionListener(new DropdownListener(getToolItem(ToolBarDes.TN_FILTER)) {
 
             @Override
@@ -492,6 +519,8 @@ public final class SlogMainFrame {
             tit.setEnabled(true);
         } else if (tn.equals(ToolBarDes.TN_CONNECTANDROID)) {
             tit.setEnabled(true);
+        } else if (tn.equals(ToolBarDes.TN_OPENFIFO)) {
+        	tit.setEnabled(true);
         } else {
             tit.setEnabled(false);
         }

@@ -227,6 +227,9 @@ public final class SystemConfigs {
     String mAdbPath = "/Developer/SDKs/android-sdk/platform-tools";
 
     public String getAdbPath() {
+    	if (!mAdbPath.endsWith("/")) {
+    		return mAdbPath + "/";
+    	}
         return mAdbPath; // /Developer/SDKs/android-sdk/platform-tools/adb";
     }
 

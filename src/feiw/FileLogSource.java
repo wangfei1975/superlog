@@ -23,7 +23,7 @@ public class FileLogSource extends LogSource {
                       fetchLogs(is);
                       notifyViews();
                       System.out.println("loading time = " + (System.currentTimeMillis() - start_time));
-                     
+
                   } catch (IOException e) {
                       // TODO Auto-generated catch block
                       e.printStackTrace();
