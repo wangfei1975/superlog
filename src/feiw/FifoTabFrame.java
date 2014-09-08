@@ -4,15 +4,13 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.ToolItem;
 
-import feiw.LogSource.LogFilter;
-import feiw.LogSource.LogView;
 import feiw.LogSource.StatusListener;
 
 public final class FifoTabFrame extends SlogTabFrame implements  StatusListener {
 
     public FifoTabFrame(CTabFolder parent, String txt, int style, String fifo) throws DeviceNotConnected {
         super(parent, txt, style, new FifoLogSource(fifo), null, new LogParser.QnxLogParser(), null);
-        setImage(Resources.connected_32);
+        setImage(Resources.fifo_32);
         mLogSrc.addStatusListener(this);
     }
 
@@ -49,10 +47,10 @@ public final class FifoTabFrame extends SlogTabFrame implements  StatusListener 
             img = Resources.disconnected_32;
             break;
         case LogSource.stConnected:
-            img = Resources.connected_32;
+            img = Resources.fifo_32;
             break;
          default:
-             img = Resources.connected_32;
+             img = Resources.fifo_32;
                 break;
         }
        

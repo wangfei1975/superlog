@@ -2,7 +2,6 @@ package feiw;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public final class FifoLogSource extends LogSource {
@@ -47,5 +46,9 @@ public final class FifoLogSource extends LogSource {
     }
     public void disconnect() {
     	  setStatus(stIdle);
+    	  File f = new File(mFifoUrl);
+    	    if (f.exists()) {
+    	        f.delete();
+    	    }
     }
 }

@@ -33,6 +33,10 @@ public final class Resources {
     public static Image androidpause_32 = null;
     public static Image disconnectedand_32 = null;
     
+    public static Image fifo_32 = null;
+    public static Image fifo_16 = null;
+    
+    
     public static ArrayList <Image> mIcons = new ArrayList<Image> (30);
  
     static Image loadIcon(AppContext ctx, String name) {
@@ -74,6 +78,9 @@ public final class Resources {
         android_32 = loadIcon(ctx, "android_32");
         disconnectedand_32 = loadIcon(ctx, "disconnectedand_32");
         androidpause_32 = loadIcon(ctx, "androidpause_32");
+        
+        fifo_32 = loadIcon(ctx, "fifo_32");
+        fifo_16 = loadIcon(ctx, "fifo_16");
     }
 
     static void freeResources(AppContext ctx) {

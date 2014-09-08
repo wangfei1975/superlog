@@ -67,7 +67,7 @@ public final class ToolBarDes {
                 new ToolItemDes(TN_CONNECTANDROID,   "Connect to Android device", Resources.android_32, SWT.PUSH, cmdkey|'a'),
               //  new ToolItemDes(null,   null, null, SWT.SEPARATOR, 0),
                 new ToolItemDes(TN_OPEN,      "Open Log file", Resources.openfile_32, SWT.DROP_DOWN, cmdkey|'o'),
-                new ToolItemDes(TN_OPENFIFO,  "Open Fifo to receive logs", Resources.connected_32, SWT.PUSH, cmdkey|'i'),
+                new ToolItemDes(TN_OPENFIFO,  "Open Fifo to receive logs", Resources.fifo_32, SWT.PUSH, cmdkey|'i'),
                 new ToolItemDes(TN_SAVEAS,    "Save Logs as", Resources.save_32, SWT.PUSH, cmdkey|'s'),
         }));
         add(new ToolBarDes("TN_FILTER", new ToolItemDes[] {
