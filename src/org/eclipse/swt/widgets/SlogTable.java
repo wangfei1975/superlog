@@ -65,7 +65,10 @@ public final class SlogTable extends Table {
                 final int index = SlogTable.this.indexOf(item);
                 item.setText(1, Integer.toString(index));
                 
-                mLogView.getLogParser().updateTableItem(mLogView.getLog(index), item, mLogView.getSearchPattern());
+                String s = mLogView.getLog(index);
+                if (s != null) {
+                    mLogView.getLogParser().updateTableItem(s, item, mLogView.getSearchPattern());
+                }
             }
         });
 

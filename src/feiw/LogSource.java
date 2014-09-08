@@ -390,14 +390,25 @@ public class LogSource {
             return false;
         }
         public void add(final String item, boolean notifylistner) {
+
+            if (item.contains("fei:clearlogs")) {
+                mSearchResults = -1;
+                mSearchPattern = null;
+                mFilteredItems.clear();
+                mLogChanged.set(true);
+                return;
+            }
             if (mFilter == null || mFilter.filterLog(mParser, item)) {
-                if (isSearchResults(item)) {
-                    mSearchResults++;
+                synchronized (mFilteredItems) {
+                    
+                        if (isSearchResults(item)) {
+                            mSearchResults++;
+                        }
+                        if (mRollLines > 0 && mFilteredItems.size() >= mRollLines) {
+                            mFilteredItems.remove(0);
+                        }
+                        mFilteredItems.add(item);
                 }
-                if (mRollLines > 0 && mFilteredItems.size() >= mRollLines) {
-                    mFilteredItems.remove(0);
-                }
-                mFilteredItems.add(item);
                 mLogChanged.set(true);
                 if (notifylistner) {
                     notifyListener();
@@ -420,7 +431,12 @@ public class LogSource {
         }
 
         public final String getLog(int index) {
-            return mFilteredItems.get(index);
+            synchronized (mFilteredItems) {
+                if (index >= 0 && index < mFilteredItems.size()) {
+                    return mFilteredItems.get(index);
+                }
+            }
+            return null;
         }
 
         private int mSearchResults = -1;
