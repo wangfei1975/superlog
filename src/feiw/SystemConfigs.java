@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
@@ -34,6 +35,7 @@ public final class SystemConfigs {
 
     private static String CFG_FNAME = null;
     private static SystemConfigs mCfgs = null;
+    public static boolean mIsWindows = false;
     static {
         if (SWT.getPlatform().contains("win")) {
             String path = System.getenv("APPDATA");
@@ -44,6 +46,7 @@ public final class SystemConfigs {
             if (dir.exists() && dir.canWrite()) {
                 CFG_FNAME = path + "superlog.cfg";
             }
+            mIsWindows = true;
         } else {
             String path = System.getProperty("user.home");
             if (!path.endsWith("/")) {
@@ -59,7 +62,6 @@ public final class SystemConfigs {
     }
 
     public static SystemConfigs instance() {
-        // mCfgs.toJson();
         return mCfgs;
     }
 
@@ -147,6 +149,12 @@ public final class SystemConfigs {
 
     private SystemConfigs() {
         initDefault();
+        if (mIsWindows) {
+            mLogFontName = "Couier New";
+        } else {
+            mLogFontName = "Monaco";
+        }
+        mLogFontSize = 16;
         // addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY,
         // LogFilter.OP_LESSTHEN, Integer.valueOf(6)));
         // addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY,
@@ -239,6 +247,15 @@ public final class SystemConfigs {
         mAdbPath = p;
     }
 
+    String mLogFontName;
+    int    mLogFontSize;
+    public  String getLogFontName() {
+        return mLogFontName;
+    }
+    public int getLogFontSize() {
+        return mLogFontSize;
+    }
+    
     public String toJson() {
         return new GsonBuilder().setPrettyPrinting().serializeNulls()
                 .registerTypeAdapter(Color.class, new ColorSerializer()).create().toJson(this);

@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
 import feiw.LogSource.LogView;
+import feiw.SystemConfigs;
 
 public final class SlogTable extends Table {
 
@@ -39,22 +40,8 @@ public final class SlogTable extends Table {
             column.setWidth(width[i]);
             
         }
-      
-        FontData[] fontData = getFont().getFontData();
-
-        for (int i = 0; i < fontData.length; i++) {
-            fontData[i].setHeight(16);
-        }
-        Font ff ;
-        Display display = getShell().getDisplay();
-        if (SWT.getPlatform().contains("win32")) {
-            ff = new Font(display, "Couier New", 14, 0);  
-            System.out.println("windows: " + SWT.getPlatform());
-        } else {
-          ff = new Font(display, "Monaco", 14, 0);
-        }
-        setFont(ff);
-   
+        SystemConfigs cfgs = SystemConfigs.instance();
+        setFont(new Font(getShell().getDisplay(),  cfgs.getLogFontName(), cfgs.getLogFontSize(), 0));
         addListener(SWT.SetData, new Listener() {
             @Override
             public void handleEvent(Event e) {
