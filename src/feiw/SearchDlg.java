@@ -1,46 +1,96 @@
-package qnx;
+package feiw;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.*;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Dialog;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
 
-public class ConnectDlg extends Dialog {
-    private String message = "input target IP and port";
-    private String ipaddr;
-    private int port;
-    private int selection = 0;
+/**
+ * This class demonstrates how to create your own dialog classes. It allows
+ * users to input a String
+ */
+public class SearchDlg extends Dialog {
+    private String message;
+    private String input;
 
-    public String getIp() {
-        return ipaddr;
+    private boolean isCaseSenstive = false;
+
+    public boolean isCaseSenstive() {
+        return isCaseSenstive;
     }
 
-    public int getPort() {
-        return port;
-    }
-
-    public ConnectDlg(Shell parent, String ip, int p) {
+    /**
+     * InputDialog constructor
+     * 
+     * @param parent
+     *            the parent
+     */
+    public SearchDlg(Shell parent) {
+        // Pass the default styles here
         this(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-        if (ip != null) {
-            ipaddr = ip;
-            port = p;
-        }
     }
 
-    public ConnectDlg(Shell parent, int style) {
+    /**
+     * InputDialog constructor
+     * 
+     * @param parent
+     *            the parent
+     * @param style
+     *            the style
+     */
+    public SearchDlg(Shell parent, int style) {
+        // Let users override the default styles
         super(parent, style);
+        setText("Find");
+        setMessage("Enter a string:");
     }
 
-    public int open() {
+    /**
+     * Gets the message
+     * 
+     * @return String
+     */
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * Sets the message
+     * 
+     * @param message
+     *            the new message
+     */
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    /**
+     * Gets the input
+     * 
+     * @return String
+     */
+    public String getInput() {
+        return input;
+    }
+
+    /**
+     * Sets the input
+     * 
+     * @param input
+     *            the new input
+     */
+    public void setInput(String input) {
+        this.input = input;
+    }
+
+    /**
+     * Opens the dialog and returns the input
+     * 
+     * @return String
+     */
+    public String open() {
         // Create the dialog window
         Shell shell = new Shell(getParent(), getStyle());
         shell.setText(getText());
@@ -63,7 +113,7 @@ public class ConnectDlg extends Dialog {
             }
         }
         // Return the entered value, or null
-        return selection;
+        return input;
     }
 
     /**
@@ -82,18 +132,18 @@ public class ConnectDlg extends Dialog {
         data.horizontalSpan = 2;
         label.setLayoutData(data);
 
+        final Button caseSenstive = new Button(shell, SWT.CHECK);
+        caseSenstive.setText("Case senstive");
+        caseSenstive.setSelection(isCaseSenstive);
+        data = new GridData(GridData.FILL_HORIZONTAL);
+        data.horizontalSpan = 2;
+        caseSenstive.setLayoutData(data);
+
         // Display the input box
         final Text text = new Text(shell, SWT.BORDER);
         data = new GridData(GridData.FILL_HORIZONTAL);
-        // data.horizontalSpan = 2;
-        text.setText(ipaddr);
+        data.horizontalSpan = 2;
         text.setLayoutData(data);
-
-        final Text textport = new Text(shell, SWT.BORDER);
-        data = new GridData(GridData.FILL_HORIZONTAL);
-        // data.horizontalSpan = 2;
-        textport.setText(Integer.toString(port));
-        textport.setLayoutData(data);
 
         // Create the OK button and add a handler
         // so that pressing it will set input
@@ -103,10 +153,10 @@ public class ConnectDlg extends Dialog {
         data = new GridData(GridData.FILL_HORIZONTAL);
         ok.setLayoutData(data);
         ok.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
-                ipaddr = text.getText();
-                port = Integer.parseInt(textport.getText());
-                selection = 1;
+                input = text.getText();
+                isCaseSenstive = caseSenstive.getSelection();
                 shell.close();
             }
         });
@@ -118,8 +168,9 @@ public class ConnectDlg extends Dialog {
         data = new GridData(GridData.FILL_HORIZONTAL);
         cancel.setLayoutData(data);
         cancel.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
-                selection = 0;
+                input = null;
                 shell.close();
             }
         });
