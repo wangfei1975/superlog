@@ -33,8 +33,16 @@ public final class FifoLogSource extends LogSource {
                         final FileInputStream is = new FileInputStream(mFifoUrl);
                         while(getStatus() == stConnected) {
 	                      //  long start_time = System.currentTimeMillis();
-	                        fetchLogs(is);
-	                        notifyViews();
+	                        if (is.available() > 0 && fetchLogs(is) > 0) {
+	                            notifyViews();
+	                        } else {
+	                            try {
+                                    Thread.sleep(20);
+                                } catch (InterruptedException e) {
+                                    // TODO Auto-generated catch block
+                                    e.printStackTrace();
+                                }
+	                        }
 	                        //System.out.println("loading time = " + (System.currentTimeMillis() - start_time));
                         }
                   

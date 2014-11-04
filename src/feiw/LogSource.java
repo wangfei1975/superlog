@@ -208,15 +208,15 @@ public class LogSource {
     
 
     protected long mNotifyTimeSpan = SystemConfigs.instance().LIVE_LOG_NOTIFYTIME;
-    protected void fetchLogs(InputStream is) throws IOException {
+    protected int fetchLogs(InputStream is) throws IOException {
         BufferedReader din = new BufferedReader(new InputStreamReader(is));
-        //int line = 0;
+        int line = 0;
         String str = din.readLine();
         long start_time = System.currentTimeMillis();
         while (str != null) {
             str = str.trim();
             if (!str.isEmpty()) {
-          //      line++;
+              line++;
                 long curtime = System.currentTimeMillis();
                 if (is.available() == 0 || curtime - start_time > mNotifyTimeSpan) {
                     addLogItem(str, true);
@@ -225,8 +225,11 @@ public class LogSource {
                     addLogItem(str, false);
                 }
             }
+ 
             str = din.readLine();
+         
         }
+        return line;
         //System.out.println(" log lines = " + line);
     }
  
