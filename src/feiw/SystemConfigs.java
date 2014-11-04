@@ -77,10 +77,12 @@ public final class SystemConfigs {
             port = p;
         }
 
+        @Override
         public String toString() {
             return scheme + "://" + url + ":" + port;
         }
 
+        @Override
         public boolean equals(Object o) {
             if (o instanceof LogUrl) {
                 return ((LogUrl) o).url.equals(url) && (((LogUrl) o).port == port);

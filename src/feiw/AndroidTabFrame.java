@@ -15,6 +15,7 @@ public class AndroidTabFrame extends SlogTabFrame implements  StatusListener {
         mLogSrc.addStatusListener(this);
     }
 
+    @Override
     void updateToolItem(ToolItem tit) {
         tit.setEnabled(true);
         if (tit.getData().equals(ToolBarDes.TN_PAUSE)) {
@@ -65,10 +66,12 @@ public class AndroidTabFrame extends SlogTabFrame implements  StatusListener {
            }
        );
     }
+    @Override
     public void onClose() {
         mLogSrc.removeStatusListener(this);
         super.onClose();
     }
+    @Override
     public void onDisconnect() {
         if (!isDisposed()) {
             mLogSrc.disconnect();
@@ -76,6 +79,7 @@ public class AndroidTabFrame extends SlogTabFrame implements  StatusListener {
             Slogmain.getApp().getMainFrame().updateToolBars(this);
         }
     }
+    @Override
     public void onPause() {
         super.onPause();
         if (!isDisposed()) {

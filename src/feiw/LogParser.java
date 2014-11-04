@@ -155,10 +155,12 @@ public class LogParser {
 
         static final String[] mTableHeader = { "Flag", "Line", "Time", "Prority", "Message" };
 
+        @Override
         public String[] getTableHeader() {
             return mTableHeader;
         }
 
+        @Override
         public int parsePriority(final String log) {
             if (taste(log)) {
                 return log.charAt(19) - '0';
@@ -166,6 +168,7 @@ public class LogParser {
             return 7;
         }
 
+        @Override
         public String parseMessage(final String log) {
             if (taste(log)) {
                 return log.substring(33);
@@ -173,6 +176,7 @@ public class LogParser {
             return log;
         }
 
+        @Override
         public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
             int pri = 7;
             String msg;
@@ -224,13 +228,16 @@ public class LogParser {
        
         public static final int mWidth[] = { 28, 50, 150, 20, 190, 50, 1000 };
         static final String[] mTableHeader = { "Flag", "Line",  "Time",  "Prority", "Tag", "PID", "Message" };
+        @Override
         public int [] getHeaderWidth() {
             return mWidth;
         }
        
+        @Override
         public String[] getTableHeader() {
             return mTableHeader;
         }
+        @Override
         public String parseMessage(final String log) {
             if (taste(log)) {
                 int idx = log.indexOf(':', 21);
@@ -240,6 +247,7 @@ public class LogParser {
             }
             return log;
         }
+        @Override
         public String parseTag(final String log) {
             if (taste(log)) {
                 int idx1 = log.indexOf('(', 21);
@@ -249,12 +257,14 @@ public class LogParser {
             }
             return null;
         }
+        @Override
         public int parsePriority(final String log) {
             if (taste(log)) {
                 return AndroidLogParser.mapLogPriority(log.charAt(19));
             }
             return 7;
         }
+        @Override
         public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
             int pri = 7;
             String msg = log;
@@ -332,13 +342,16 @@ public class LogParser {
         }
         public static final int mWidth[] = { 28, 50, 20, 190, 1000 };
         static final String[] mTableHeader = { "Flag", "Line",  "Prority", "Tag", "Message" };
+        @Override
         public int [] getHeaderWidth() {
             return mWidth;
         }
        
+        @Override
         public String[] getTableHeader() {
             return mTableHeader;
         }
+        @Override
         public String parseTag(final String log) {
             if (taste(log)) {
                 int idx1 = log.indexOf('(', 2);
@@ -348,6 +361,7 @@ public class LogParser {
             }
             return null;
         }
+        @Override
         public String parseMessage(final String log) {
             if (taste(log)) {
                 int idx = log.indexOf(':', 2);
@@ -357,12 +371,14 @@ public class LogParser {
             }
             return log;
         }
+        @Override
         public int parsePriority(final String log) {
             if (taste(log)) {
                 return AndroidLogParser.mapLogPriority(log.charAt(0));
             }
             return 7;
         }
+        @Override
         public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
             int pri = 7;
             String msg = log;
@@ -413,6 +429,7 @@ public class LogParser {
             }
             return false;
         }
+        @Override
         public int parsePriority(final String log) {
             if (taste(log)) {
                 return AndroidLogParser.mapLogPriority(log.charAt(31));
@@ -422,13 +439,16 @@ public class LogParser {
  
         public static final int mWidth[] = { 28, 50, 155, 20, 80, 1000 };
         static final String[] mTableHeader = { "Flag", "Line", "Time", "Prority", "Tag", "Message" };
+        @Override
         public int [] getHeaderWidth() {
             return mWidth;
         }
        
+        @Override
         public String[] getTableHeader() {
             return mTableHeader;
         }
+        @Override
         public String parseTag(final String log) {
             if (taste(log)) {
                 int idx = log.indexOf(':', 32);
@@ -441,6 +461,7 @@ public class LogParser {
             }
             return null;
         }
+        @Override
         public String parseMessage(final String log) {
             if (taste(log)) {
                 int idx = log.indexOf(':', 32);
@@ -451,6 +472,7 @@ public class LogParser {
             return log;
         }
 
+        @Override
         public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
             int pri = 7;
             String msg = log;
@@ -502,10 +524,12 @@ public class LogParser {
 
         static final String[] mTableHeader = { "Flag", "Line", "Time", "Prority", "Message" };
 
+        @Override
         public String[] getTableHeader() {
             return mTableHeader;
         }
 
+        @Override
         public int parsePriority(final String log) {
             if (taste(log)) {
                 return log.charAt(23) - '0';
@@ -513,6 +537,7 @@ public class LogParser {
             return 7;
         }
 
+        @Override
         public String parseMessage(final String log) {
             if (taste(log)) {
                 return log.substring(37);
@@ -520,6 +545,7 @@ public class LogParser {
             return log;
         }
 
+        @Override
         public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
             int pri = 7;
             String msg;

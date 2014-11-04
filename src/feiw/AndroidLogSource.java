@@ -43,6 +43,7 @@ public class AndroidLogSource extends LogSource {
                 addLogItem(s, false);
                 setStatus(stConnected);
                 new Thread() {
+                    @Override
                     public void run() {
                         try {
                              fetchLogs(mAdbProcess.getInputStream());
@@ -61,6 +62,7 @@ public class AndroidLogSource extends LogSource {
 
     }
     
+    @Override
     public void disconnect() {
         if (mAdbProcess != null) {
             mAdbProcess.destroy();

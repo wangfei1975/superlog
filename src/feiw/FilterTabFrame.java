@@ -14,6 +14,7 @@ public class FilterTabFrame extends SlogTabFrame {
         setImage(Resources.filter_32);
     }
     
+    @Override
     void updateToolItem(ToolItem tit) {
         
         String tn = (String)tit.getData();

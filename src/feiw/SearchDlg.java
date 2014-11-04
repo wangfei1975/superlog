@@ -153,6 +153,7 @@ public class SearchDlg extends Dialog {
         data = new GridData(GridData.FILL_HORIZONTAL);
         ok.setLayoutData(data);
         ok.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 input = text.getText();
                 isCaseSenstive = caseSenstive.getSelection();
@@ -167,6 +168,7 @@ public class SearchDlg extends Dialog {
         data = new GridData(GridData.FILL_HORIZONTAL);
         cancel.setLayoutData(data);
         cancel.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 input = null;
                 shell.close();

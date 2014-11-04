@@ -66,7 +66,8 @@ public final class SlogMainFrame {
         mShell.setText(caption);
         createContents();
         mShell.addListener(SWT.Close, new Listener() {
-           public void handleEvent(Event event) {
+           @Override
+        public void handleEvent(Event event) {
                closeTabFrames();
            }
          });
@@ -125,12 +126,14 @@ public final class SlogMainFrame {
           menuItem.setText(item);
           menuItem.setImage(img);
           menuItem.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 onListSelected(o);
             }
           });
         }
 
+        @Override
         public void widgetSelected(SelectionEvent event) {
           if (!dropdown.getEnabled()) {
               return;
@@ -570,6 +573,7 @@ public final class SlogMainFrame {
         });
         */
         mTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
+            @Override
             public void close(CTabFolderEvent event) {
                 if (event.item instanceof SlogTabFrame) {
                     SlogTabFrame it =  (SlogTabFrame)event.item;

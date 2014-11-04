@@ -32,6 +32,7 @@ public final class QconnLogSource extends LogSource {
         mSock = sock;
         
         new Thread() {
+            @Override
             public void run() {
                 try {
                     setStatus(stConnecting);
@@ -102,6 +103,7 @@ public final class QconnLogSource extends LogSource {
         }.start();
     }
 
+    @Override
     public void disconnect() {
         if (mRemotepid == 0 || mSock == null)
             return;

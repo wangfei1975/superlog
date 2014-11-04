@@ -104,6 +104,7 @@ public class ConnectDlg extends Dialog {
         data = new GridData(GridData.FILL_HORIZONTAL);
         ok.setLayoutData(data);
         ok.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 ipaddr = text.getText();
                 port = Integer.parseInt(textport.getText());
@@ -119,6 +120,7 @@ public class ConnectDlg extends Dialog {
         data = new GridData(GridData.FILL_HORIZONTAL);
         cancel.setLayoutData(data);
         cancel.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 selection = SWT.CANCEL;
                 shell.close();

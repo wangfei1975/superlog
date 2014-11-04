@@ -56,6 +56,7 @@ public final class SlogTable extends Table {
         setFont(ff);
    
         addListener(SWT.SetData, new Listener() {
+            @Override
             public void handleEvent(Event e) {
                 if (mLogView == null) {
                     return;

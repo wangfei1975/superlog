@@ -201,6 +201,7 @@ public class FilterDlg extends Dialog {
         b.setText("-");
         b.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, false, false, 1, 1));
         b.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 
                 Shell s =  r.holder.getShell();
@@ -252,6 +253,7 @@ public class FilterDlg extends Dialog {
         mRules.add(createUIRule(g, 0, mDefaultField));
 
         b.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 mRules.add(createUIRule(g, mRules.size(), mDefaultField));
                 g.pack(true);
@@ -272,6 +274,7 @@ public class FilterDlg extends Dialog {
         ok.setText("    OK    ");
         ok.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         ok.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
             
                 String s = mName.getText();
@@ -325,6 +328,7 @@ public class FilterDlg extends Dialog {
         cancel.setText("Cancel");
         cancel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         cancel.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 mSelection = SWT.CANCEL;
                 shell.close();

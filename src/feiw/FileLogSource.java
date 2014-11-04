@@ -16,7 +16,8 @@ public class FileLogSource extends LogSource {
       try {
           final FileInputStream is = new FileInputStream(mFileUrl);
           new Thread() {
-              public void run() {
+              @Override
+            public void run() {
                   try {
                       setStatus(stConnected);
                       long start_time = System.currentTimeMillis();

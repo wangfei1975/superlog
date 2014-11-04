@@ -15,6 +15,7 @@ public class FileTabFrame extends SlogTabFrame {
 
     }
     
+    @Override
     void updateToolItem(ToolItem tit) {
         String tn = (String)tit.getData();
         if (tn == null || tn.isEmpty()) {

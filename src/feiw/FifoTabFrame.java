@@ -14,6 +14,7 @@ public final class FifoTabFrame extends SlogTabFrame implements  StatusListener 
         mLogSrc.addStatusListener(this);
     }
 
+    @Override
     void updateToolItem(ToolItem tit) {
         tit.setEnabled(true);
         if (tit.getData().equals(ToolBarDes.TN_PAUSE)) {
@@ -29,6 +30,7 @@ public final class FifoTabFrame extends SlogTabFrame implements  StatusListener 
             super.updateToolItem(tit);
         }
     }
+    @Override
     public void onClose() {
         mLogSrc.removeStatusListener(this);
         super.onClose();
@@ -70,6 +72,7 @@ public final class FifoTabFrame extends SlogTabFrame implements  StatusListener 
     }
 
     
+    @Override
     public void onDisconnect() {
         if (!isDisposed()) {
             mLogSrc.disconnect();

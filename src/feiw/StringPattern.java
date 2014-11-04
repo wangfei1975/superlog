@@ -6,6 +6,7 @@ public final class StringPattern {
     private final int[] mTable;
     private final boolean mCaseSensitive;
 
+    @Override
     public final String toString() {
         return mPattern;
     }

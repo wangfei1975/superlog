@@ -26,6 +26,7 @@ public final class FifoLogSource extends LogSource {
     }
     public void load() {
              new Thread() {
+                @Override
                 public void run() {
                     try {
                     	setStatus(stConnected);
@@ -44,6 +45,7 @@ public final class FifoLogSource extends LogSource {
                 }
             }.start();
     }
+    @Override
     public void disconnect() {
     	  setStatus(stIdle);
     	  File f = new File(mFifoUrl);

@@ -81,6 +81,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         }
         menuItem.setImage(Resources.copyall_16);
         menuItem.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 onCopyAll();
             }
@@ -94,6 +95,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         }
         menuItem.setImage(Resources.copy_16);
         menuItem.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 onCopy();
             }
@@ -102,6 +104,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         
         
         SelectionAdapter lisener = new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                  Object o = event.widget.getData();
                  if (o instanceof Integer) {
@@ -137,7 +140,8 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                menuItem.setText("Filter  [Tag = \"" + tag.trim() + "\"]");
                menuItem.setImage(Resources.filter_16);
                menuItem.addSelectionListener(new SelectionAdapter() {
-                   public void widgetSelected(SelectionEvent event) {
+                   @Override
+                public void widgetSelected(SelectionEvent event) {
                            LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim());
                            Slogmain.getApp().getMainFrame().openFilterView(f);
                   } 
@@ -149,6 +153,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         menuItem.setText("Filter  [Message contains ...]");
         menuItem.setImage(Resources.filter_16);
         menuItem.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 FilterDlg fdlg = new FilterDlg(getParent().getShell(), getLogView(), LogFilter.FIELD_CONTENT);
                 if (fdlg.open() != SWT.OK) {

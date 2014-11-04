@@ -46,6 +46,7 @@ public class LogSource {
         String getName() {
             return mName;
         }
+        @Override
         public String toString() {
             return mName;
         }
