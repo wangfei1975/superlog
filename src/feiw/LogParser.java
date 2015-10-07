@@ -212,7 +212,11 @@ public class LogParser {
                         if (idx >= 0) {
                             idx = log.indexOf(')', idx + 1);
                             if (idx >= 0) {
+                            	 if (idx + 2 < log.length()) {
                                  return (log.charAt(idx + 1) == ':') && (log.charAt(idx + 2) == ' ');
+                            	 } else {
+                            		 return true;
+                            	 }
                             }
                         }
                     }
@@ -235,7 +239,11 @@ public class LogParser {
             if (taste(log)) {
                 int idx = log.indexOf(':', 21);
                 if (idx >= 0) {
+                	if (idx+2 < log.length()) {
                     return log.substring(idx + 2);
+                	} else {
+                		return log.substring(idx);
+                	}
                 }
             }
             return log;
@@ -272,7 +280,11 @@ public class LogParser {
                         item.setText(5, log.substring(idx1+1, idx2).trim());
                         int idx = log.indexOf(':', idx2+1);
                         if (idx >= 0) {
+                        	if (idx +2 < log.length()) {
                             msg = log.substring(idx + 2);
+                        	} else {
+                        		msg = log.substring(idx);
+                        	}
                         }
                     }
                 }

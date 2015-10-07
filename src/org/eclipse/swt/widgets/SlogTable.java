@@ -48,7 +48,7 @@ public final class SlogTable extends Table {
         Font ff ;
         Display display = getShell().getDisplay();
         if (SWT.getPlatform().contains("win32")) {
-            ff = new Font(display, "Couier New", 14, 0);  
+            ff = new Font(display, "Couier New", 12, 0);  
             System.out.println("windows: " + SWT.getPlatform());
         } else {
           ff = new Font(display, "Monaco", 14, 0);
