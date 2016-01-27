@@ -430,14 +430,14 @@ public class LogParser {
             //01-17 21:52:50.409  1330  1330 V GCMBroadcastReceiver: GCM IntentService class: com.espn.notifications.EspnGcmIntentService
 
             if (log.length() > 31) {
-            if (log.charAt(2) == '-' && log.charAt(5) ==' ' && log.charAt(8) == ':' && log.charAt(11) == ':' ) {
-                if (log.charAt(14) == '.' && log.charAt(18) == ' ') {
-                    char ch = log.charAt(31);
-                    if (AndroidLogParser.mapLogPriority(ch) >= 0) {
-                        return true;
-                    }
-                }
-            }
+	            if (log.charAt(2) == '-' && log.charAt(5) ==' ' && log.charAt(8) == ':' && log.charAt(11) == ':' ) {
+	                if (log.charAt(14) == '.' && log.charAt(18) == ' ') {
+	                    char ch = log.charAt(31);
+	                    if (AndroidLogParser.mapLogPriority(ch) >= 0) {
+	                        return true;
+	                    }
+	                }
+	            }
             }
             return false;
         }
@@ -449,8 +449,8 @@ public class LogParser {
             return 7;
         }
  
-        public static final int mWidth[] = { 28, 50, 155, 20, 80, 1000 };
-        static final String[] mTableHeader = { "Flag", "Line", "Time", "Prority", "Tag", "Message" };
+        public static final int mWidth[] =   { 28,      50,      155,   50,     25,        110, 1200 };
+        static final String[] mTableHeader = { "Flag", "Line", "Time", "PID", "Prority", "Tag", "Message" };
         @Override
         public int [] getHeaderWidth() {
             return mWidth;
@@ -473,11 +473,17 @@ public class LogParser {
             }
             return null;
         }
+        public int parsePID(final String log) {
+           if (taste(log)) {
+        	   return Integer.parseInt(log.substring(19, 25));
+           }
+           return 0;
+        }
         @Override
         public String parseMessage(final String log) {
             if (taste(log)) {
                 int idx = log.indexOf(':', 32);
-                if (idx >= 0) {
+                if (idx >= 0  && idx +2 < log.length()) {
                     return log.substring(idx + 2);
                 }
             }
@@ -491,8 +497,11 @@ public class LogParser {
             SystemConfigs scfgs = SystemConfigs.instance();
             if (taste(log)) {
                 item.setText(2, log.substring(0, 18));
+                 String pid = log.substring(19, 24);
+               // String tid = log.substring(25, 30);
                 char alogpri = log.charAt(31);
-                item.setText(3, String.valueOf(alogpri));
+                item.setText(3, pid.trim());
+                item.setText(4, String.valueOf(alogpri));
                 pri = AndroidLogParser.mapLogPriority(alogpri);
                 int idx = log.indexOf(':', 32);
                 if (idx >= 0) {
@@ -500,10 +509,10 @@ public class LogParser {
                     msg = log.substring(idx + 2);
                    else 
                         msg = "";
-                    item.setText(4, log.substring(33, idx));
+                    item.setText(5, log.substring(33, idx));
                 }
             }  
-            item.setText(5, msg);
+            item.setText(6, msg);
 
             Color bk = scfgs.getLogBackground(pri);
             if (bk != null) {

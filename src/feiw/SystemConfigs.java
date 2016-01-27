@@ -154,7 +154,7 @@ public final class SystemConfigs {
         } else {
             mLogFontName = "Monaco";
         }
-        mLogFontSize = 16;
+        mLogFontSize = 12;
         // addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY,
         // LogFilter.OP_LESSTHEN, Integer.valueOf(6)));
         // addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY,
@@ -254,6 +254,12 @@ public final class SystemConfigs {
     }
     public int getLogFontSize() {
         return mLogFontSize;
+    }
+    public void setLogFontName(final String fn) {
+    	mLogFontName = fn;
+    }
+    public void setLogFontSize(int size) {
+    	mLogFontSize = size;
     }
     
     public String toJson() {

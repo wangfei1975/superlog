@@ -16,6 +16,7 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -53,6 +54,14 @@ public class SlogTabFrame extends CTabItem implements LogListener{
     }
     public SlogTable getTable() {
         return mTable;
+    }
+    
+    public void setLogFont() {
+        
+        Display display = getDisplay();
+        Font ff  = new Font(display, SystemConfigs.instance().getLogFontName(),
+        		SystemConfigs.instance().getLogFontSize(), 0);
+        mTable.setFont(ff);
     }
 
     void updateToolItem(ToolItem tit) {
@@ -192,6 +201,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         tb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
         mTable = tb;
         mTable.setLogView(mLogView);
+        setLogFont();
         
   //      mStatusLabel = new Label(com, SWT.BORDER_SOLID|SWT.ICON);
 //        mStatusLabel.setImage(logsrc.getStatus() == LogSource.stConnected ? Resources.connected_16 :Resources.disconnected_16);

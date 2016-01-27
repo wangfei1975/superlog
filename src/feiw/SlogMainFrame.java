@@ -451,17 +451,24 @@ public final class SlogMainFrame {
                 }
             }
         });
-        /*
+ 
         getToolItem(ToolBarDes.TN_PREFERENCE).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                MessageBox m = new MessageBox(getShell(), SWT.OK|SWT.ICON_INFORMATION);
-                m.setText("Preference");
-                m.setMessage("TODO.");
-                m.open();
+                PerferenceDlg dlg = new PerferenceDlg(getShell());
+                if (dlg.open() == SWT.OK) {
+                	 int fs = dlg.getPort();
+                	 if (fs >= 5 && fs < 100) {
+                		 SystemConfigs.instance().setLogFontSize(fs);
+                		 SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                    	 if (tbf != null) {
+                    		 tbf.setLogFont();
+                    	 }
+                	 }
+                }
             }
         });
-        */
+        
         getToolItem(ToolBarDes.TN_HELP).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {

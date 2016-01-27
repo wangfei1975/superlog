@@ -90,7 +90,7 @@ public final class ToolBarDes {
                 new ToolItemDes(TN_PAUSE,        "Pause", Resources.pause_32, SWT.PUSH, 0)
         }));
         add(new ToolBarDes(TBN_CONFIG, new ToolItemDes [] { 
-             //   new ToolItemDes(TN_PREFERENCE,   "Preference", Resources.config_32, SWT.PUSH, 0),
+                new ToolItemDes(TN_PREFERENCE,   "Preference", Resources.config_32, SWT.PUSH, 0),
                 new ToolItemDes(TN_HELP,   "Help", Resources.help_32, SWT.PUSH, 0),
         }));
     }};
