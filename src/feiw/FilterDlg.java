@@ -31,13 +31,16 @@ public class FilterDlg extends Dialog {
     final LogView mLogView;
     String mDefaultField;
     boolean mHasTagField = false;
+    boolean mHasPidField = false;
     public FilterDlg(Shell parent, final LogView logView, String defaultField) {
         super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
         mLogView = logView;
         String [] hd = logView.getLogParser().getTableHeader();
         for (int i = 0; i < hd.length; i++) {
-            if (hd[i].toLowerCase().equals(LogFilter.FIELD_TAG)) {
+            if (hd[i].equalsIgnoreCase(LogFilter.FIELD_TAG)) {
                 mHasTagField = true;
+            } else if (hd[i].equalsIgnoreCase(LogFilter.FIELD_PID)) {
+            	mHasPidField = true;
             }
         }
         mDefaultField = defaultField;
@@ -144,6 +147,9 @@ public class FilterDlg extends Dialog {
         if (mHasTagField) {
             comb.add(LogFilter.FIELD_TAG);
         }
+        if (mHasPidField) {
+        	comb.add(LogFilter.FIELD_PID);
+        }
         comb.select(0);
         r.field = comb;
                         
@@ -169,9 +175,12 @@ public class FilterDlg extends Dialog {
                  } else if (comb.getSelectionIndex() == 1) {
                      combop.add(LogFilter.OP_CONTAINS);
                      combop.select(0);
-                 } else {
+                 } else if (comb.getSelectionIndex() == 2) {
                      combop.add(LogFilter.OP_EQUALS);
                      combop.add(LogFilter.OP_CONTAINS);
+                     combop.select(0);
+                 } else {
+                     combop.add(LogFilter.OP_EQUALS);
                      combop.select(0);
                  }
             }
@@ -188,6 +197,8 @@ public class FilterDlg extends Dialog {
                 comb.select(1);
             } else if (mHasTagField && defaultField.equals(LogFilter.FIELD_TAG)) {
                 comb.select(2);
+            } else if (mHasPidField && defaultField.equals(LogFilter.FIELD_PID)) {
+            	comb.select(3);
             }
         }
         comb.notifyListeners(SWT.Selection, null);

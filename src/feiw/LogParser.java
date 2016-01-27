@@ -31,8 +31,8 @@ public class LogParser {
         return null;
     }
 
-    public int parsePID(final String log) {
-        return -1;
+    public String parsePID(final String log) {
+        return null;
     }
 
     public int parseTID(final String log) {
@@ -467,17 +467,15 @@ public class LogParser {
                 if (idx >= 0) {
                     if (idx +2 < log.length())
                     return log.substring(32, idx).trim(); 
-                    else 
-                        return "";
               }
             }
             return null;
         }
-        public int parsePID(final String log) {
-           if (taste(log)) {
-        	   return Integer.parseInt(log.substring(19, 25));
+        public String parsePID(final String log) {
+           if (taste(log) && log.length() > 24) {
+        	   return  log.substring(19, 24).trim();
            }
-           return 0;
+           return null;
         }
         @Override
         public String parseMessage(final String log) {

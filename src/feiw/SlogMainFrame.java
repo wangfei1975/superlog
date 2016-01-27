@@ -367,7 +367,11 @@ public final class SlogMainFrame {
             @Override
             public void onToolSelected(ToolItem dropdown) {
                 SlogTabFrame ctab = (SlogTabFrame)mTabFolder.getSelection();
-                FilterDlg fdlg = new FilterDlg(getShell(), ctab.getLogView(), LogFilter.FIELD_CONTENT);
+                String defaultField = LogFilter.FIELD_CONTENT;
+                if (ctab.getLogSource() instanceof AndroidLogSource) {
+                	defaultField = LogFilter.FIELD_TAG;
+                }
+                FilterDlg fdlg = new FilterDlg(getShell(), ctab.getLogView(), defaultField);
                 if (fdlg.open() != SWT.OK) {
                     return;
                 }
@@ -456,14 +460,13 @@ public final class SlogMainFrame {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 PerferenceDlg dlg = new PerferenceDlg(getShell());
+                dlg.setFontSize(SystemConfigs.instance().getLogFontSize());
                 if (dlg.open() == SWT.OK) {
-                	 int fs = dlg.getPort();
-                	 if (fs >= 5 && fs < 100) {
-                		 SystemConfigs.instance().setLogFontSize(fs);
-                		 SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
-                    	 if (tbf != null) {
-                    		 tbf.setLogFont();
-                    	 }
+                	 int fs = dlg.getFontSize();
+            		 SystemConfigs.instance().setLogFontSize(fs);
+            		 SlogTabFrame tbf = (SlogTabFrame)mTabFolder.getSelection();
+                	 if (tbf != null) {
+                		 tbf.setLogFont();
                 	 }
                 }
             }

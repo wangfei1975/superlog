@@ -27,6 +27,7 @@ public class LogSource {
         public static final String FIELD_TAG = "tag";
         public static final String FIELD_TIME = "time";
         public static final String FIELD_CONTENT = "message";
+        public static final String FIELD_PID = "PID";
         
         public static final String FILTER_OP_AND = "and";
         public static final String FILTER_OP_OR =  "or";
@@ -165,6 +166,15 @@ public class LogSource {
                         }
                     };
                 }
+            } else if (FIELD_PID.equals(field)) {
+            	if (OP_EQUALS.equals(op)) {
+            		return new LogFilter(field + " " + op + " " + dstObj) {
+            			   @Override
+                           public boolean filterLog(final LogParser parser, final String item) {
+                               return dstObj.equals(parser.parsePID(item));
+                           }
+            		};
+            	}
             }
             return null;
         }

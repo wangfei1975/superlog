@@ -175,6 +175,7 @@ public class SearchDlg extends Dialog {
             }
         });
 
+        text.setFocus();
         // Set the OK button as the default, so
         // user can type input and press Enter
         // to dismiss

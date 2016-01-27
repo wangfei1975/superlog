@@ -11,25 +11,25 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 public class PerferenceDlg extends Dialog {
     private String message = "Perference";
-    private String ipaddr;
-    private int port;
+    private int fontSize = 0;
     private int selection = 0;
 
-    public String getIp() {
-        return ipaddr;
+    public int getFontSize() {
+        return fontSize;
     }
-
-    public int getPort() {
-        return port;
+    public void setFontSize(int s) {
+    	fontSize = s;
     }
 
     public PerferenceDlg(Shell parent) {
         this(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+ 
     }
 
     public PerferenceDlg(Shell parent, int style) {
@@ -85,13 +85,13 @@ public class PerferenceDlg extends Dialog {
         data = new GridData(GridData.FILL_HORIZONTAL);
         // data.horizontalSpan = 2;
        // text.setText(ipaddr);
-        lbFontSize.setText("Input Font Size");
+        lbFontSize.setText("Font Size");
         lbFontSize.setLayoutData(data);
 
         final Text textport = new Text(shell, SWT.BORDER);
         data = new GridData(GridData.FILL_HORIZONTAL);
         // data.horizontalSpan = 2;
-        textport.setText(Integer.toString(port));
+        textport.setText(Integer.toString(fontSize));
         textport.setLayoutData(data);
 
         // Create the OK button and add a handler
@@ -104,8 +104,14 @@ public class PerferenceDlg extends Dialog {
         ok.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-             //   ipaddr = text.getText();
-                port = Integer.parseInt(textport.getText());
+            	 int fs = Integer.parseInt(textport.getText());
+            	 if (fs <=0 || fs > 100) {
+            		    MessageBox m = new MessageBox(shell, SWT.OK|SWT.ICON_ERROR);
+                        m.setMessage("Invalid font size [0 to 100]");
+                        m.open();
+            		 return;
+            	 }
+                fontSize = Integer.parseInt(textport.getText());
                 selection = SWT.OK;
                 shell.close();
             }

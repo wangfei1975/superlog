@@ -122,6 +122,40 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                  }
             }
           };
+          
+          
+          int it = mTable.getSelectionIndex();
+          if (it >= 0) {
+             String log = mLogView.getLog(it);
+             final String tag = mLogView.getLogParser().parseTag(log);
+             if (tag != null && !tag.trim().isEmpty()) {
+                 menuItem = new MenuItem(menu, SWT.NONE);
+                 menuItem.setText("Filter  [Tag = \"" + tag.trim() + "\"]");
+                 menuItem.setImage(Resources.filter_16);
+                 menuItem.addSelectionListener(new SelectionAdapter() {
+                     @Override
+                  public void widgetSelected(SelectionEvent event) {
+                             LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim());
+                             Slogmain.getApp().getMainFrame().openFilterView(f);
+                    } 
+                 });
+             }
+             final String pid = mLogView.getLogParser().parsePID(log);
+             if (pid != null && !pid.trim().isEmpty()) {
+            	 menuItem = new MenuItem(menu, SWT.NONE);
+                 menuItem.setText("Filter  [PID = \"" + pid.trim() + "\"]");
+                 menuItem.setImage(Resources.filter_16);
+                 menuItem.addSelectionListener(new SelectionAdapter() {
+                     @Override
+                  public void widgetSelected(SelectionEvent event) {
+                             LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim());
+                             Slogmain.getApp().getMainFrame().openFilterView(f);
+                    } 
+                 });
+             }
+             
+          }
+          
         menuItem = new MenuItem(menu, SWT.NONE);
         menuItem.setText("Filter  [Priority < Verbos(7)]");
         menuItem.setImage(Resources.filter_16);
@@ -139,24 +173,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
         menuItem.setImage(Resources.filter_16);
         menuItem.setData(Integer.valueOf(5));
         menuItem.addSelectionListener(lisener);
-        
-        int it = mTable.getSelectionIndex();
-        if (it >= 0) {
-           String log = mLogView.getLog(it);
-           final String tag = mLogView.getLogParser().parseTag(log);
-           if (tag != null && !tag.trim().isEmpty()) {
-               menuItem = new MenuItem(menu, SWT.NONE);
-               menuItem.setText("Filter  [Tag = \"" + tag.trim() + "\"]");
-               menuItem.setImage(Resources.filter_16);
-               menuItem.addSelectionListener(new SelectionAdapter() {
-                   @Override
-                public void widgetSelected(SelectionEvent event) {
-                           LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim());
-                           Slogmain.getApp().getMainFrame().openFilterView(f);
-                  } 
-               });
-           }
-        }
+     
         
         menuItem = new MenuItem(menu, SWT.NONE);
         menuItem.setText("Filter  [Message contains ...]");
