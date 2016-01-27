@@ -3,6 +3,7 @@ package feiw;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
@@ -111,6 +112,16 @@ public class SlogTabFrame extends CTabItem implements LogListener{
           });
         menuItem = new MenuItem(menu, SWT.SEPARATOR);
         
+        final int sels[] = mTable.getSelectionIndices();
+        if (sels != null && sels.length > 1) {
+        	final Date sTime = mLogView.getLogParser().parseTime(mLogView.getLog(sels[0]));
+        	final Date eTime = mLogView.getLogParser().parseTime(mLogView.getLog(sels[sels.length-1]));
+        	if (sTime != null && eTime != null) {
+        	   menuItem = new MenuItem(menu, SWT.NONE);
+               menuItem.setText("Time diff: " + (eTime.getTime() - sTime.getTime()) + " MS");
+        	   menuItem = new MenuItem(menu, SWT.SEPARATOR);
+        	}
+        }
         
         SelectionAdapter lisener = new SelectionAdapter() {
             @Override
@@ -123,8 +134,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
             }
           };
           
-          
-          int it = mTable.getSelectionIndex();
+          final int it = mTable.getSelectionIndex();
           if (it >= 0) {
              String log = mLogView.getLog(it);
              final String tag = mLogView.getLogParser().parseTag(log);

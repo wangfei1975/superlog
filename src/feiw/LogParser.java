@@ -6,6 +6,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -441,6 +444,19 @@ public class LogParser {
             }
             return false;
         }
+        static final DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss.SSS");
+        @Override
+        public Date parseTime(final String log) {
+        	if (taste(log)) {
+        		try {
+					return dateFormat.parse(log);
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        	}
+        	return null;
+        }
         @Override
         public int parsePriority(final String log) {
             if (taste(log)) {
@@ -494,6 +510,7 @@ public class LogParser {
             String msg = log;
             SystemConfigs scfgs = SystemConfigs.instance();
             if (taste(log)) {
+            	//time
                 item.setText(2, log.substring(0, 18));
                  String pid = log.substring(19, 24);
                // String tid = log.substring(25, 30);
