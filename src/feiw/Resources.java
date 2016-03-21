@@ -39,17 +39,20 @@ public final class Resources {
     
     public static ArrayList <Image> mIcons = new ArrayList<Image> (30);
  
-    static Image loadIcon(AppContext ctx, String name) {
-        Image icon = null;
-        InputStream is = ctx.getClass().getClassLoader().getResourceAsStream(name + ".png");
-        if (is == null) {
-            icon = new Image(ctx.getDisplay(), "resources/" + name + ".png");
-        } else {
-            icon = new Image(ctx.getDisplay(), is);
-        }
-        mIcons.add(icon);
-        return icon;
-    }
+	static Image loadIcon(AppContext ctx, String name) {
+		Image icon = null;
+		InputStream is = ctx.getClass().getClassLoader().getResourceAsStream(name + ".png");
+		if (is == null) {
+			is = ctx.getClass().getClassLoader().getResourceAsStream("/resources/" + name + ".png");
+		}
+		if (is == null) {
+			icon = new Image(ctx.getDisplay(), "resources/" + name + ".png");
+		} else {
+			icon = new Image(ctx.getDisplay(), is);
+		}
+		mIcons.add(icon);
+		return icon;
+	}
     
     static void loadResources(AppContext ctx) {
         openfile_32 = loadIcon(ctx, "openfile_32");
