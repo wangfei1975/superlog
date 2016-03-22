@@ -12,7 +12,7 @@ public class FileLogSource extends LogSource {
         mFileUrl = fname;
     }
     
-  public void load() {
+  public void load(final LogParser parser) {
       try {
           final FileInputStream is = new FileInputStream(mFileUrl);
           new Thread() {
@@ -21,7 +21,7 @@ public class FileLogSource extends LogSource {
                   try {
                       setStatus(stConnected);
                       long start_time = System.currentTimeMillis();
-                      fetchLogs(is);
+                      fetchLogs(is, parser);
                       notifyViews();
                       System.out.println("loading time = " + (System.currentTimeMillis() - start_time));
 

@@ -150,6 +150,7 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                     } 
                  });
              }
+             {
              final String pid = mLogView.getLogParser().parsePID(log);
              if (pid != null && !pid.trim().isEmpty()) {
             	 menuItem = new MenuItem(menu, SWT.NONE);
@@ -159,6 +160,21 @@ public class SlogTabFrame extends CTabItem implements LogListener{
                      @Override
                   public void widgetSelected(SelectionEvent event) {
                              LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim());
+                             Slogmain.getApp().getMainFrame().openFilterView(f);
+                    } 
+                 });
+             }
+             }
+             
+             final String tid = mLogView.getLogParser().parseTID(log);
+             if (tid != null && !tid.trim().isEmpty()) {
+            	 menuItem = new MenuItem(menu, SWT.NONE);
+                 menuItem.setText("Filter  [TID = \"" + tid.trim() + "\"]");
+                 menuItem.setImage(Resources.filter_16);
+                 menuItem.addSelectionListener(new SelectionAdapter() {
+                     @Override
+                  public void widgetSelected(SelectionEvent event) {
+                             LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TID, LogFilter.OP_EQUALS, tid.trim());
                              Slogmain.getApp().getMainFrame().openFilterView(f);
                     } 
                  });

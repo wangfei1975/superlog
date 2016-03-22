@@ -38,8 +38,20 @@ public class LogParser {
         return null;
     }
 
-    public int parseTID(final String log) {
-        return -1;
+    public String parseTID(final String log) {
+        return null;
+    }
+    
+    public String readOneLog(final BufferedReader is) throws IOException {
+    	String str;
+    	do {
+      	   str = is.readLine();
+      	   if (str == null) {
+	    	  return null;
+	       }
+      	   str = str.trim();
+    	} while(str.isEmpty());
+    	return str;
     }
 
     public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
@@ -84,8 +96,9 @@ public class LogParser {
                 "feiw.LogParser$QnxLogParser", 
                 "feiw.LogParser$QnxShortLogParser", 
                 "feiw.LogParser$AndroidThreadtimeLogParser", 
-                "feiw.LogParser$AndroidLogParser", 
+                "feiw.LogParser$AndroidBriefLogParser", 
                 "feiw.LogParser$AndroidTimeLogParser",
+                "feiw.LogParser$AndroidLongLogParser",
         };
         if (logs == null || logs.isEmpty()) {
             return new QnxLogParser();
@@ -96,9 +109,10 @@ public class LogParser {
             for (String cn : parserClass) {
                 Class<?> c  = Class.forName(cn);
                 Method m = c.getMethod("taste", String.class);
+                Object parser = c.newInstance();
                 int score = 0;
                 for (String log : logs) {
-                    if ((Boolean) m.invoke(null, log)) {
+                    if ((Boolean) m.invoke(parser, log)) {
                         score++;
                     }
                 }
@@ -208,12 +222,13 @@ public class LogParser {
             }
         }
     }
+    //adb logcat -v time
     public static final class AndroidTimeLogParser extends LogParser {
         public static boolean taste(final String log) {
             //01-17 20:28:35.379 D/Ethernet(  367): Interface eth0 link down
             if (log.length() > 22) {
                 if (log.charAt(2) == '-' && log.charAt(5) == ' ' && log.charAt(8) == ':' && log.charAt(11) == ':' && log.charAt(14) == '.') {
-                if (AndroidLogParser.mapLogPriority(log.charAt(19)) >= 0) {
+                if (AndroidBriefLogParser.mapLogPriority(log.charAt(19)) >= 0) {
                     if (log.charAt(20) == '/') {
                         int idx =  log.indexOf('(', 21);
                         if (idx >= 0) {
@@ -271,7 +286,7 @@ public class LogParser {
         @Override
         public int parsePriority(final String log) {
             if (taste(log)) {
-                return AndroidLogParser.mapLogPriority(log.charAt(19));
+                return AndroidBriefLogParser.mapLogPriority(log.charAt(19));
             }
             return 7;
         }
@@ -284,7 +299,7 @@ public class LogParser {
                 item.setText(2, log.substring(0, 19));
                 char alogpri = log.charAt(19);
                 item.setText(3, String.valueOf(alogpri));
-                pri = AndroidLogParser.mapLogPriority(alogpri);
+                pri = AndroidBriefLogParser.mapLogPriority(alogpri);
                 int idx1 = log.indexOf('(', 21);
                 if (idx1 >= 0) {
                     item.setText(4, log.substring(21, idx1));
@@ -317,12 +332,14 @@ public class LogParser {
             }
         }
     }
-    public static final class AndroidLogParser extends LogParser {
+    
+    //adb logcat -v brief
+    public static final class AndroidBriefLogParser extends LogParser {
         public static boolean taste(final String log) {
            //I/ActivityManager(   91): fsaf
             if (log.length() > 3) {
             char ch = log.charAt(0);
-            if (AndroidLogParser.mapLogPriority(ch) >= 0) {
+            if (AndroidBriefLogParser.mapLogPriority(ch) >= 0) {
                 if (log.charAt(1) == '/') {
                     int idx =  log.indexOf('(', 2);
                     if (idx >= 0) {
@@ -389,7 +406,7 @@ public class LogParser {
         @Override
         public int parsePriority(final String log) {
             if (taste(log)) {
-                return AndroidLogParser.mapLogPriority(log.charAt(0));
+                return AndroidBriefLogParser.mapLogPriority(log.charAt(0));
             }
             return 7;
         }
@@ -402,7 +419,7 @@ public class LogParser {
                 item.setText(2, "");
                 char alogpri = log.charAt(0);
                 item.setText(2, String.valueOf(alogpri));
-                pri = AndroidLogParser.mapLogPriority(alogpri);
+                pri = AndroidBriefLogParser.mapLogPriority(alogpri);
                 int idx1 = log.indexOf('(', 2);
                 if (idx1 >= 0) {
                     item.setText(3, log.substring(2, idx1));
@@ -427,6 +444,8 @@ public class LogParser {
             }
         }
     }
+    
+    //adb logcat -v threadtime
     public static final class AndroidThreadtimeLogParser extends LogParser{
         public static boolean taste(final String log) {
             //01-17 20:28:35.379   367   424 D Ethernet: Interface eth0 link down
@@ -436,7 +455,7 @@ public class LogParser {
 	            if (log.charAt(2) == '-' && log.charAt(5) ==' ' && log.charAt(8) == ':' && log.charAt(11) == ':' ) {
 	                if (log.charAt(14) == '.' && log.charAt(18) == ' ') {
 	                    char ch = log.charAt(31);
-	                    if (AndroidLogParser.mapLogPriority(ch) >= 0) {
+	                    if (AndroidBriefLogParser.mapLogPriority(ch) >= 0) {
 	                        return true;
 	                    }
 	                }
@@ -460,13 +479,13 @@ public class LogParser {
         @Override
         public int parsePriority(final String log) {
             if (taste(log)) {
-                return AndroidLogParser.mapLogPriority(log.charAt(31));
+                return AndroidBriefLogParser.mapLogPriority(log.charAt(31));
             }
             return 7;
         }
  
-        public static final int mWidth[] =   { 28,      50,      155,   50,     25,        110, 1200 };
-        static final String[] mTableHeader = { "Flag", "Line", "Time", "PID", "Prority", "Tag", "Message" };
+        public static final int mWidth[] =   { 28,      50,      155,   50,  50,   25,        110, 1200 };
+        static final String[] mTableHeader = { "Flag", "Line", "Time", "PID", "TID", "Prority", "Tag", "Message" };
         @Override
         public int [] getHeaderWidth() {
             return mWidth;
@@ -488,8 +507,14 @@ public class LogParser {
             return null;
         }
         public String parsePID(final String log) {
-           if (taste(log) && log.length() > 24) {
+           if (taste(log)) {
         	   return  log.substring(19, 24).trim();
+           }
+           return null;
+        }
+        public String parseTID(final String log) {
+           if (taste(log)) {
+        	   return log.substring(25, 30).trim();
            }
            return null;
         }
@@ -513,21 +538,22 @@ public class LogParser {
             	//time
                 item.setText(2, log.substring(0, 18));
                  String pid = log.substring(19, 24);
-               // String tid = log.substring(25, 30);
+                 String tid = log.substring(25, 30);
                 char alogpri = log.charAt(31);
                 item.setText(3, pid.trim());
-                item.setText(4, String.valueOf(alogpri));
-                pri = AndroidLogParser.mapLogPriority(alogpri);
+                item.setText(4, tid.trim());
+                item.setText(5, String.valueOf(alogpri));
+                pri = AndroidBriefLogParser.mapLogPriority(alogpri);
                 int idx = log.indexOf(':', 32);
                 if (idx >= 0) {
                    if (idx + 2 < log.length())
-                    msg = log.substring(idx + 2);
+                       msg = log.substring(idx + 2);
                    else 
                         msg = "";
-                    item.setText(5, log.substring(33, idx));
+                    item.setText(6, log.substring(33, idx));
                 }
             }  
-            item.setText(6, msg);
+            item.setText(7, msg);
 
             Color bk = scfgs.getLogBackground(pri);
             if (bk != null) {
@@ -542,6 +568,185 @@ public class LogParser {
             }
         }
     }
+    
+    //adb logcat -v long
+    public static final class AndroidLongLogParser extends LogParser{
+    	int IDX_PRIORITY = 33;
+    	static final int IDX_TIME_START = 2;
+    	static final int IDX_TIME_END = 20;
+    	static final int IDX_PID_START = 20;
+    	static final int IDX_PID_END = 26;
+    	static final int IDX_TID_START = 27;
+    	int IDX_TID_END = 33;
+    	int IDX_TAG_START = 35;
+        public  boolean taste(final String log) {
+        	//[ 03-22 12:45:12.856   885:  902 D/PowerManagerService ]
+        	//acquireWakeLockInternal: lock=138024456, flags=0x1, tag="NlpWakeLock", ws=null, uid=10025, pid=2347
+        	//[ 03-21 11:13:58.176  5315: 5336 I/DisplayPowerController ]
+    		//Blocking screen on until initial contents have been drawn.
+        	//[ 04-07 09:18:23.955    37:0x25 I/boot_progress_start ]
+    		//	4085
+        	//[ 04-07 09:18:25.535    37:0x25 I/boot_progress_preload_start ]
+            //  5663
+        	//[ 04-07 09:19:27.466    89:0x67 I/SystemServer ]
+        	//Device Policy
+        	//[ 04-07 09:19:45.511   215:0x108 D/RILJ     ]
+        	//		[0012]< OPERATOR {Android, Android, 310260}
+
+            if (log.length() > IDX_TAG_START && log.charAt(0) == '[') {
+	            if (log.charAt(26) == ':' && log.charAt(16) == '.' && log.charAt(20) == ' ') {
+	            	if (log.charAt(34) =='/') {
+	            		return (AndroidBriefLogParser.mapLogPriority(log.charAt(IDX_PRIORITY)) >= 0);
+	            	} else if (log.charAt(33) == '/') {
+	            		IDX_TID_END = 32;
+	            		IDX_TAG_START = 34;
+	            		IDX_PRIORITY = 32;
+	            		return (AndroidBriefLogParser.mapLogPriority(log.charAt(IDX_PRIORITY)) >= 0);
+	            	}
+	            }
+	            
+            }
+            return false;
+        }
+        String mLastLineLog = null;
+        @Override
+        public String readOneLog(final BufferedReader is) throws IOException {
+        	
+        	String str;
+        	StringBuilder sb = new StringBuilder();
+        	do {
+        	   if (mLastLineLog != null) {
+        		   str = mLastLineLog;
+        		   mLastLineLog = null;
+        	   } else {
+        		   str = is.readLine();
+        		   if (str == null) {
+         	    	  return sb.length() == 0 ? null:sb.toString();
+         	       }
+               	   str = str.trim();
+        	   }
+        	   if (!str.isEmpty()) {
+        		   if (taste(str) && sb.length() > 0) {
+        			   mLastLineLog = str;
+        			   return sb.toString();
+        		   }
+        		   if (sb.length() > 0) {
+        			   sb.append("\r\n");
+        		   }
+        		   sb.append(str);
+        	   }
+        	} while(true);
+        }
+        static final DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss.SSS");
+        @Override
+        public Date parseTime(final String log) {
+        	if (taste(log)) {
+        		try {
+					return dateFormat.parse(log.substring(IDX_TIME_START));
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        	}
+        	return null;
+        }
+        @Override
+        public int parsePriority(final String log) {
+            if (taste(log)) {
+                return AndroidBriefLogParser.mapLogPriority(log.charAt(IDX_PRIORITY));
+            }
+            return 7;
+        }
+ 
+        public static final int mWidth[] =   { 28,      50,      155,   50,   50,    25,        110, 1200 };
+        static final String[] mTableHeader = { "Flag", "Line", "Time", "PID", "TID", "Prority", "Tag", "Message" };
+        @Override
+        public int [] getHeaderWidth() {
+            return mWidth;
+        }
+       
+        @Override
+        public String[] getTableHeader() {
+            return mTableHeader;
+        }
+        @Override
+        public String parseTag(final String log) {
+            if (taste(log)) {
+                int idx = log.indexOf(']', IDX_TAG_START);
+                if (idx > IDX_TAG_START) {
+                    return log.substring(IDX_TAG_START, idx-1); 
+                } else {
+                	return log.substring(IDX_TAG_START);
+                }
+            }
+            return null;
+        }
+        public String parsePID(final String log) {
+           if (taste(log)) {
+        	   return  log.substring(IDX_PID_START, IDX_PID_END).trim();
+           }
+           return null;
+        }
+        @Override
+        public String parseTID(final String log) {
+            if (taste(log)) {
+         	   return  log.substring(IDX_TID_START, IDX_TID_END).trim();
+            }
+            return null;
+        }
+
+        @Override
+        public String parseMessage(final String log) {
+            if (taste(log)) {
+                int idx = log.indexOf(']', IDX_TAG_START);
+                if (idx > IDX_TAG_START  && idx + 1 < log.length()) {
+                    return log.substring(idx + 1);
+                }
+            }
+            return log;
+        }
+
+        @Override
+        public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
+            int pri = 7;
+            String msg = log;
+            SystemConfigs scfgs = SystemConfigs.instance();
+            if (taste(log)) {
+            	//time
+                item.setText(2, log.substring(this.IDX_TIME_START, IDX_TIME_END));
+                String pid = log.substring(IDX_PID_START, IDX_PID_END);
+                String tid = log.substring(IDX_TID_START, IDX_TID_END);
+                char alogpri = log.charAt(IDX_PRIORITY);
+                item.setText(3, pid.trim());
+                item.setText(4, tid.trim());
+                item.setText(5, String.valueOf(alogpri));
+                pri = AndroidBriefLogParser.mapLogPriority(alogpri);
+                int idx = log.indexOf(']', IDX_TAG_START);
+                if (idx > IDX_TAG_START) {
+                   if (idx + 1 < log.length())
+                    msg = log.substring(idx + 1);
+                   else 
+                     msg = "";
+                   item.setText(6, log.substring(IDX_TAG_START, idx-1));
+                }
+            }  
+            item.setText(7, msg);
+
+            Color bk = scfgs.getLogBackground(pri);
+            if (bk != null) {
+                item.setBackground(bk);
+            }
+            item.setForeground(scfgs.getLogForeground(pri));
+            if (searchPat != null && searchPat.isContainedBy(msg) >= 0) {
+                item.setImage(Resources.search_16);
+                if (pri >= 4) {
+                    item.setBackground(scfgs.getSearchMarkerBackground());
+                }
+            }
+        }
+    }
+    
+
     public static final class QnxLogParser extends LogParser {
         public static boolean taste(final String log) {
             // MMM dd HH:mm:ss.SSS 7 20 2 m

@@ -28,6 +28,7 @@ public class LogSource {
         public static final String FIELD_TIME = "time";
         public static final String FIELD_CONTENT = "message";
         public static final String FIELD_PID = "PID";
+        public static final String FIELD_TID = "TID";
         
         public static final String FILTER_OP_AND = "and";
         public static final String FILTER_OP_OR =  "or";
@@ -175,6 +176,15 @@ public class LogSource {
                            }
             		};
             	}
+            } else if (FIELD_TID.equals(field)) {
+            	if (OP_EQUALS.equals(op)) {
+            		return new LogFilter(field + " " + op + " " + dstObj) {
+            			   @Override
+                           public boolean filterLog(final LogParser parser, final String item) {
+                               return dstObj.equals(parser.parseTID(item));
+                           }
+            		};
+            	}
             }
             return null;
         }
@@ -238,6 +248,25 @@ public class LogSource {
  
             str = din.readLine();
          
+        }
+        return line;
+        //System.out.println(" log lines = " + line);
+    }
+    protected int fetchLogs(InputStream is, LogParser parser) throws IOException {
+        BufferedReader din = new BufferedReader(new InputStreamReader(is));
+        int line = 0;
+        String str = parser.readOneLog(din);
+        long start_time = System.currentTimeMillis();
+        while (str != null) {
+            line++;
+            long curtime = System.currentTimeMillis();
+            if (is.available() == 0 || curtime - start_time > mNotifyTimeSpan) {
+                addLogItem(str, true);
+                start_time = curtime;
+            } else {
+                addLogItem(str, false);
+            }
+            str =  parser.readOneLog(din);
         }
         return line;
         //System.out.println(" log lines = " + line);

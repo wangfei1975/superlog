@@ -11,7 +11,7 @@ public class FileTabFrame extends SlogTabFrame {
     public FileTabFrame(CTabFolder parent, String txt, int style, String fname) throws FileNotFoundException {
         super(parent, txt, style, new FileLogSource(fname), null, LogParser.newLogParser(new FileInputStream(fname)), null);
         setImage(Resources.openfile_32);
-        ((FileLogSource)mLogSrc).load();
+        ((FileLogSource)mLogSrc).load(mLogView.getLogParser());
 
     }
     
