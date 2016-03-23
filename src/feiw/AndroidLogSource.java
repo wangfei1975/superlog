@@ -21,11 +21,28 @@ public class AndroidLogSource extends LogSource {
         }
         return false;
     }
+    
+    static boolean checkDevices() {
+        try {
+            Process p = Runtime.getRuntime().exec(SystemConfigs.instance().getAdbPath() + "adb devices");
+            final BufferedReader rd = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String s = rd.readLine();
+            if (s.contains("List of devices attached")) {
+                s = rd.readLine();
+                return s.contains("device");
+            }
+            p.destroy();
+        } catch (IOException e) {
+        }
+        return false;
+    }
     public AndroidLogSource() throws DeviceNotConnected {
         super();
         mRollLines = SystemConfigs.instance().getLogRollingLines();
         setStatus(stConnecting);
-
+        if (!checkDevices()) {
+            throw new DeviceNotConnected("No Android Device connected");
+        }
             try {
                   List <String> adbcmd =   Arrays.asList(SystemConfigs.instance().getAdbPath() + "adb", "logcat", "-vthreadtime");
                    
