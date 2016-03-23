@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2009 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package feiw;
 
 import org.eclipse.swt.SWT;
@@ -7,10 +22,11 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import feiw.LogSource.StatusListener;
 
-public class AndroidTabFrame extends SlogTabFrame implements  StatusListener {
+public class AndroidTabFrame extends SlogTabFrame implements StatusListener {
 
     public AndroidTabFrame(CTabFolder parent, int style) throws DeviceNotConnected {
-        super(parent, "adb logcat", SWT.FLAT|SWT.CLOSE|SWT.ICON,  new AndroidLogSource(), null, new LogParser.AndroidThreadtimeLogParser(), null);
+        super(parent, "adb logcat", SWT.FLAT | SWT.CLOSE | SWT.ICON, new AndroidLogSource(), null,
+                new LogParser.AndroidThreadtimeLogParser(), null);
         setImage(Resources.android_32);
         mLogSrc.addStatusListener(this);
     }
@@ -19,12 +35,12 @@ public class AndroidTabFrame extends SlogTabFrame implements  StatusListener {
     void updateToolItem(ToolItem tit) {
         tit.setEnabled(true);
         if (tit.getData().equals(ToolBarDes.TN_PAUSE)) {
-           if (mLogSrc.getStatus() == LogSource.stConnected) {
-           tit.setToolTipText(mLogView.isPaused() ? "Resume" : "Pause");
-           tit.setImage(mLogView.isPaused() ?  Resources.go_32: Resources.pause_32);
-           } else {
-               tit.setEnabled(false);
-           }
+            if (mLogSrc.getStatus() == LogSource.stConnected) {
+                tit.setToolTipText(mLogView.isPaused() ? "Resume" : "Pause");
+                tit.setImage(mLogView.isPaused() ? Resources.go_32 : Resources.pause_32);
+            } else {
+                tit.setEnabled(false);
+            }
         } else if (tit.getData().equals(ToolBarDes.TN_DISCONNECT)) {
             tit.setEnabled(mLogSrc.getStatus() == LogSource.stConnected);
         } else {
@@ -37,8 +53,8 @@ public class AndroidTabFrame extends SlogTabFrame implements  StatusListener {
         if (getDisplay().isDisposed() || isDisposed()) {
             return;
         }
-        final Image img ;
-        switch(newStatus) {
+        final Image img;
+        switch (newStatus) {
         case LogSource.stIdle:
             img = Resources.disconnectedand_32;
             break;
@@ -48,29 +64,30 @@ public class AndroidTabFrame extends SlogTabFrame implements  StatusListener {
         case LogSource.stConnected:
             img = Resources.android_32;
             break;
-         default:
-             img = Resources.disconnectedand_32;
-                break;
+        default:
+            img = Resources.disconnectedand_32;
+            break;
         }
-       
+
         getDisplay().asyncExec(new Runnable() {
             @Override
             public void run() {
                 if (!isDisposed()) {
                     setImage(img);
                     Slogmain.getApp().getMainFrame().updateToolBars(AndroidTabFrame.this);
-               //     mStatusLabel.setImage(img);
-              //      mStatusLabel.update();
+                    // mStatusLabel.setImage(img);
+                    // mStatusLabel.update();
                 }
             }
-           }
-       );
+        });
     }
+
     @Override
     public void onClose() {
         mLogSrc.removeStatusListener(this);
         super.onClose();
     }
+
     @Override
     public void onDisconnect() {
         if (!isDisposed()) {
@@ -79,16 +96,17 @@ public class AndroidTabFrame extends SlogTabFrame implements  StatusListener {
             Slogmain.getApp().getMainFrame().updateToolBars(this);
         }
     }
+
     @Override
     public void onPause() {
         super.onPause();
         if (!isDisposed()) {
             if (mLogView.isPaused()) {
                 setImage(Resources.androidpause_32);
-           
+
             } else {
                 setImage(Resources.android_32);
-             
+
             }
         }
     }

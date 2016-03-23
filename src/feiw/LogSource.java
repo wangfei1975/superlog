@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2009 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package feiw;
 
 import java.io.BufferedReader;
@@ -22,43 +37,45 @@ public class LogSource {
         public static final String OP_CONTAINS = "contains";
         public static final String OP_GREATERTHAN = ">";
         public static final String OP_LESSTHEN = "<";
-        
+
         public static final String FIELD_PRIORITY = "priority";
         public static final String FIELD_TAG = "tag";
         public static final String FIELD_TIME = "time";
         public static final String FIELD_CONTENT = "message";
         public static final String FIELD_PID = "PID";
         public static final String FIELD_TID = "TID";
-        
+
         public static final String FILTER_OP_AND = "and";
-        public static final String FILTER_OP_OR =  "or";
-        
-        
+        public static final String FILTER_OP_OR = "or";
+
         public abstract boolean filterLog(final LogParser parser, final String item);
-        
+
         String mName;
+
         LogFilter(String n) {
             mName = n;
         }
-        
+
         void setName(String n) {
             mName = n;
         }
-        
+
         String getName() {
             return mName;
         }
+
         @Override
         public String toString() {
             return mName;
         }
-        
+
         @SuppressWarnings("serial")
         static class InvalidLogFilterStringException extends Exception {
-          public  InvalidLogFilterStringException(String s) {
+            public InvalidLogFilterStringException(String s) {
                 super(s);
             }
         }
+
         static LogFilter fromString(String s) throws InvalidLogFilterStringException {
             String fs[] = s.split(FILTER_OP_AND);
             if (fs != null && fs.length > 0) {
@@ -72,78 +89,80 @@ public class LogSource {
             if (idx > 0) {
                 return fromString(s.substring(0, idx)).or(fromString(s.substring(idx + FILTER_OP_OR.length())));
             }
-            
-            String [] txt = s.split(" ");
+
+            String[] txt = s.split(" ");
             if (txt == null || txt.length != 3 || txt[0] == null || txt[1] == null || txt[2] == null) {
                 throw new InvalidLogFilterStringException("invalid log filter string: " + s);
             }
-            
+
             Object o = txt[2];
             if (txt[0].equals(FIELD_PRIORITY)) {
                 o = Integer.parseInt(txt[2]);
             }
             return newLogFilter(txt[0], txt[1], o);
-            
+
         }
-        
+
         public LogFilter and(final LogFilter f) {
             return new LogFilter(getName() + FILTER_OP_AND + f.getName()) {
                 @Override
                 public boolean filterLog(final LogParser parser, final String item) {
-                   return LogFilter.this.filterLog(parser, item) && f.filterLog(parser, item);
+                    return LogFilter.this.filterLog(parser, item) && f.filterLog(parser, item);
                 }
             };
         }
-        
-        public  LogFilter or(final LogFilter f) {
+
+        public LogFilter or(final LogFilter f) {
             return new LogFilter(getName() + FILTER_OP_OR + f.getName()) {
                 @Override
                 public boolean filterLog(final LogParser parser, final String item) {
-                   return LogFilter.this.filterLog(parser, item) || f.filterLog(parser, item);
+                    return LogFilter.this.filterLog(parser, item) || f.filterLog(parser, item);
                 }
             };
         }
-            public static LogFilter newLogFilter(String field, String op, final Object dstObj) {
+
+        public static LogFilter newLogFilter(String field, String op, final Object dstObj) {
             if (FIELD_PRIORITY.equals(field)) {
                 if (OP_EQUALS.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
                         public boolean filterLog(final LogParser parser, final String item) {
-                            return parser.parsePriority(item) == ((Integer)dstObj).intValue();
+                            return parser.parsePriority(item) == ((Integer) dstObj).intValue();
                         }
                     };
                 } else if (OP_GREATERTHAN.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
                         public boolean filterLog(final LogParser parser, final String item) {
-                            return parser.parsePriority(item) > ((Integer)dstObj).intValue();
+                            return parser.parsePriority(item) > ((Integer) dstObj).intValue();
                         }
-                        
+
                     };
                 } else if (OP_LESSTHEN.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
                         public boolean filterLog(final LogParser parser, final String item) {
-                            return parser.parsePriority(item) < ((Integer)dstObj).intValue();
+                            return parser.parsePriority(item) < ((Integer) dstObj).intValue();
                         }
-                        
+
                     };
                 }
             } else if (FIELD_TIME.equals(field)) {
                 if (OP_EQUALS.equals(op)) {
-                    
+
                 } else if (OP_CONTAINS.equals(op)) {
-                    
+
                 } else if (OP_GREATERTHAN.equals(op)) {
-                    
+
                 } else if (OP_LESSTHEN.equals(op)) {
-                    
+
                 }
-                
+
             } else if (FIELD_CONTENT.equals(field)) {
                 if (OP_CONTAINS.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
-                        private final StringPattern mPat = new StringPattern((String)dstObj, false);
+                        private final StringPattern mPat = new StringPattern((String) dstObj, false);
+
                         @Override
                         public boolean filterLog(final LogParser parser, final String item) {
                             return mPat.isContainedBy(parser.parseMessage(item)) >= 0;
@@ -163,34 +182,34 @@ public class LogSource {
                         @Override
                         public boolean filterLog(final LogParser parser, final String item) {
                             String tag = parser.parseTag(item);
-                            return (tag != null) && tag.contains((String)dstObj);
+                            return (tag != null) && tag.contains((String) dstObj);
                         }
                     };
                 }
             } else if (FIELD_PID.equals(field)) {
-            	if (OP_EQUALS.equals(op)) {
-            		return new LogFilter(field + " " + op + " " + dstObj) {
-            			   @Override
-                           public boolean filterLog(final LogParser parser, final String item) {
-                               return dstObj.equals(parser.parsePID(item));
-                           }
-            		};
-            	}
+                if (OP_EQUALS.equals(op)) {
+                    return new LogFilter(field + " " + op + " " + dstObj) {
+                        @Override
+                        public boolean filterLog(final LogParser parser, final String item) {
+                            return dstObj.equals(parser.parsePID(item));
+                        }
+                    };
+                }
             } else if (FIELD_TID.equals(field)) {
-            	if (OP_EQUALS.equals(op)) {
-            		return new LogFilter(field + " " + op + " " + dstObj) {
-            			   @Override
-                           public boolean filterLog(final LogParser parser, final String item) {
-                               return dstObj.equals(parser.parseTID(item));
-                           }
-            		};
-            	}
+                if (OP_EQUALS.equals(op)) {
+                    return new LogFilter(field + " " + op + " " + dstObj) {
+                        @Override
+                        public boolean filterLog(final LogParser parser, final String item) {
+                            return dstObj.equals(parser.parseTID(item));
+                        }
+                    };
+                }
             }
             return null;
         }
-        
+
     }
- 
+
     public interface LogListener {
         public void onLogChanged();
 
@@ -218,16 +237,16 @@ public class LogSource {
     }
 
     protected synchronized void setStatus(int st) {
-       if (st != mStatus) {
+        if (st != mStatus) {
             for (StatusListener li : mStatusListeners) {
                 li.onStatusChanged(mStatus, st);
             }
             mStatus = st;
         }
     }
-    
 
     protected long mNotifyTimeSpan = SystemConfigs.instance().LIVE_LOG_NOTIFYTIME;
+
     protected int fetchLogs(InputStream is) throws IOException {
         BufferedReader din = new BufferedReader(new InputStreamReader(is));
         int line = 0;
@@ -236,7 +255,7 @@ public class LogSource {
         while (str != null) {
             str = str.trim();
             if (!str.isEmpty()) {
-              line++;
+                line++;
                 long curtime = System.currentTimeMillis();
                 if (is.available() == 0 || curtime - start_time > mNotifyTimeSpan) {
                     addLogItem(str, true);
@@ -245,13 +264,14 @@ public class LogSource {
                     addLogItem(str, false);
                 }
             }
- 
+
             str = din.readLine();
-         
+
         }
         return line;
-        //System.out.println(" log lines = " + line);
+        // System.out.println(" log lines = " + line);
     }
+
     protected int fetchLogs(InputStream is, LogParser parser) throws IOException {
         BufferedReader din = new BufferedReader(new InputStreamReader(is));
         int line = 0;
@@ -266,89 +286,45 @@ public class LogSource {
             } else {
                 addLogItem(str, false);
             }
-            str =  parser.readOneLog(din);
+            str = parser.readOneLog(din);
         }
         return line;
-        //System.out.println(" log lines = " + line);
+        // System.out.println(" log lines = " + line);
     }
- 
-/*
-    public static final class LogItem {
-        private final String[] texts;
-        private Date   mTime;
-        static final SimpleDateFormat mDfmt = new SimpleDateFormat("MMM dd HH:mm:ss.SSS");
-        static final SimpleDateFormat mDfmts = new SimpleDateFormat("MMM dd HH:mm:ss");
-        static private SimpleDateFormat mParser = mDfmt;
-        private int mLevel = 7;
 
-        Date getTime() {
-            return mTime;
-        }
-        
-        public String getText() {
-            return texts[4];
-        }
-        public String getText(int i) {
-            if (i >= 0 && i < texts.length) {
-                return texts[i];
-            }
-            return null;
-        }
-
-       static final String[] seperator = { "    ", " ", " ", " " };
-        public LogItem(final String str) {
-            final String [] ret = new String[5];
-            texts = ret;
-            int idx = 0, nextidx;
-            final int slen = str.length();
-            for (int i = 0; i < 4; i++) {
-                nextidx = str.indexOf(seperator[i], idx);
-                if (nextidx <= 0) {
-                    ret[0] = ret[1] = ret[2] = ret[3] = null;
-                    ret[4] = str;
-                    return;
-                }
-                ret[i] = str.substring(idx, nextidx);
-                idx = nextidx + seperator[i].length();
-                while (slen > idx && str.charAt(idx) == ' ')
-                    idx++;
-            }
-            ret[4] = str.substring(idx);
-            if (!ret[1].isEmpty()) {
-                mLevel = ret[1].charAt(0) - '0';
-                if (mLevel < 0 || mLevel > 7) {
-                    mLevel = 6;
-                }
-            }
-
-            try {
-                mTime = mParser.parse(ret[0]);
-            } catch (ParseException e) {
-                try {
-                    mParser = mDfmts;
-                    mTime = mParser.parse(ret[0]);
-                } catch (ParseException e1) {
-                    mTime = null;
-                }
-            }
-        }
-
-        public LogItem(String[] txt) {
-            texts = txt;
-        }
-
-        public int getTextCount() {
-            if (texts != null) {
-                return texts.length;
-            }
-            return 0;
-        }
-
-        public int getLevel() {
-            return mLevel;
-        }
-    }
- */
+    /*
+     * public static final class LogItem { private final String[] texts; private
+     * Date mTime; static final SimpleDateFormat mDfmt = new SimpleDateFormat(
+     * "MMM dd HH:mm:ss.SSS"); static final SimpleDateFormat mDfmts = new
+     * SimpleDateFormat("MMM dd HH:mm:ss"); static private SimpleDateFormat
+     * mParser = mDfmt; private int mLevel = 7;
+     * 
+     * Date getTime() { return mTime; }
+     * 
+     * public String getText() { return texts[4]; } public String getText(int i)
+     * { if (i >= 0 && i < texts.length) { return texts[i]; } return null; }
+     * 
+     * static final String[] seperator = { "    ", " ", " ", " " }; public
+     * LogItem(final String str) { final String [] ret = new String[5]; texts =
+     * ret; int idx = 0, nextidx; final int slen = str.length(); for (int i = 0;
+     * i < 4; i++) { nextidx = str.indexOf(seperator[i], idx); if (nextidx <= 0)
+     * { ret[0] = ret[1] = ret[2] = ret[3] = null; ret[4] = str; return; }
+     * ret[i] = str.substring(idx, nextidx); idx = nextidx +
+     * seperator[i].length(); while (slen > idx && str.charAt(idx) == ' ')
+     * idx++; } ret[4] = str.substring(idx); if (!ret[1].isEmpty()) { mLevel =
+     * ret[1].charAt(0) - '0'; if (mLevel < 0 || mLevel > 7) { mLevel = 6; } }
+     * 
+     * try { mTime = mParser.parse(ret[0]); } catch (ParseException e) { try {
+     * mParser = mDfmts; mTime = mParser.parse(ret[0]); } catch (ParseException
+     * e1) { mTime = null; } } }
+     * 
+     * public LogItem(String[] txt) { texts = txt; }
+     * 
+     * public int getTextCount() { if (texts != null) { return texts.length; }
+     * return 0; }
+     * 
+     * public int getLevel() { return mLevel; } }
+     */
     public static class LogView {
         private List<String> mFilteredItems;
         private LogListener mListener = null;
@@ -356,19 +332,22 @@ public class LogSource {
         private StringPattern mSearchPattern = null;
         private LogParser mParser;
 
-        private int       mRollLines;
+        private int mRollLines;
         private AtomicBoolean mLogChanged = new AtomicBoolean(false);
         private AtomicBoolean mPaused = new AtomicBoolean(false);
 
         public LogParser getLogParser() {
             return mParser;
         }
-        public int  getRollLines() {
+
+        public int getRollLines() {
             return mRollLines;
         }
+
         public final StringPattern getSearchPattern() {
-           return mSearchPattern;
+            return mSearchPattern;
         }
+
         public boolean isPaused() {
             return mPaused.get();
         }
@@ -387,13 +366,13 @@ public class LogSource {
                 mLogChanged.set(false);
             }
         }
- 
-        public void writeLogs(OutputStream os) throws IOException  {
+
+        public void writeLogs(OutputStream os) throws IOException {
             BufferedWriter dw = new BufferedWriter(new OutputStreamWriter(os));
             synchronized (mFilteredItems) {
                 final int s = mFilteredItems.size();
-                int i = 0; 
-                for (i = 0; i < s-1; i++ ) {
+                int i = 0;
+                for (i = 0; i < s - 1; i++) {
                     dw.write(mFilteredItems.get(i));
                     dw.write('\n');
                 }
@@ -408,8 +387,7 @@ public class LogSource {
             mParser = parser;
             mRollLines = rolllines;
             mFilteredItems = Collections.synchronizedList(new ArrayList<String>());
-            
- 
+
             if (source != null) {
                 synchronized (source) {
                     for (String it : source) {
@@ -425,13 +403,14 @@ public class LogSource {
                 notifyListener();
             }
         }
-        
+
         public boolean isSearchResults(final String logmsg) {
             if (mSearchPattern != null) {
                 return mSearchPattern.isContainedBy(logmsg) >= 0;
             }
             return false;
         }
+
         public void add(final String item, boolean notifylistner) {
 
             if (item.contains("fei:clearlogs")) {
@@ -443,13 +422,13 @@ public class LogSource {
             }
             if (mFilter == null || mFilter.filterLog(mParser, item)) {
                 synchronized (mFilteredItems) {
-                        if (isSearchResults(item)) {
-                            mSearchResults++;
-                        }
-                        if (mRollLines > 0 && mFilteredItems.size() >= mRollLines) {
-                            mFilteredItems.remove(0);
-                        }
-                        mFilteredItems.add(item);
+                    if (isSearchResults(item)) {
+                        mSearchResults++;
+                    }
+                    if (mRollLines > 0 && mFilteredItems.size() >= mRollLines) {
+                        mFilteredItems.remove(0);
+                    }
+                    mFilteredItems.add(item);
                 }
                 mLogChanged.set(true);
                 if (notifylistner) {
@@ -469,7 +448,7 @@ public class LogSource {
         }
 
         public int size() {
-                return mFilteredItems.size();
+            return mFilteredItems.size();
         }
 
         public final String getLog(int index) {
@@ -537,9 +516,9 @@ public class LogSource {
             int results = 0;
             synchronized (mFilteredItems) {
                 for (String it : mFilteredItems) {
-                    if(isSearchResults(it)) {
-                            results++;
-                     }
+                    if (isSearchResults(it)) {
+                        results++;
+                    }
                 }
             }
             mSearchResults = results;
@@ -553,19 +532,22 @@ public class LogSource {
         if (mViews.size() == 0) {
             disconnect();
         }
-    }       
-    
+    }
+
     int mRollLines = -1;
-    public synchronized LogView newLogView(LogListener listener, LogFilter filter, LogParser parser, LogView parentView) {
-        LogView v = new LogView(listener, filter, parser, parentView == null ? null:parentView.mFilteredItems, mRollLines);
+
+    public synchronized LogView newLogView(LogListener listener, LogFilter filter, LogParser parser,
+            LogView parentView) {
+        LogView v = new LogView(listener, filter, parser, parentView == null ? null : parentView.mFilteredItems,
+                mRollLines);
         mViews.add(v);
         return v;
     }
 
-    public synchronized void  addLogItem(final String item, boolean notifylistener) {
-            for (LogView v : mViews) {
-                v.add(item, notifylistener);
-            }
+    public synchronized void addLogItem(final String item, boolean notifylistener) {
+        for (LogView v : mViews) {
+            v.add(item, notifylistener);
+        }
     }
 
     public synchronized void notifyViews() {
@@ -573,12 +555,14 @@ public class LogSource {
             v.notifyListener();
         }
     }
+
     public void disconnect() {
 
     }
 
-   // List<LogItem> mItems = (List<LogItem>) Collections.synchronizedList(new ArrayList<LogItem>(
-     //       10000));
+    // List<LogItem> mItems = (List<LogItem>) Collections.synchronizedList(new
+    // ArrayList<LogItem>(
+    // 10000));
     List<LogView> mViews = new ArrayList<LogView>(5);
 
     List<StatusListener> mStatusListeners = (List<StatusListener>) Collections

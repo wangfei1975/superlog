@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2009 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package feiw;
 
 import java.io.File;
@@ -36,6 +51,7 @@ public final class SystemConfigs {
     private static String CFG_FNAME = null;
     private static SystemConfigs mCfgs = null;
     public static boolean mIsWindows = false;
+
     static {
         if (SWT.getPlatform().contains("win")) {
             String path = System.getenv("APPDATA");
@@ -102,16 +118,14 @@ public final class SystemConfigs {
 
         public Colors() {
             Display disp = Display.getCurrent();
-            mForeColors = new Color[] { disp.getSystemColor(SWT.COLOR_BLACK),
-                    disp.getSystemColor(SWT.COLOR_DARK_RED), disp.getSystemColor(SWT.COLOR_WHITE),
-                    disp.getSystemColor(SWT.COLOR_BLUE), disp.getSystemColor(SWT.COLOR_DARK_BLUE),
-                    disp.getSystemColor(SWT.COLOR_DARK_GREEN),
+            mForeColors = new Color[] { disp.getSystemColor(SWT.COLOR_BLACK), disp.getSystemColor(SWT.COLOR_DARK_RED),
+                    disp.getSystemColor(SWT.COLOR_WHITE), disp.getSystemColor(SWT.COLOR_BLUE),
+                    disp.getSystemColor(SWT.COLOR_DARK_BLUE), disp.getSystemColor(SWT.COLOR_DARK_GREEN),
                     disp.getSystemColor(SWT.COLOR_BLACK), disp.getSystemColor(SWT.COLOR_DARK_GRAY) };
-            mBackColors = new Color[] { disp.getSystemColor(SWT.COLOR_WHITE),
-                    disp.getSystemColor(SWT.COLOR_WHITE), disp.getSystemColor(SWT.COLOR_RED),
-                    disp.getSystemColor(SWT.COLOR_YELLOW), disp.getSystemColor(SWT.COLOR_WHITE),
+            mBackColors = new Color[] { disp.getSystemColor(SWT.COLOR_WHITE), disp.getSystemColor(SWT.COLOR_WHITE),
+                    disp.getSystemColor(SWT.COLOR_RED), disp.getSystemColor(SWT.COLOR_YELLOW),
                     disp.getSystemColor(SWT.COLOR_WHITE), disp.getSystemColor(SWT.COLOR_WHITE),
-                    disp.getSystemColor(SWT.COLOR_WHITE) };
+                    disp.getSystemColor(SWT.COLOR_WHITE), disp.getSystemColor(SWT.COLOR_WHITE) };
             mSearchBackColor = disp.getSystemColor(SWT.COLOR_INFO_BACKGROUND);
         }
     }
@@ -139,12 +153,9 @@ public final class SystemConfigs {
 
         // mRecentUrls.add(new LogUrl("qconn", "10.222.98.205", 8000));
         // mRecentUrls.add(new LogUrl("qconn", "10.222.109.58", 8000));
-        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN,
-                Integer.valueOf(7)));
-        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN,
-                Integer.valueOf(6)));
-        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN,
-                Integer.valueOf(5)));
+        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, Integer.valueOf(7)));
+        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, Integer.valueOf(6)));
+        addRecentFilter(LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, Integer.valueOf(5)));
     }
 
     private SystemConfigs() {
@@ -179,11 +190,12 @@ public final class SystemConfigs {
             return null;
     }
 
-    int                            mLogRollingLines = 200000;
-    
+    int mLogRollingLines = 200000;
+
     public int getLogRollingLines() {
         return mLogRollingLines;
     }
+
     transient ArrayList<LogFilter> mRecentFilters = new ArrayList<LogFilter>(10);
 
     public void addRecentFilter(LogFilter f) {
@@ -237,9 +249,9 @@ public final class SystemConfigs {
     String mAdbPath = "/Developer/SDKs/android-sdk/platform-tools";
 
     public String getAdbPath() {
-    	if (!mAdbPath.endsWith("/")) {
-    		return mAdbPath + "/";
-    	}
+        if (!mAdbPath.endsWith("/")) {
+            return mAdbPath + "/";
+        }
         return mAdbPath; // /Developer/SDKs/android-sdk/platform-tools/adb";
     }
 
@@ -248,20 +260,24 @@ public final class SystemConfigs {
     }
 
     String mLogFontName;
-    int    mLogFontSize;
-    public  String getLogFontName() {
+    int mLogFontSize;
+
+    public String getLogFontName() {
         return mLogFontName;
     }
+
     public int getLogFontSize() {
         return mLogFontSize;
     }
+
     public void setLogFontName(final String fn) {
-    	mLogFontName = fn;
+        mLogFontName = fn;
     }
+
     public void setLogFontSize(int size) {
-    	mLogFontSize = size;
+        mLogFontSize = size;
     }
-    
+
     public String toJson() {
         return new GsonBuilder().setPrettyPrinting().serializeNulls()
                 .registerTypeAdapter(Color.class, new ColorSerializer()).create().toJson(this);
@@ -271,13 +287,9 @@ public final class SystemConfigs {
         File cfgfile = new File(CFG_FNAME);
         if (cfgfile.exists()) {
             try {
-                return new GsonBuilder()
-                        .setPrettyPrinting()
-                        .serializeNulls()
-                        .registerTypeAdapter(Color.class, new ColorDeserializer())
-                        .create()
-                        .fromJson(new InputStreamReader(new FileInputStream(cfgfile), "UTF-8"),
-                                SystemConfigs.class);
+                return new GsonBuilder().setPrettyPrinting().serializeNulls()
+                        .registerTypeAdapter(Color.class, new ColorDeserializer()).create()
+                        .fromJson(new InputStreamReader(new FileInputStream(cfgfile), "UTF-8"), SystemConfigs.class);
 
             } catch (FileNotFoundException e) {
                 // e.printStackTrace();
