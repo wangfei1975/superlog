@@ -24,8 +24,8 @@ import feiw.LogSource.StatusListener;
 
 public class AndroidTabFrame extends SlogTabFrame implements StatusListener {
 
-    public AndroidTabFrame(CTabFolder parent, int style) throws DeviceNotConnected {
-        super(parent, "adb logcat", SWT.FLAT | SWT.CLOSE | SWT.ICON, new AndroidLogSource(), null,
+    public AndroidTabFrame(CTabFolder parent, int style, String device) throws DeviceNotConnected {
+        super(parent, "adb logcat " + device, SWT.FLAT | SWT.CLOSE | SWT.ICON, new AndroidLogSource(device), null,
                 new LogParser.AndroidThreadtimeLogParser(), null);
         setImage(Resources.android_32);
         mLogSrc.addStatusListener(this);

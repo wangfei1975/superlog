@@ -19,49 +19,61 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AndroidLogSource extends LogSource {
 
     Process mAdbProcess;
 
-    static boolean checkAdb(String adbpath) {
+    public static boolean checkAdb(String adbpath) {
         try {
             Process p = Runtime.getRuntime().exec(adbpath + " version");
             final BufferedReader rd = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String s = rd.readLine();
-            return (s.contains("Android Debug Bridge version"));
+            return (s!= null && s.contains("Android Debug Bridge version"));
         } catch (IOException e) {
         }
         return false;
     }
 
-    static boolean checkDevices() {
+    public static String [] enumDevices() {
         try {
             Process p = Runtime.getRuntime().exec(SystemConfigs.instance().getAdbPath() + "adb devices");
             final BufferedReader rd = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String s = rd.readLine();
-            if (s.contains("List of devices attached")) {
+            ArrayList<String> devs = new ArrayList<String>();
+            if (s != null && s.contains("List of devices attached")) {
                 s = rd.readLine();
-                return s.contains("device");
+                while(s != null) {
+                    int idx = s.indexOf("device");
+                    if (idx > 0) {
+                       devs.add(s.substring(0, idx -1).trim());
+                    }
+                    s = rd.readLine();
+                }
+                return devs.size() > 0 ? devs.toArray(new String[devs.size()]) : null;
             }
             p.destroy();
         } catch (IOException e) {
         }
-        return false;
+        return null;
     }
 
-    public AndroidLogSource() throws DeviceNotConnected {
+    public AndroidLogSource(String device) throws DeviceNotConnected {
         super();
         mRollLines = SystemConfigs.instance().getLogRollingLines();
         setStatus(stConnecting);
-        if (!checkDevices()) {
-            throw new DeviceNotConnected("No Android Device connected");
-        }
         try {
-            List<String> adbcmd = Arrays.asList(SystemConfigs.instance().getAdbPath() + "adb", "logcat",
-                    "-vthreadtime");
+            List<String> adbcmd = new ArrayList<String>();
+            adbcmd.add(SystemConfigs.instance().getAdbPath() + "adb");
+            
+            if (device != null && !device.isEmpty()) {
+                adbcmd.add("-s");
+                adbcmd.add(device);
+            }
+            adbcmd.add("logcat");
+            adbcmd.add("-vthreadtime");
 
             ProcessBuilder pb = new ProcessBuilder();
             pb.redirectErrorStream(true);

@@ -510,7 +510,6 @@ public final class SlogMainFrame {
             public void widgetSelected(SelectionEvent e) {
 
                 if (!AndroidLogSource.checkAdb(SystemConfigs.instance().getAdbPath() + "/adb")) {
-
                     String adbPath = null;
                     do {
 
@@ -523,16 +522,29 @@ public final class SlogMainFrame {
                     }
                     SystemConfigs.instance().setAdbPath(adbPath);
                 }
+                
+                final String [] devs = AndroidLogSource.enumDevices();
+                if (devs == null) {
+                    MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
+                    m.setText("Error");
+                    m.setMessage("No Android device connected");
+                    m.open();
+                    return;
+                }
+                int selectedDevice = 0;
+                if (devs.length > 1) {
+                    //multiple device, choice
+                    AndroidDeviceChoiceDlg d = new AndroidDeviceChoiceDlg(getShell(), devs, 0);
+                    if (d.open() != SWT.OK) {
+                        return;
+                    }
+                    selectedDevice = d.getSelection();
+                }
                 try {
-
-                    SlogTabFrame ltab = new AndroidTabFrame(mTabFolder, SWT.FLAT | SWT.CLOSE | SWT.ICON);
+                    SlogTabFrame ltab = new AndroidTabFrame(mTabFolder, SWT.FLAT | SWT.CLOSE | SWT.ICON, devs[selectedDevice]);
                     mTabFolder.setSelection(ltab);
                     updateToolBars(ltab);
                 } catch (DeviceNotConnected e1) {
-                    MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
-                    m.setText("Error");
-                    m.setMessage(e1.getMessage());
-                    m.open();
                 }
             }
         });
