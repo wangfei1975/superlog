@@ -9,4 +9,5 @@ A log view tool that works for Android and BB10 logs
  * Fast. Works on huge logs files without UI latency.
  * Powerful filters. Create filter on top of other filters.
  * Mutli-tab view for one log source.
+ * Save, restory and short-cuts customized filters.
 
