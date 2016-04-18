@@ -1,12 +1,11 @@
-# superlog
+## Superlog
 A log view tool that works for Android and BB10 logs
+[![solarized dualmode](https://github.com/wangfei1975/superlog/raw/master/screenshots/superlog.png)](#features)
 
-Connect devices and show live logs
-
-Open and view log files. Auto detect and parses following Android log format
-  brief, tag, raw, time, threadtime, long
-
-Fast. Works on huge log files no UI latency.
-
-Powerful filters, mutli-tab view for one log source.
+## Highted features
+ * Connect to devices and view live logs
+ * Open view log files. Auto detect and parse all android log formats (brief, tag, raw, time, threadtime, long).
+ * Fast. Works on huge logs files without UI latency.(Open 500 Mbytes log file and filter it fluent) 
+ * Powerful filters. Create filter on top of other filters.
+ * Mutli-tab view for one log source.
 
