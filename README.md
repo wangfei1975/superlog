@@ -13,3 +13,8 @@ A log view tool that works for Android and BB10. My work used to read and analyz
  * Save, restory and short-cuts for customized filters.
  * Other useful tools(show time difference between logs)
 
+# How to use it
+Run class feiw.Slogmain
+
+## MacOS
+Run with JVM option -XstartOnFirstThread (useful to run it from IntelliJ)
