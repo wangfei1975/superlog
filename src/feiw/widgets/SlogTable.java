@@ -1,19 +1,9 @@
-package org.eclipse.swt.widgets;
+package feiw.widgets;
 
-
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
 
 import feiw.LogSource.LogView;
-import feiw.SystemConfigs;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.*;
 
 public final class SlogTable extends Table {
 
@@ -70,4 +60,11 @@ public final class SlogTable extends Table {
         });
 
     }
+
+	@Override
+	protected void checkSubclass() {
+        // do nothing, this is to avoid a SWT exception when overriding classes
+	}
+    
+    
 }
