@@ -16,5 +16,10 @@ A log view tool that works for Android and BB10. My work used to read and analyz
 # How to use it
 Run class feiw.Slogmain
 
+Alternatively, using Gradle:
+Build the project by either executing (1) gradlew (eg if you don't have Gradle installed)
+									  (2) or the Gradle build file
+Execute the resulting Jar: java -jar superlog-1.0.jar
+
 ## MacOS
 Run with JVM option -XstartOnFirstThread (useful to run it from IntelliJ)
