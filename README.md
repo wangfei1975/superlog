@@ -16,8 +16,8 @@ A log view tool that works for Android and BB10. My work used to read and analyz
 # How to use it
 Run class feiw.Slogmain
 
-
-Alternatively, using Gradle:
+# Build instructions using Gradle
+If you have problems running the class mentioned above, you can use Gradle to build the project:
 
 Build the project by either executing
   * gradlew (eg if you don't have Gradle installed)
