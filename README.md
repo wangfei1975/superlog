@@ -20,8 +20,8 @@ Run class feiw.Slogmain
 Alternatively, using Gradle:
 
 Build the project by either executing
-(1) gradlew (eg if you don't have Gradle installed)
-(2) or the Gradle build file build.gradle
+  * gradlew (eg if you don't have Gradle installed)
+  * or the Gradle build file (build.gradle)
 
 Execute the resulting Jar: java -jar superlog-1.0.jar
 
