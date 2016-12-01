@@ -1,9 +1,9 @@
-## Superlog
+# Superlog
 A log view tool that works for Android and BB10. My work used to read and analyze a huge amount of logs for bug fixing and issue locating. However, I could not find a handy log tool for this, so I created my own one:
 
 [![solarized dualmode](https://github.com/wangfei1975/superlog/raw/master/screenshots/superlog.png)](#features)
 
-## Main features
+# Main features
  * Fast. Works on huge logs files without UI latency. 
  * Connect to devices and view live logs
  * Open and view log files. 
@@ -16,7 +16,7 @@ A log view tool that works for Android and BB10. My work used to read and analyz
 # How to use it
 Run class feiw.Slogmain
 
-# Build instructions using Gradle
+## Build instructions using Gradle
 If you have problems running the class mentioned above, you can use Gradle to build the project:
 
 Build the project by either executing
