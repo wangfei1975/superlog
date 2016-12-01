@@ -4,8 +4,21 @@
  * 
  * TODO allow the project to be built for mac64.
  */
+import org.apache.tools.ant.taskdefs.condition.Os
 apply plugin: "java"
+apply plugin: 'gradle-one-jar'
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.rholder:gradle-one-jar:1.0.4'
+    }
+}
+repositories {
+	mavenCentral()
+}
 defaultTasks = ["clean", "deploy", "docs"]
 version = "1.0"
 
@@ -16,30 +29,39 @@ def DEPLOY_DIR = "./"
 sourceSets.main.java.srcDirs = ["./src"]
 sourceSets.main.resources.includes = ["./main/resources", "./main/screenshots"] // latter location probably not important
 dependencies {
-	compile fileTree(dir: "./lib", include: "*.jar")
-	compile fileTree(dir: "./lib/win64", include: "*.jar")
+	compile 'com.google.code.gson:gson:2.2.+'
+	def dirName
+	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+		dirName = 'win64'
+	} else if (Os.isFamily(Os.FAMILY_MAC)) {
+		dirName = 'mac64'
+	} else if (Os.isFamily(Os.FAMILY_UNIX)) {
+		dirName = 'linux64'
+	}
+	compile fileTree(dir: "./lib/"+dirName, include: "*.jar")
 }
-
+task myjar(type: OneJar) {
+   mainClass = "$MAIN_CLASS_NAME"
+   mergeManifestFromJar = true
+   additionalDir = file('resources')
+//   archiveName = "superlog-" + "$version" + ".jar"
+}
 // http://stackoverflow.com/questions/21721119/creating-runnable-jar-with-gradle
 jar {
 	manifest {
-		attributes "Implementation-Title": "github.com/wangfei1975/superlog",
-				   "Implementation-Version": version,
-				   "Main-Class": "${MAIN_CLASS_NAME}",
-				   // TODO hardcoded for now, maybe one can get it from the defined dependencies going forward
-				   "Class-Path": "lib/gson-2.2.4.jar lib/win64/swt-win64.jar"
+		attributes 'Timestamp': String.valueOf(System.currentTimeMillis())
+		attributes 'Implementation-Title': 'github.com/wangfei1975/superlog',
+			   'Implementation-Version': version
 	}
-	
 	doFirst {
-		println("Creating JAR file: " + jar.archivePath);
+		println("Creating JAR file: " + myjar.archivePath);
 	}
 }
-
-task deploy(dependsOn: jar) << {
-	println("Deploying Jar to location: " + removeLastChar(new File(DEPLOY_DIR).getAbsolutePath()) + jar.archiveName);
+task deploy(dependsOn: myjar) << {
+	println("Deploying Jar to location: " + removeLastChar(new File(DEPLOY_DIR).getAbsolutePath()) + myjar.archiveName);
 	
 	copy {
-		from jar.archivePath
+		from myjar.archivePath
 		into DEPLOY_DIR
 	}
 }
@@ -49,7 +71,7 @@ task docs() << {
 	println("==================================================================")
 	println("To execute: ")
 	println("cd " + removeLastChar(new File(DEPLOY_DIR).getAbsolutePath()))
-	println("java -jar " + jar.archiveName);
+	println("java -jar " + myjar.archiveName);
 	println("==================================================================")
 }
 
