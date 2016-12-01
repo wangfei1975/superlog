@@ -1,0 +1,59 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  
+    <modelVersion>4.0.0</modelVersion>
+ 
+    <groupId>com.github.wangfei1975</groupId>
+    <artifactId>superlog</artifactId>
+    <version>1.0</version>
+    <packaging>jar</packaging>
+  
+    <name>Superlog</name>
+    <url>https://github.com/wangfei1975/superlog</url>
+ 
+   <build>
+   
+   	  <!-- Custom source directory -->
+      <sourceDirectory>src</sourceDirectory>
+      
+      <!-- Custom resource directories -->
+      <resources>
+          <resource><directory>main/resources</directory></resource>
+     	  <resource><directory>main/screenshots</directory></resource> // later location probably not important
+       </resources>
+      
+       <!-- Some configuration details needed for creating a Jar file -->
+       <!-- https://maven.apache.org/shared/maven-archiver/examples/classpath.html -->
+       <plugins>
+           <plugin>
+        	   <groupId>org.apache.maven.plugins</groupId>
+        	   <artifactId>maven-jar-plugin</artifactId>
+        	   <configuration>
+          		   <archive>
+            		   <manifest>
+              			   <addClasspath>true</addClasspath>
+              			   <mainClass>feiw.Slogmain</mainClass>
+            		   </manifest>
+          			</archive>
+        		</configuration>
+      	   </plugin>
+       </plugins>
+   
+   </build>
+   
+   <!-- https://maven.apache.org/shared/maven-archiver/examples/classpath.html -->
+   <dependencies>
+       <dependency>
+           <groupId>commons-lang</groupId>
+           <artifactId>commons-lang</artifactId>
+           <version>2.1</version>
+       </dependency>
+       <dependency>
+           <groupId>org.codehaus.plexus</groupId>
+           <artifactId>plexus-utils</artifactId>
+           <version>1.1</version>
+       </dependency>
+   </dependencies>
+   
+</project>
+
