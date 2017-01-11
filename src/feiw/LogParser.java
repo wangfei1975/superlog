@@ -404,6 +404,8 @@ public class LogParser {
             updateTableItemColors(item, pri, (searchPat != null && searchPat.isContainedBy(msg) >= 0));
         }
     }
+    
+    static final DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss.SSS");
 
     // adb logcat -v time
     public static final class AndroidTimeLogParser extends LogParser {
@@ -475,6 +477,32 @@ public class LogParser {
             }
             return 7;
         }
+        @Override
+        public String parsePID(final String log) {
+            if (taste(log)) {
+                int idx1 = log.indexOf('(', 21);
+                if (idx1 >= 0) {
+                    int idx2 = log.indexOf(')', idx1 + 1);
+                    if (idx2 > idx1) {
+                        return log.substring(idx1 + 1, idx2).trim();
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public Date parseTime(final String log) {
+            if (taste(log)) {
+                try {
+                    return dateFormat.parse(log);
+                } catch (ParseException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
 
         @Override
         public void updateTableItem(final String log, final TableItem item, StringPattern searchPat) {
@@ -533,7 +561,7 @@ public class LogParser {
             return false;
         }
 
-        static final DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss.SSS");
+        
 
         @Override
         public Date parseTime(final String log) {
