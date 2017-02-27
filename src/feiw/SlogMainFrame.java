@@ -522,7 +522,7 @@ public final class SlogMainFrame {
                     }
                     SystemConfigs.instance().setAdbPath(adbPath);
                 }
-                
+
                 final String [] devs = AndroidLogSource.enumDevices();
                 if (devs == null) {
                     MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
@@ -601,15 +601,15 @@ public final class SlogMainFrame {
         mTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
         /*
          * mTabFolder.addSelectionListener(new SelectionListener() {
-         * 
+         *
          * @Override public void widgetSelected(SelectionEvent e) { if (e.item
          * instanceof SlogTabFrame) { SlogTabFrame it = (SlogTabFrame)e.item; //
          * updateToolBars(it); } }
-         * 
+         *
          * @Override public void widgetDefaultSelected(SelectionEvent e) { if
          * (e.item instanceof SlogTabFrame) { SlogTabFrame it =
          * (SlogTabFrame)e.item; // updateToolBars(it); } }
-         * 
+         *
          * });
          */
         mTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
@@ -640,6 +640,19 @@ public final class SlogMainFrame {
 
                     }
                 }
+
+                if (e.keyCode == SWT.F3) {
+                    SlogTabFrame tbf = (SlogTabFrame) mTabFolder.getSelection();
+                    if (tbf != null) {
+                        tbf.onNext();
+                    }
+                } else if (e.keyCode == SWT.F4){
+                    SlogTabFrame tbf = (SlogTabFrame) mTabFolder.getSelection();
+                    if (tbf != null) {
+                        tbf.onPrev();
+                    }
+                }
+
                 /*
                  * if(((e.stateMask & SWT.COMMAND) == SWT.COMMAND) && (e.keyCode
                  * == SWT.ARROW_RIGHT)) { System.out.print(" mask = " +
