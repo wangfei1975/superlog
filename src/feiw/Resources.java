@@ -46,6 +46,7 @@ public final class Resources {
     public static Image android_32 = null;
     public static Image androidpause_32 = null;
     public static Image disconnectedand_32 = null;
+    public static Image android_log_32 = null;
 
     public static Image fifo_32 = null;
     public static Image fifo_16 = null;
@@ -80,6 +81,7 @@ public final class Resources {
         connected_32 = loadIcon(ctx, "connected_32");
         connected_16 = loadIcon(ctx, "connected_16");
         disconnected_32 = loadIcon(ctx, "disconnected_32");
+        android_log_32 = loadIcon(ctx, "android_log_32");
 
         trash_32 = loadIcon(ctx, "trash_32");
         copy_32 = loadIcon(ctx, "copy_32");
