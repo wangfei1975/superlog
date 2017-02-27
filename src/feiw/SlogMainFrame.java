@@ -81,6 +81,7 @@ public final class SlogMainFrame {
         mDisplay = disp;
         mShell = new Shell(disp);
         mShell.setText(caption);
+        mShell.setImage(Resources.android_log_32);
         createContents();
         mShell.addListener(SWT.Close, new Listener() {
             @Override
