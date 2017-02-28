@@ -654,6 +654,17 @@ public final class SlogMainFrame {
                     }
                 }
 
+                if(((e.stateMask & SWT.CTRL) == SWT.CTRL) && (e.keyCode == 'f'))
+                {
+                    SearchDlg d = new SearchDlg(Slogmain.getApp().getMainFrame().getShell());
+                    String txt = d.open();
+                    if (txt != null && !(txt.trim().isEmpty())) {
+                        SlogTabFrame tbf = (SlogTabFrame) mTabFolder.getSelection();
+                        if (tbf != null) {
+                            tbf.onSearch(txt.trim(), d.isCaseSenstive());
+                        }
+                    }
+                }
                 /*
                  * if(((e.stateMask & SWT.COMMAND) == SWT.COMMAND) && (e.keyCode
                  * == SWT.ARROW_RIGHT)) { System.out.print(" mask = " +
