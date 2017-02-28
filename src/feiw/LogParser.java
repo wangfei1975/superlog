@@ -88,7 +88,7 @@ public class LogParser {
         }
     }
 
-    public static final int width[] = { 28, 50, 155, 30, 1000 };
+    public static final int width[] = { 40, 100, 200, 50, 1000 };
 
     public int[] getHeaderWidth() {
         return width;
@@ -337,7 +337,7 @@ public class LogParser {
             return -1;
         }
 
-        public static final int mWidth[] = { 28, 50, 20, 190, 1000 };
+        public static final int mWidth[] = { 40, 100, 50, 300, 1000 };
         static final String[] mTableHeader = { "Flag", "Line", "Prority", "Tag", "Message" };
 
         @Override
@@ -434,7 +434,7 @@ public class LogParser {
             return false;
         }
 
-        public static final int mWidth[] = { 28, 50, 150, 20, 190, 50, 1000 };
+        public static final int mWidth[] = { 40, 100, 200, 40, 300, 100, 1000 };
         static final String[] mTableHeader = { "Flag", "Line", "Time", "Prority", "Tag", "PID", "Message" };
 
         @Override
@@ -584,7 +584,7 @@ public class LogParser {
             return 7;
         }
 
-        static final int mWidth[] = { 28, 50, 155, 50, 50, 25, 110, 1200 };
+        static final int mWidth[] = { 40, 100, 200, 100, 100, 50, 300, 1200 };
         static final String[] mTableHeader = { "Flag", "Line", "Time", "PID", "TID", "Prority", "Tag", "Message" };
 
         @Override
@@ -759,7 +759,7 @@ public class LogParser {
             return 7;
         }
 
-        public static final int mWidth[] = { 28, 50, 155, 50, 50, 25, 110, 1200 };
+        public static final int mWidth[] = { 40, 100, 200, 100, 100, 50, 300, 1200 };
         static final String[] mTableHeader = { "Flag", "Line", "Time", "PID", "TID", "Prority", "Tag", "Message" };
 
         @Override
