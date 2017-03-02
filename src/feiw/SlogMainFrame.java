@@ -633,7 +633,21 @@ public final class SlogMainFrame {
                 if (cTabItem != null) {
                     System.out.println("MenuDetect on tab: " + cTabItem.getText());
                     Menu menu = new Menu(mTabFolder);
-                    MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
+                    MenuItem menuItem;
+
+                    menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Update Filter Settings");
+                    menuItem.setImage(Resources.update);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Update filter for tab index " + index);
+                            updateTabFilter(index);
+                        }
+                    });
+
+                    menuItem = new MenuItem(menu, SWT.PUSH);
                     menuItem.setText("Close Right Tabs");
                     menuItem.setImage(Resources.right_arrow);
                     menuItem.addSelectionListener(new SelectionAdapter() {
@@ -762,6 +776,19 @@ public final class SlogMainFrame {
         SlogTabFrame tbf = (SlogTabFrame) it;
         tbf.onClose();
         it.dispose();
+    }
+
+    public void updateTabFilter(int index) {
+        CTabItem it;
+
+        if (index >= mTabFolder.getItemCount() || index < 0)
+            return;
+
+        it = mTabFolder.getItem(index);
+        SlogTabFrame tbf = (SlogTabFrame) it;
+
+        if (tbf instanceof FilterTabFrame)
+            tbf.onUpdateFilter();
     }
 
     public void closeRightTabFrames(int index) {

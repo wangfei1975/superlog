@@ -331,6 +331,7 @@ public class LogSource {
         private LogFilter mFilter = null;
         private StringPattern mSearchPattern = null;
         private LogParser mParser;
+        private List<String> mSource;
 
         private int mRollLines;
         private AtomicBoolean mLogChanged = new AtomicBoolean(false);
@@ -387,6 +388,7 @@ public class LogSource {
             mParser = parser;
             mRollLines = rolllines;
             mFilteredItems = Collections.synchronizedList(new ArrayList<String>());
+            mSource = source;
 
             if (source != null) {
                 synchronized (source) {
@@ -442,6 +444,27 @@ public class LogSource {
                 mSearchResults = -1;
                 mSearchPattern = null;
                 mFilteredItems.clear();
+                mLogChanged.set(true);
+                notifyListener();
+            }
+        }
+
+        public void updateFilter() {
+            System.out.println(" updateFilter clear...");
+
+            this.clear();
+
+            if (mSource != null) {
+                synchronized (mSource) {
+                    for (String it : mSource) {
+                        if (mFilter.filterLog(mParser, it)) {
+                            mFilteredItems.add(it);
+                        }
+                    }
+                }
+            }
+            System.out.println(" updateFilter mFilteredItems.size() = " + mFilteredItems.size());
+            if (mFilteredItems.size() > 0) {
                 mLogChanged.set(true);
                 notifyListener();
             }
