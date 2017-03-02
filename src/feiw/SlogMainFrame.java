@@ -668,6 +668,18 @@ public final class SlogMainFrame {
                         }
                     });
 
+                    menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Update Filter Settings");
+                    menuItem.setImage(Resources.self_arrow);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Update filter for tab index " + index);
+                            updateTabFilter(index);
+                        }
+                    });
+
                     menu.setLocation(event.x, event.y);
                     menu.setVisible(true);
                 }
@@ -762,6 +774,19 @@ public final class SlogMainFrame {
         SlogTabFrame tbf = (SlogTabFrame) it;
         tbf.onClose();
         it.dispose();
+    }
+
+    public void updateTabFilter(int index) {
+        CTabItem it;
+
+        if (index >= mTabFolder.getItemCount() || index < 0)
+            return;
+
+        it = mTabFolder.getItem(index);
+        SlogTabFrame tbf = (SlogTabFrame) it;
+
+        if (tbf instanceof FilterTabFrame)
+            tbf.onUpdateFilter();
     }
 
     public void closeRightTabFrames(int index) {
