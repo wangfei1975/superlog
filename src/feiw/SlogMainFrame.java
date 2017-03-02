@@ -626,6 +626,55 @@ public final class SlogMainFrame {
             }
         });
 
+        mTabFolder.addListener(SWT.MenuDetect, new Listener() {
+            public void handleEvent(Event event) {
+                Point point = mDisplay.map(null, mTabFolder, new Point(event.x, event.y));
+                CTabItem cTabItem = mTabFolder.getItem(point);
+                if (cTabItem != null) {
+                    System.out.println("MenuDetect on tab: " + cTabItem.getText());
+                    Menu menu = new Menu(mTabFolder);
+                    MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Close Right Tabs");
+                    menuItem.setImage(Resources.right_arrow);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Closing right tabs for index " + index);
+                            closeRightTabFrames(index);
+                        }
+                    });
+                    menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Close Left Tabs");
+                    menuItem.setImage(Resources.left_arrow);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Closing left tabs for index " + index);
+                            closeLeftTabFrames(index);
+                        }
+                    });
+
+                    menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Close This Tab!");
+                    menuItem.setImage(Resources.self_arrow);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Closing this tab for index " + index);
+                            closeThisTabFrames(index);
+                        }
+                    });
+
+                    menu.setLocation(event.x, event.y);
+                    menu.setVisible(true);
+                }
+            }
+        });
+
+
         mTabFolder.setFocus();
 
         getDisplay().addFilter(SWT.KeyDown, new Listener() {
@@ -686,6 +735,46 @@ public final class SlogMainFrame {
         for (CTabItem it : mTabFolder.getItems()) {
             SlogTabFrame tbf = (SlogTabFrame) it;
             tbf.onClose();
+        }
+    }
+
+    public void closeLeftTabFrames(int index) {
+        CTabItem it;
+
+        if (index < 0)
+            return;
+
+        for (int i = 0; i < index; i++) {
+            it = mTabFolder.getItem(i);
+            SlogTabFrame tbf = (SlogTabFrame) it;
+            tbf.onClose();
+            it.dispose();
+        }
+    }
+
+    public void closeThisTabFrames(int index) {
+        CTabItem it;
+
+        if (index >= mTabFolder.getItemCount() || index < 0)
+            return;
+
+        it = mTabFolder.getItem(index);
+        SlogTabFrame tbf = (SlogTabFrame) it;
+        tbf.onClose();
+        it.dispose();
+    }
+
+    public void closeRightTabFrames(int index) {
+        CTabItem it;
+
+        if (index >= mTabFolder.getItemCount())
+            return;
+
+        for (int i = mTabFolder.getItemCount() - 1; i > index; i--) {
+            it = mTabFolder.getItem(i);
+            SlogTabFrame tbf = (SlogTabFrame) it;
+            tbf.onClose();
+            it.dispose();
         }
     }
 
