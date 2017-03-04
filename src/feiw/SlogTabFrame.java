@@ -236,6 +236,12 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         mLogSrc = logsrc;
         mLogView = mLogSrc.newLogView(this, logFilter, logParser, parentLogView);
 
+        if (logFilter != null) {
+            System.out.println("SlogTabFrame raw rules start...");
+            System.out.print(logFilter.getRawRules());
+            mLogView.setRawRules(logFilter.getRawRules());
+        }
+
         setText(txt);
         Composite com = new Composite(parent, style);
 
@@ -426,7 +432,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
 
     @Override
     public void onLogChanged() {
-        System.out.println(" onLogChanged...");
+        //System.out.println(" onLogChanged...");
         if (mVisible && !mLogChangPosted.get()) {
             mLogChangPosted.set(true);
             Display display = getDisplay();
@@ -558,8 +564,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     }
 
 
-    public void onUpdateFilter() {
-        mLogView.updateFilter();
+    public void onUpdateFilter(LogFilter f) {
+        mLogView.updateFilter(f);
     }
 
     @Override
