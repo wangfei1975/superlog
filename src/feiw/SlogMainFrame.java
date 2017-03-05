@@ -629,23 +629,25 @@ public final class SlogMainFrame {
         mTabFolder.addListener(SWT.MenuDetect, new Listener() {
             public void handleEvent(Event event) {
                 Point point = mDisplay.map(null, mTabFolder, new Point(event.x, event.y));
-                CTabItem cTabItem = mTabFolder.getItem(point);
+                SlogTabFrame cTabItem = (SlogTabFrame)mTabFolder.getItem(point);
                 if (cTabItem != null) {
                     System.out.println("MenuDetect on tab: " + cTabItem.getText());
                     Menu menu = new Menu(mTabFolder);
                     MenuItem menuItem;
 
-                    menuItem = new MenuItem(menu, SWT.PUSH);
-                    menuItem.setText("Update Filter Settings");
-                    menuItem.setImage(Resources.update);
-                    menuItem.addSelectionListener(new SelectionAdapter() {
-                        @Override
-                        public void widgetSelected(SelectionEvent event) {
-                            int index = mTabFolder.getSelectionIndex();
-                            System.out.println("Update filter for tab index " + index);
-                            updateTabFilter(index);
-                        }
-                    });
+                    if (cTabItem.getLogView().getRawRules() != null) {
+                        menuItem = new MenuItem(menu, SWT.PUSH);
+                        menuItem.setText("Update Filter Settings");
+                        menuItem.setImage(Resources.update);
+                        menuItem.addSelectionListener(new SelectionAdapter() {
+                            @Override
+                            public void widgetSelected(SelectionEvent event) {
+                                int index = mTabFolder.getSelectionIndex();
+                                System.out.println("Update filter for tab index " + index);
+                                updateTabFilter(index);
+                            }
+                        });
+                    }
 
                     menuItem = new MenuItem(menu, SWT.PUSH);
                     menuItem.setText("Close Right Tabs");
