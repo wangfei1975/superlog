@@ -55,6 +55,8 @@ public final class Resources {
     public static Image right_arrow = null;
     public static Image self_arrow = null;
     public static Image update = null;
+    public static Image check = null;
+    public static Image empty = null;
 
     public static ArrayList<Image> mIcons = new ArrayList<Image>(30);
 
@@ -109,6 +111,7 @@ public final class Resources {
         left_arrow = loadIcon(ctx, "left_arrow");
         right_arrow = loadIcon(ctx, "right_arrow");
         update = loadIcon(ctx, "update");
+        check = loadIcon(ctx, "check");
     }
 
     static void freeResources(AppContext ctx) {

@@ -131,6 +131,15 @@ public class LogSource {
             };
         }
 
+        public static LogFilter newSelectedFilter(String name) {
+            return new LogFilter("Selected" + name) {
+                @Override
+                public boolean filterLog(LogParser parser, String item) {
+                    return true;
+                }
+            };
+        }
+
         public static LogFilter newLogFilter(String field, String op, final Object dstObj) {
             LogFilter logFilter = null;
             FilterDlg.RawRule rawRule = new FilterDlg.RawRule();

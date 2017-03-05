@@ -37,7 +37,7 @@ import org.eclipse.swt.widgets.*;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SlogTabFrame extends CTabItem implements LogListener {
@@ -46,8 +46,47 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     private TableEditor mTableEditor;
     protected LogView mLogView = null;
     protected LogSource mLogSrc;
+    protected LogView mParentLogView = null;
+    protected int mStyle = 0;
     private Label mLineCountLabel;
     private Label mSearchResult;
+    private FilterTabFrame mSelectedLinesTab = null;
+    private TreeMap mSelectedLines =  new TreeMap();
+    private LogFilter mSelectedLinesFilter = LogFilter.newSelectedFilter("");
+
+    public SlogTabFrame getSelectedLinesTab() {
+        if (mSelectedLinesTab == null || mSelectedLinesTab.isDisposed()) {
+            mSelectedLinesTab = new FilterTabFrame(this.getParent(),
+                    this.getText(),
+                    this.getStyle(),
+                    this.getLogSource(),
+                    this.getSelectedLinesFilter(),
+                    this.getLogView().getLogParser(),
+                    this.getParentLogView());
+        }
+        return mSelectedLinesTab;
+    }
+
+    public void updateSelectedLinesTab() {
+        SlogTabFrame selectedTab = getSelectedLinesTab();
+
+        // Get a set of the entries
+        Set set = mSelectedLines.entrySet();
+
+        // Get an iterator
+        Iterator i = set.iterator();
+
+        selectedTab.getLogView().clear();
+
+        // Display elements
+        while (i.hasNext()) {
+            Map.Entry me = (Map.Entry) i.next();
+            //System.out.print(me.getKey() + ": ");
+            //System.out.println(me.getValue());
+
+            selectedTab.getLogView().add((String) me.getValue(), true);
+        }
+    }
 
     public void onClose() {
         mLogSrc.removeLogView(mLogView);
@@ -63,6 +102,18 @@ public class SlogTabFrame extends CTabItem implements LogListener {
 
     public SlogTable getTable() {
         return mTable;
+    }
+
+    public LogView getParentLogView () {
+        return mParentLogView;
+    }
+
+    public LogFilter getSelectedLinesFilter() {
+        return mSelectedLinesFilter;
+    }
+
+    public int getStyle() {
+        return mStyle;
     }
 
     public void setLogFont() {
@@ -146,6 +197,41 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         final int it = mTable.getSelectionIndex();
         if (it >= 0) {
             String log = mLogView.getLog(it);
+
+            menuItem = new MenuItem(menu, SWT.NONE);
+
+            if (!mSelectedLines.containsKey(String.valueOf(it))) {
+                menuItem.setText("Add line " + it + " to Selected");
+                menuItem.setImage(Resources.filter_16);
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+
+                        if (!mSelectedLines.containsKey(String.valueOf(it))) {
+                            mSelectedLines.put(String.valueOf(it), log);
+                            TableItem [] tableItem = mTable.getSelection();
+                            tableItem[0].setImage(Resources.check);
+                            updateSelectedLinesTab();
+                        }
+                    }
+                });
+            } else {
+                menuItem.setText("Remove line " + it + " from Selected");
+                menuItem.setImage(Resources.filter_16);
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+
+                        if (mSelectedLines.containsKey(String.valueOf(it))) {
+                            mSelectedLines.remove(String.valueOf(it));
+                            TableItem [] tableItem = mTable.getSelection();
+                            tableItem[0].setImage(Resources.empty);
+                            updateSelectedLinesTab();
+                        }
+                    }
+                });
+            }
+
             final String tag = mLogView.getLogParser().parseTag(log);
             if (tag != null && !tag.trim().isEmpty()) {
                 menuItem = new MenuItem(menu, SWT.NONE);
@@ -192,7 +278,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         }
 
         menuItem = new MenuItem(menu, SWT.NONE);
-        menuItem.setText("Filter  [Priority < Verbos(7)]");
+        menuItem.setText("Filter  [Priority < Verbose(7)]");
         menuItem.setImage(Resources.filter_16);
         menuItem.setData(Integer.valueOf(7));
         menuItem.addSelectionListener(lisener);
@@ -210,7 +296,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         menuItem.addSelectionListener(lisener);
 
         menuItem = new MenuItem(menu, SWT.NONE);
-        menuItem.setText("Filter  [Message contains ...]");
+        menuItem.setText("Filter  [Customized ...]");
         menuItem.setImage(Resources.filter_16);
         menuItem.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -232,6 +318,9 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter,
             LogParser logParser, LogView parentLogView) {
         super(parent, style);
+
+        this.mParentLogView = parentLogView;
+        this.mStyle = style;
 
         mLogSrc = logsrc;
         mLogView = mLogSrc.newLogView(this, logFilter, logParser, parentLogView);
@@ -417,7 +506,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             updateSearchUI();
         } else if (cnto != cnt) {
             System.out.println("updateLogUI log changed old cnt = " + cnto + " new cnt = " + cnt);
-            // mTable.setItemCount(0);
+            mTable.setItemCount(0);
             mTable.setRedraw(true);
             mTable.setItemCount(cnt);
             mTable.setTopIndex(cnt - 2);
@@ -425,7 +514,6 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             mLineCountLabel.pack();
             updateSearchUI();
         }
-        //
     }
 
     AtomicBoolean mLogChangPosted = new AtomicBoolean(false);
