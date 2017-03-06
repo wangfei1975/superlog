@@ -18,6 +18,8 @@ package feiw;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -59,6 +61,7 @@ public final class SlogMainFrame {
     CoolBar mCoolBar = null;
     List<ToolItem> mToolItems = new ArrayList<ToolItem>(10);
     CTabFolder mTabFolder;
+    BlockingQueue<String> mMsgQueue = new LinkedBlockingQueue<String>();
 
     public Display getDisplay() {
         return mDisplay;
@@ -89,6 +92,7 @@ public final class SlogMainFrame {
                 closeTabFrames();
             }
         });
+        captureAdbLog();
     }
 
     void createToolBar(ToolBarDes tbdes) {
@@ -292,8 +296,8 @@ public final class SlogMainFrame {
             @Override
             public void onToolSelected(ToolItem dropdown) {
                 FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
-                String[] filterNames = new String[] { "Log Files", "All Files (*)" };
-                String[] filterExtensions = new String[] { "*.log;*.txt;", "*" };
+                String[] filterNames = new String[]{"Log Files", "All Files (*)"};
+                String[] filterExtensions = new String[]{"*.log;*.txt;", "*"};
                 // String filterPath = "";
                 /*
                  * String platform = SWT.getPlatform(); if
@@ -361,8 +365,8 @@ public final class SlogMainFrame {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
-                String[] filterNames = new String[] { "Fifo", "All Files (*)" };
-                String[] filterExtensions = new String[] { "*" };
+                String[] filterNames = new String[]{"Fifo", "All Files (*)"};
+                String[] filterExtensions = new String[]{"*"};
 
                 dialog.setFilterNames(filterNames);
                 dialog.setFilterExtensions(filterExtensions);
@@ -468,8 +472,8 @@ public final class SlogMainFrame {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
-                final String[] filterNames = new String[] { "Log Files", "All Files (*)" };
-                final String[] filterExtensions = new String[] { "*.log;*.txt;", "*" };
+                final String[] filterNames = new String[]{"Log Files", "All Files (*)"};
+                final String[] filterExtensions = new String[]{"*.log;*.txt;", "*"};
                 dialog.setFilterNames(filterNames);
                 dialog.setFilterExtensions(filterExtensions);
                 String fname = dialog.open();
@@ -524,31 +528,65 @@ public final class SlogMainFrame {
                     SystemConfigs.instance().setAdbPath(adbPath);
                 }
 
-                final String [] devs = AndroidLogSource.enumDevices();
-                if (devs == null) {
-                    MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
-                    m.setText("Error");
-                    m.setMessage("No Android device connected");
-                    m.open();
-                    return;
-                }
-                int selectedDevice = 0;
-                if (devs.length > 1) {
-                    //multiple device, choice
-                    AndroidDeviceChoiceDlg d = new AndroidDeviceChoiceDlg(getShell(), devs, 0);
-                    if (d.open() != SWT.OK) {
-                        return;
-                    }
-                    selectedDevice = d.getSelection();
-                }
                 try {
-                    SlogTabFrame ltab = new AndroidTabFrame(mTabFolder, SWT.FLAT | SWT.CLOSE | SWT.ICON, devs[selectedDevice]);
-                    mTabFolder.setSelection(ltab);
-                    updateToolBars(ltab);
-                } catch (DeviceNotConnected e1) {
+                    mMsgQueue.put("ADB");
+                    System.out.println("ADB Requested");
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
                 }
             }
         });
+    }
+
+    void captureAdbLog() {
+        new Thread() {
+            public void run() {
+                while (true) {
+                    String msg;
+                    while ((msg = mMsgQueue.poll()) != null) {
+                        System.out.println("Got MSG " + msg);
+                        String[] devs = AndroidLogSource.enumDevices();
+                        int wait = 0;
+                        while (devs == null) {
+                            if (wait == 0) {
+                                getDisplay().syncExec(new Runnable() {
+                                                          @Override
+                                                          public void run() {
+                                                              MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
+                                                              m.setText("Warning!");
+                                                              m.setMessage("Waiting for Android devices to be connected");
+                                                              m.open();
+                                                          }
+                                                      });
+                                wait++;
+                            }
+                            devs = AndroidLogSource.enumDevices();
+                        }
+                        getDisplay().syncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                String[] devs = AndroidLogSource.enumDevices();
+                                int selectedDevice = 0;
+                                if (devs.length > 1) {
+                                    //multiple device, choice
+                                    AndroidDeviceChoiceDlg d = new AndroidDeviceChoiceDlg(getShell(), devs, 0);
+                                    if (d.open() != SWT.OK) {
+                                        return;
+                                    }
+                                    selectedDevice = d.getSelection();
+                                }
+                                try {
+                                    SlogTabFrame ltab = new AndroidTabFrame(mTabFolder, SWT.FLAT | SWT.CLOSE | SWT.ICON, devs[selectedDevice]);
+                                    mTabFolder.setSelection(ltab);
+                                    updateToolBars(ltab);
+                                } catch (DeviceNotConnected e1) {
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        }.start();
     }
 
     void updateToolItem(ToolItem tit) {
@@ -629,7 +667,7 @@ public final class SlogMainFrame {
         mTabFolder.addListener(SWT.MenuDetect, new Listener() {
             public void handleEvent(Event event) {
                 Point point = mDisplay.map(null, mTabFolder, new Point(event.x, event.y));
-                SlogTabFrame cTabItem = (SlogTabFrame)mTabFolder.getItem(point);
+                SlogTabFrame cTabItem = (SlogTabFrame) mTabFolder.getItem(point);
                 if (cTabItem != null) {
                     System.out.println("MenuDetect on tab: " + cTabItem.getText());
                     Menu menu = new Menu(mTabFolder);
@@ -712,15 +750,14 @@ public final class SlogMainFrame {
                     if (tbf != null) {
                         tbf.onNext();
                     }
-                } else if (e.keyCode == SWT.F4){
+                } else if (e.keyCode == SWT.F4) {
                     SlogTabFrame tbf = (SlogTabFrame) mTabFolder.getSelection();
                     if (tbf != null) {
                         tbf.onPrev();
                     }
                 }
 
-                if(((e.stateMask & SWT.CTRL) == SWT.CTRL) && (e.keyCode == 'f'))
-                {
+                if (((e.stateMask & SWT.CTRL) == SWT.CTRL) && (e.keyCode == 'f')) {
                     SearchDlg d = new SearchDlg(Slogmain.getApp().getMainFrame().getShell());
                     String txt = d.open();
                     if (txt != null && !(txt.trim().isEmpty())) {

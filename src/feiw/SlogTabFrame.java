@@ -485,7 +485,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     }
 
     private void updateLogUI() {
-        System.out.println(" updateLogUI...");
+        //System.out.println(" updateLogUI...");
         if (!mVisible || mTable.isDisposed())
             return;
 
@@ -496,7 +496,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         final int cnto = mTable.getItemCount();
         final int rolls = mLogView.getRollLines();
         if (rolls > 0 && cnt >= rolls) {
-            System.out.println("updateLogUI log changed old cnt = " + cnto + " new cnt = " + cnt + " rolls = " + rolls);
+            //System.out.println("updateLogUI log changed old cnt = " + cnto + " new cnt = " + cnt + " rolls = " + rolls);
             mTable.setRedraw(true);
             mTable.setItemCount(0);
             mTable.setItemCount(cnt);
@@ -505,7 +505,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             mLineCountLabel.pack();
             updateSearchUI();
         } else if (cnto != cnt) {
-            System.out.println("updateLogUI log changed old cnt = " + cnto + " new cnt = " + cnt);
+            //System.out.println("updateLogUI log changed old cnt = " + cnto + " new cnt = " + cnt);
             mTable.setItemCount(0);
             mTable.setRedraw(true);
             mTable.setItemCount(cnt);
