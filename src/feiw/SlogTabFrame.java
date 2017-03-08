@@ -51,7 +51,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     private Label mLineCountLabel;
     private Label mSearchResult;
     private FilterTabFrame mSelectedLinesTab = null;
-    private TreeMap mSelectedLines =  new TreeMap();
+    private TreeMap<String,String> mSelectedLines =  new TreeMap<String,String>();
     private LogFilter mSelectedLinesFilter = LogFilter.newSelectedFilter("");
 
     public SlogTabFrame getSelectedLinesTab() {
