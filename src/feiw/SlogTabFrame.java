@@ -196,7 +196,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
 
         final int it = mTable.getSelectionIndex();
         if (it >= 0) {
-            String log = mLogView.getLog(it);
+            final String log = mLogView.getLog(it);
 
             menuItem = new MenuItem(menu, SWT.NONE);
 
