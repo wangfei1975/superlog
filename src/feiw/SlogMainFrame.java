@@ -698,6 +698,7 @@ public final class SlogMainFrame {
                             closeRightTabFrames(index);
                         }
                     });
+
                     menuItem = new MenuItem(menu, SWT.PUSH);
                     menuItem.setText("Close Left Tabs");
                     menuItem.setImage(Resources.left_arrow);
@@ -719,6 +720,26 @@ public final class SlogMainFrame {
                             int index = mTabFolder.getSelectionIndex();
                             System.out.println("Closing this tab for index " + index);
                             closeThisTabFrames(index);
+                        }
+                    });
+
+                    menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Edit Tab Name");
+                    menuItem.setImage(Resources.self_arrow);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Edit Tab Name " + index);
+                            MessageDlg d = new MessageDlg(Slogmain.getApp().getMainFrame().getShell());
+                            SlogTabFrame tbf = (SlogTabFrame) mTabFolder.getSelection();
+                            d.setInput(tbf.getText());
+                            d.setMessage("Please Copy or Edit the Tab Name");
+                            d.setText("Edit Tab Name");
+                            String txt = d.open();
+                            if (txt != null && !(txt.trim().isEmpty())) {
+                                tbf.setText(txt);
+                            }
                         }
                     });
 
