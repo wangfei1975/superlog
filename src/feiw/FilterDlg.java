@@ -480,6 +480,14 @@ public class FilterDlg extends Dialog {
         mName = new Text(shell, SWT.BORDER);
         mName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
+        Button btLoadRules = new Button(shell, SWT.PUSH);
+        btLoadRules.setText("Load");
+        btLoadRules.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+
+        Button btSaveRules = new Button(shell, SWT.PUSH);
+        btSaveRules.setText("Save");
+        btSaveRules.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+
         new Label(shell, SWT.SEPARATOR | SWT.HORIZONTAL)
                 .setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, mLayoutCols, 1));
 
@@ -492,6 +500,7 @@ public class FilterDlg extends Dialog {
         label = new Label(g, SWT.NONE);
         label.setText("Apply following rules on every Log item:");
         label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, mLayoutCols - 1, 1));
+
         Button b = new Button(g, SWT.PUSH);
         b.setText("+");
         b.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
