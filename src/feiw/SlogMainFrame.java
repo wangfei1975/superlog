@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -57,11 +58,11 @@ public final class SlogMainFrame {
 
     private Display mDisplay;
     private Shell mShell;
+    private static AtomicBoolean mWaitingDev = new AtomicBoolean(false);
 
     CoolBar mCoolBar = null;
     List<ToolItem> mToolItems = new ArrayList<ToolItem>(10);
     CTabFolder mTabFolder;
-    BlockingQueue<String> mMsgQueue = new LinkedBlockingQueue<String>();
 
     public Display getDisplay() {
         return mDisplay;
@@ -92,7 +93,6 @@ public final class SlogMainFrame {
                 closeTabFrames();
             }
         });
-        captureAdbLog();
     }
 
     void createToolBar(ToolBarDes tbdes) {
@@ -528,65 +528,105 @@ public final class SlogMainFrame {
                     SystemConfigs.instance().setAdbPath(adbPath);
                 }
 
-                try {
-                    mMsgQueue.put("ADB");
-                    System.out.println("ADB Requested");
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
+                // try connecting existing device
+                if (connectDevice() == true)
+                    return;
+
+                if (mWaitingDev.compareAndSet(false, true) == false)
+                    return;
+
+                // if no existing device connected, start a new thread to wait for device connection
+                new Thread() {
+                    public void run() {
+
+                        String[] devs = AndroidLogSource.enumDevices();
+                        int wait = 0;
+
+                        while (devs == null) {
+                            if (wait == 0) {
+                                // Info the user for the 1st time
+                                getDisplay().syncExec(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
+                                        m.setText("Warning!");
+                                        m.setMessage("Waiting for Android devices to be connected");
+                                        m.open();
+                                    }
+                                });
+                            }
+
+                            // wait one second
+                            wait++;
+
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e1) {
+                                e1.printStackTrace();
+                            }
+
+                            // if more than 60 seconds passed, give up
+                            if (wait > 60) {
+                                getDisplay().syncExec(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
+                                        m.setText("Warning!");
+                                        m.setMessage("No Android device connected in 1 minute, give up!");
+                                        m.open();
+                                    }
+                                });
+
+                                mWaitingDev.set(false);
+
+                                //exit the thread
+                                return;
+                            }
+
+                            // check again for any device connection
+                            devs = AndroidLogSource.enumDevices();
+                        }
+
+                        // try connecting the connected device, will update UI from external thread
+                        getDisplay().syncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                connectDevice();
+                            }
+                        });
+
+                        mWaitingDev.set(false);
+                    }
+                }.start();
             }
         });
     }
 
-    void captureAdbLog() {
-        new Thread() {
-            public void run() {
-                while (true) {
-                    String msg;
-                    while ((msg = mMsgQueue.poll()) != null) {
-                        System.out.println("Got MSG " + msg);
-                        String[] devs = AndroidLogSource.enumDevices();
-                        int wait = 0;
-                        while (devs == null) {
-                            if (wait == 0) {
-                                getDisplay().syncExec(new Runnable() {
-                                                          @Override
-                                                          public void run() {
-                                                              MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
-                                                              m.setText("Warning!");
-                                                              m.setMessage("Waiting for Android devices to be connected");
-                                                              m.open();
-                                                          }
-                                                      });
-                                wait++;
-                            }
-                            devs = AndroidLogSource.enumDevices();
-                        }
-                        getDisplay().syncExec(new Runnable() {
-                            @Override
-                            public void run() {
-                                String[] devs = AndroidLogSource.enumDevices();
-                                int selectedDevice = 0;
-                                if (devs.length > 1) {
-                                    //multiple device, choice
-                                    AndroidDeviceChoiceDlg d = new AndroidDeviceChoiceDlg(getShell(), devs, 0);
-                                    if (d.open() != SWT.OK) {
-                                        return;
-                                    }
-                                    selectedDevice = d.getSelection();
-                                }
-                                try {
-                                    SlogTabFrame ltab = new AndroidTabFrame(mTabFolder, SWT.FLAT | SWT.CLOSE | SWT.ICON, devs[selectedDevice]);
-                                    mTabFolder.setSelection(ltab);
-                                    updateToolBars(ltab);
-                                } catch (DeviceNotConnected e1) {
-                                }
-                            }
-                        });
-                    }
-                }
+    public boolean connectDevice() {
+        String[] devs = AndroidLogSource.enumDevices();
+        int selectedDevice = 0;
+
+        if (devs == null)
+            return false;
+
+        if (devs.length > 1) {
+            //multiple device, choice
+            AndroidDeviceChoiceDlg d = new AndroidDeviceChoiceDlg(getShell(), devs, 0);
+            if (d.open() != SWT.OK) {
+                return true;
             }
-        }.start();
+            selectedDevice = d.getSelection();
+        }
+
+        try {
+            SlogTabFrame ltab = new AndroidTabFrame(mTabFolder,
+                    SWT.FLAT | SWT.CLOSE | SWT.ICON, devs[selectedDevice]);
+            mTabFolder.setSelection(ltab);
+            updateToolBars(ltab);
+            return true;
+        } catch (DeviceNotConnected e1) {
+            return false;
+        }
     }
 
     void updateToolItem(ToolItem tit) {
