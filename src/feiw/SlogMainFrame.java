@@ -16,12 +16,17 @@
 package feiw;
 
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
@@ -713,7 +718,32 @@ public final class SlogMainFrame {
                     Menu menu = new Menu(mTabFolder);
                     MenuItem menuItem;
 
+                    menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Load Filter Settings");
+                    menuItem.setImage(Resources.update);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Load filter for tab index " + index);
+                            loadTabFilter(index);
+                        }
+                    });
+
                     if (cTabItem.getLogView().getRawRules() != null) {
+
+                        menuItem = new MenuItem(menu, SWT.PUSH);
+                        menuItem.setText("Save Filter Settings");
+                        menuItem.setImage(Resources.update);
+                        menuItem.addSelectionListener(new SelectionAdapter() {
+                            @Override
+                            public void widgetSelected(SelectionEvent event) {
+                                int index = mTabFolder.getSelectionIndex();
+                                System.out.println("Save filter for tab index " + index);
+                                saveTabFilter(index);
+                            }
+                        });
+
                         menuItem = new MenuItem(menu, SWT.PUSH);
                         menuItem.setText("Update Filter Settings");
                         menuItem.setImage(Resources.update);
@@ -894,6 +924,140 @@ public final class SlogMainFrame {
             }
             LogFilter f = fdlg.getFilter();
             tbf.onUpdateFilter(f);
+        }
+    }
+
+    public ArrayList<FilterDlg.RawRule> loadRawRules(String fileName) {
+        ArrayList<FilterDlg.RawRule> rawRules = new ArrayList<>(5);
+
+        if (fileName == null || rawRules == null)
+            return null;
+
+        CSVReader reader = null;
+        try {
+            reader = new CSVReader(new FileReader(fileName));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        rawRules.clear();
+
+        if (reader == null)
+            return rawRules;
+
+        String[] nextLine;
+
+        int index = 0;
+
+        try {
+            while ((nextLine = reader.readNext()) != null) {
+                FilterDlg.RawRule rawRule = new FilterDlg.RawRule();
+                // nextLine[] is an array of values from the line
+                rawRule.index = index++;
+                rawRule.mop = nextLine[0];
+                rawRule.field = nextLine[1];
+                rawRule.op = nextLine[2];
+                rawRule.value = nextLine[3];
+
+                System.out.println("Parsed " + rawRule);
+
+                rawRules.add(rawRule);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return rawRules;
+    }
+
+    public void saveRawRules(String fileName, ArrayList<FilterDlg.RawRule> rawRules) {
+        CSVWriter writer = null;
+
+        if (fileName == null)
+            return;
+
+        try {
+            writer = new CSVWriter(new FileWriter(fileName), ',');
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (writer == null)
+            return;
+
+        // feed in your array (or convert your data to an array)
+        String[] entries = new String[4];
+
+        for (FilterDlg.RawRule rawRule : rawRules) {
+
+            entries[0] = rawRule.mop;
+            entries[1] = rawRule.field;
+            entries[2] = rawRule.op;
+            entries[3] = rawRule.value;
+
+            writer.writeNext(entries);
+        }
+
+        try {
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String openFileDialog(int openOrSave) {
+
+        FileDialog dialog = new FileDialog(getShell(), openOrSave);
+        String[] filterNames = new String[]{"Log Filter Files", "All Files (*)"};
+        String[] filterExtensions = new String[]{"*.csv", "*"};
+        dialog.setFilterNames(filterNames);
+        dialog.setFilterExtensions(filterExtensions);
+        // dialog.setFilterPath (filterPath);
+
+        return dialog.open();
+    }
+
+    public void loadTabFilter(int index) {
+
+        if (index >= mTabFolder.getItemCount() || index < 0)
+            return;
+
+        String fileName = openFileDialog(SWT.OPEN);
+
+        ArrayList<FilterDlg.RawRule> rawRules = loadRawRules(fileName);
+
+        if (rawRules == null)
+            return;
+
+        CTabItem it = mTabFolder.getItem(index);
+        SlogTabFrame tbf = (SlogTabFrame) it;
+
+        FilterDlg filterDlg = new FilterDlg(getShell(), tbf.getLogView());
+        if (filterDlg.open(rawRules) != SWT.OK) {
+            return;
+        }
+        LogFilter filter = filterDlg.getFilter();
+
+        if (tbf instanceof FilterTabFrame) {
+            tbf.onUpdateFilter(filterDlg.getFilter());
+        } else if (tbf instanceof FileTabFrame) {
+            Slogmain.getApp().getMainFrame().openFilterView(filter);
+        }
+
+        SystemConfigs.instance().addRecentFilter(filter);
+    }
+
+    public void saveTabFilter(int index) {
+        CTabItem it;
+
+        if (index >= mTabFolder.getItemCount() || index < 0)
+            return;
+
+        it = mTabFolder.getItem(index);
+        SlogTabFrame tbf = (SlogTabFrame) it;
+
+        if (tbf instanceof FilterTabFrame) {
+            String fileName = openFileDialog(SWT.SAVE);
+            saveRawRules(fileName, tbf.getLogView().getLogFilter().getRawRules());
         }
     }
 

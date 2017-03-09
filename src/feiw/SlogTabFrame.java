@@ -51,7 +51,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     private Label mLineCountLabel;
     private Label mSearchResult;
     private FilterTabFrame mSelectedLinesTab = null;
-    private TreeMap<String,String> mSelectedLines =  new TreeMap<String,String>();
+    private TreeMap<String, String> mSelectedLines = new TreeMap<String, String>();
     private LogFilter mSelectedLinesFilter = LogFilter.newSelectedFilter("");
 
     public SlogTabFrame getSelectedLinesTab() {
@@ -104,7 +104,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         return mTable;
     }
 
-    public LogView getParentLogView () {
+    public LogView getParentLogView() {
         return mParentLogView;
     }
 
@@ -183,7 +183,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             }
         }
 
-        SelectionAdapter lisener = new SelectionAdapter() {
+        SelectionAdapter listener = new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
                 Object o = event.widget.getData();
@@ -209,7 +209,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
 
                         if (!mSelectedLines.containsKey(String.valueOf(it))) {
                             mSelectedLines.put(String.valueOf(it), log);
-                            TableItem [] tableItem = mTable.getSelection();
+                            TableItem[] tableItem = mTable.getSelection();
                             tableItem[0].setImage(Resources.check);
                             updateSelectedLinesTab();
                         }
@@ -224,7 +224,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
 
                         if (mSelectedLines.containsKey(String.valueOf(it))) {
                             mSelectedLines.remove(String.valueOf(it));
-                            TableItem [] tableItem = mTable.getSelection();
+                            TableItem[] tableItem = mTable.getSelection();
                             tableItem[0].setImage(Resources.empty);
                             updateSelectedLinesTab();
                         }
@@ -281,19 +281,19 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         menuItem.setText("Filter  [Priority < Verbose(7)]");
         menuItem.setImage(Resources.filter_16);
         menuItem.setData(Integer.valueOf(7));
-        menuItem.addSelectionListener(lisener);
+        menuItem.addSelectionListener(listener);
 
         menuItem = new MenuItem(menu, SWT.NONE);
         menuItem.setText("Filter  [Priority < Debug(6)]");
         menuItem.setImage(Resources.filter_16);
         menuItem.setData(Integer.valueOf(6));
-        menuItem.addSelectionListener(lisener);
+        menuItem.addSelectionListener(listener);
 
         menuItem = new MenuItem(menu, SWT.NONE);
         menuItem.setText("Filter  [Priority < Information(5)]");
         menuItem.setImage(Resources.filter_16);
         menuItem.setData(Integer.valueOf(5));
-        menuItem.addSelectionListener(lisener);
+        menuItem.addSelectionListener(listener);
 
         menuItem = new MenuItem(menu, SWT.NONE);
         menuItem.setText("Filter  [Customized ...]");
@@ -316,7 +316,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     }
 
     public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter,
-            LogParser logParser, LogView parentLogView) {
+                        LogParser logParser, LogView parentLogView) {
         super(parent, style);
 
         this.mParentLogView = parentLogView;
@@ -611,7 +611,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                 }
             }
         }
-        cb.setContents(new Object[] { txt.toString() }, new Transfer[] { TextTransfer.getInstance() });
+        cb.setContents(new Object[]{txt.toString()}, new Transfer[]{TextTransfer.getInstance()});
     }
 
     public void onCopyAll() {

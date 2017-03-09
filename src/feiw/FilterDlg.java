@@ -140,7 +140,7 @@ public class FilterDlg extends Dialog {
         public String toString() {
             return "\nRawRule{index=" + index + ",mop=" + mop + ",field=" + field + ",op=" + op + ",value=" + value + "}\n";
         }
-    };
+    }
 
     public static class Rule {
         int index;
@@ -189,7 +189,7 @@ public class FilterDlg extends Dialog {
 
             return rawRule;
         }
-    };
+    }
 
     private ArrayList<Rule> mRules = new ArrayList<Rule>(5);
     private ArrayList<RawRule> mRawRules = new ArrayList<RawRule>(5);
@@ -309,13 +309,24 @@ public class FilterDlg extends Dialog {
                 parent.layout(true);
                 s.pack();
                 s.layout();
-
             }
         });
         if (index == 0) {
             b.setEnabled(false);
         }
         return r;
+    }
+
+    private void clearUIRules(Composite parent) {
+        for (Rule r : mRules) {
+            Shell s = r.holder.getShell();
+            r.holder.dispose();
+            parent.pack(true);
+            parent.layout(true);
+            s.pack();
+            s.layout();
+        }
+        mRules.clear();
     }
 
     private Rule createUIRawRule(final Composite parent, RawRule rawRule) {
@@ -467,6 +478,26 @@ public class FilterDlg extends Dialog {
     Text mName;
     LogParser mParser;
 
+    private ArrayList<RawRule> collectRawRules(Shell shell) {
+        ArrayList<RawRule> rawRules = new ArrayList<>(1);
+        rawRules.clear();
+
+        for (Rule r : mRules) {
+            String msg = r.verify();
+
+            if (msg != null) {
+                MessageBox m = new MessageBox(shell, SWT.OK | SWT.ICON_ERROR);
+                m.setMessage(msg);
+                m.open();
+                return rawRules;
+            }
+
+            rawRules.add(r.toRawRule());
+        }
+
+        return rawRules;
+    }
+
     private void createContents(final Shell shell) {
         GridLayout gly = new GridLayout(mLayoutCols, true);
 
@@ -487,11 +518,39 @@ public class FilterDlg extends Dialog {
         Button btSaveRules = new Button(shell, SWT.PUSH);
         btSaveRules.setText("Save");
         btSaveRules.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        btSaveRules.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                ArrayList<RawRule> rawRules = collectRawRules(shell);
+                String fileName = Slogmain.getApp().getMainFrame().openFileDialog(SWT.SAVE);
+                Slogmain.getApp().getMainFrame().saveRawRules(fileName, rawRules);
+            }
+        });
 
         new Label(shell, SWT.SEPARATOR | SWT.HORIZONTAL)
                 .setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, mLayoutCols, 1));
 
         final Composite g = new Composite(shell, SWT.NONE);
+
+        btLoadRules.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                ArrayList<RawRule> rawRules;
+                String fileName = Slogmain.getApp().getMainFrame().openFileDialog(SWT.OPEN);
+                rawRules = Slogmain.getApp().getMainFrame().loadRawRules(fileName);
+                if (rawRules != null) {
+                    clearUIRules(g);
+                    for (RawRule rawRule : rawRules) {
+                        System.out.println("Loading " + rawRule);
+                        mRules.add(createUIRawRule(g, rawRule));
+                    }
+                    g.pack(true);
+                    g.layout(true);
+                    shell.pack(true);
+                    shell.layout(true);
+                }
+            }
+        });
 
         g.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, mLayoutCols, 1));
         gly.verticalSpacing = 4;
@@ -618,11 +677,47 @@ public class FilterDlg extends Dialog {
 
         mName = new Text(shell, SWT.BORDER);
         mName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        Button btLoadRules = new Button(shell, SWT.PUSH);
+        btLoadRules.setText("Load");
+        btLoadRules.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+
+
+        Button btSaveRules = new Button(shell, SWT.PUSH);
+        btSaveRules.setText("Save");
+        btSaveRules.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        btSaveRules.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                ArrayList<RawRule> rawRules = collectRawRules(shell);
+                String fileName = Slogmain.getApp().getMainFrame().openFileDialog(SWT.SAVE);
+                Slogmain.getApp().getMainFrame().saveRawRules(fileName, rawRules);
+            }
+        });
 
         new Label(shell, SWT.SEPARATOR | SWT.HORIZONTAL)
                 .setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, mLayoutCols, 1));
 
         final Composite g = new Composite(shell, SWT.NONE);
+
+        btLoadRules.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                ArrayList<RawRule> rawRules;
+                String fileName = Slogmain.getApp().getMainFrame().openFileDialog(SWT.OPEN);
+                rawRules = Slogmain.getApp().getMainFrame().loadRawRules(fileName);
+                if (rawRules != null) {
+                    clearUIRules(g);
+                    for (RawRule rawRule : rawRules) {
+                        System.out.println("Loading " + rawRule);
+                        mRules.add(createUIRawRule(g, rawRule));
+                    }
+                    g.pack(true);
+                    g.layout(true);
+                    shell.pack(true);
+                    shell.layout(true);
+                }
+            }
+        });
 
         g.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, mLayoutCols, 1));
         gly.verticalSpacing = 4;
@@ -637,7 +732,7 @@ public class FilterDlg extends Dialog {
 
         mRules.clear();
 
-        for (RawRule rawRule: rawRules)
+        for (RawRule rawRule : rawRules)
             mRules.add(createUIRawRule(g, rawRule));
 
         b.addSelectionListener(new SelectionAdapter() {
@@ -712,7 +807,6 @@ public class FilterDlg extends Dialog {
                     mFilter.setName(nm);
                 }
 
-                //mLogView.setRawRules(mRawRules);
                 mFilter.setRawRules(mRawRules);
 
                 mSelection = SWT.OK;
