@@ -468,20 +468,21 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     }
 
     int mLastSearchResults = 0;
+    int mCurrentSearchResult = 0;
     boolean mVisible = false;
 
     private void updateSearchUI() {
-        int nresults = mLogView.getSearchResults();
-        // System.out.println("nresults = " + nresults + " last results = " +
-        // mLastSearchResults);
-        if (nresults != mLastSearchResults) {
-            if (nresults >= 0) {
-                mSearchResult.setText("Found " + nresults + " results of \"" + mLogView.getSearchPattern() + "\"");
-            } else if (nresults < 0) {
+        int nResults = mLogView.getSearchResults();
+        // System.out.println("nResults = " + nResults + " last results = " + mLastSearchResults);
+        if (nResults != mLastSearchResults) {
+            if (nResults >= 0) {
+                mSearchResult.setText("Found " + nResults + " results of \"" + mLogView.getSearchPattern() + "\"");
+            } else if (nResults < 0) {
                 mSearchResult.setText("");
             }
         }
-        mLastSearchResults = nresults;
+        mLastSearchResults = nResults;
+        mCurrentSearchResult = 0;
     }
 
     private void updateLogUI() {
@@ -493,10 +494,10 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             return;
 
         final int cnt = mLogView.size();
-        final int cnto = mTable.getItemCount();
+        final int cntOld = mTable.getItemCount();
         final int rolls = mLogView.getRollLines();
         if (rolls > 0 && cnt >= rolls) {
-            //System.out.println("updateLogUI log changed old cnt = " + cnto + " new cnt = " + cnt + " rolls = " + rolls);
+            //System.out.println("updateLogUI log changed old cnt = " + cntOld + " new cnt = " + cnt + " rolls = " + rolls);
             mTable.setRedraw(true);
             mTable.setItemCount(0);
             mTable.setItemCount(cnt);
@@ -504,8 +505,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             mLineCountLabel.setText("" + cnt + " lines");
             mLineCountLabel.pack();
             updateSearchUI();
-        } else if (cnto != cnt) {
-            //System.out.println("updateLogUI log changed old cnt = " + cnto + " new cnt = " + cnt);
+        } else if (cntOld != cnt) {
+            //System.out.println("updateLogUI log changed old cnt = " + cntOld + " new cnt = " + cnt);
             mTable.setItemCount(0);
             mTable.setRedraw(true);
             mTable.setItemCount(cnt);
@@ -568,6 +569,10 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             if (n < mTable.getTopIndex() || n >= mTable.getTopIndex() + getTableVisibleCount()) {
                 mTable.setTopIndex(n);
             }
+            mCurrentSearchResult++;
+            if (mCurrentSearchResult > mLastSearchResults)
+                mCurrentSearchResult = 1;
+            mSearchResult.setText("Locating (" + mCurrentSearchResult + "/" + mLastSearchResults + ") for \"" + mLogView.getSearchPattern() + "\"");
         }
     }
 
@@ -586,6 +591,10 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             if (n < mTable.getTopIndex() || n >= mTable.getTopIndex() + getTableVisibleCount()) {
                 mTable.setTopIndex(n);
             }
+            mCurrentSearchResult--;
+            if (mCurrentSearchResult <= 0)
+                mCurrentSearchResult = 1;
+            mSearchResult.setText("Locating (" + mCurrentSearchResult + "/" + mLastSearchResults + ") for \"" + mLogView.getSearchPattern() + "\"");
         }
     }
 
@@ -629,7 +638,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             os.close();
         } catch (FileNotFoundException e) {
             MessageBox m = new MessageBox(null, SWT.OK | SWT.ICON_ERROR);
-            m.setMessage("Cound not open " + fname + " ");
+            m.setMessage("Could not open " + fname + " ");
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -651,30 +660,24 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         mLogView.clear();
     }
 
-
     public void onUpdateFilter(LogFilter f) {
         mLogView.updateFilter(f);
     }
 
     @Override
     public void onSearchResult() {
-        // Display display = getDisplay();
-        // display.asyncExec(new Runnable() {
-        // @Override
-        // public void run() {
+
         if (mTable.isDisposed() || !mTable.isVisible())
             return;
 
         int top = mTable.getTopIndex();
+        int nResults = mLogView.getSearchResults();
 
-        int nresults = mLogView.getSearchResults();
-        if (nresults == 0) {
+        if (nResults == 0) {
             mTable.setItemCount(0);
             mTable.setRedraw(true);
             mTable.setItemCount(mLogView.size());
-
             mTable.setTopIndex(top);
-
         } else {
             int first = mLogView.getNextSearchResult(0);
 
@@ -696,9 +699,5 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         }
         updateSearchUI();
         Slogmain.getApp().getMainFrame().updateToolBars(this);
-
-        // }
-        // });
     }
-
 }
