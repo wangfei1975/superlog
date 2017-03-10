@@ -121,6 +121,15 @@ public class LogSource {
             };
         }
 
+        public LogFilter not() {
+            return new LogFilter("NOT(" + getName() + ")") {
+                @Override
+                public boolean filterLog(LogParser parser, String item) {
+                    return !LogFilter.this.filterLog(parser, item);
+                }
+            };
+        }
+
         public static LogFilter newLogFilter(String field, String op, final Object dstObj) {
             if (FIELD_PRIORITY.equals(field)) {
                 if (OP_EQUALS.equals(op)) {
@@ -298,12 +307,12 @@ public class LogSource {
      * "MMM dd HH:mm:ss.SSS"); static final SimpleDateFormat mDfmts = new
      * SimpleDateFormat("MMM dd HH:mm:ss"); static private SimpleDateFormat
      * mParser = mDfmt; private int mLevel = 7;
-     * 
+     *
      * Date getTime() { return mTime; }
-     * 
+     *
      * public String getText() { return texts[4]; } public String getText(int i)
      * { if (i >= 0 && i < texts.length) { return texts[i]; } return null; }
-     * 
+     *
      * static final String[] seperator = { "    ", " ", " ", " " }; public
      * LogItem(final String str) { final String [] ret = new String[5]; texts =
      * ret; int idx = 0, nextidx; final int slen = str.length(); for (int i = 0;
@@ -313,16 +322,16 @@ public class LogSource {
      * seperator[i].length(); while (slen > idx && str.charAt(idx) == ' ')
      * idx++; } ret[4] = str.substring(idx); if (!ret[1].isEmpty()) { mLevel =
      * ret[1].charAt(0) - '0'; if (mLevel < 0 || mLevel > 7) { mLevel = 6; } }
-     * 
+     *
      * try { mTime = mParser.parse(ret[0]); } catch (ParseException e) { try {
      * mParser = mDfmts; mTime = mParser.parse(ret[0]); } catch (ParseException
      * e1) { mTime = null; } } }
-     * 
+     *
      * public LogItem(String[] txt) { texts = txt; }
-     * 
+     *
      * public int getTextCount() { if (texts != null) { return texts.length; }
      * return 0; }
-     * 
+     *
      * public int getLevel() { return mLevel; } }
      */
     public static class LogView {
@@ -565,7 +574,7 @@ public class LogSource {
     // 10000));
     List<LogView> mViews = new ArrayList<LogView>(5);
 
-    List<StatusListener> mStatusListeners = (List<StatusListener>) Collections
+    List<StatusListener> mStatusListeners = Collections
             .synchronizedList(new ArrayList<StatusListener>(5));
 
 }

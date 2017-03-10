@@ -7,6 +7,7 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 apply plugin: "java"
 apply plugin: 'gradle-one-jar'
+apply from: 'genbuildinfo.gradle'
 
 buildscript {
     repositories {
@@ -20,13 +21,13 @@ repositories {
 	mavenCentral()
 }
 defaultTasks = ["clean", "deploy", "docs"]
-version = "1.0.5"
+version = "1.0.6"
 
 def WORKSPACE_DIR = "../"
 def MAIN_CLASS_NAME = "feiw.Slogmain"
 def DEPLOY_DIR = "./"
 
-sourceSets.main.java.srcDirs = ["./src"]
+sourceSets.main.java.srcDirs = ["./build/generated-sources/main", "./src"]
 sourceSets.main.resources.includes = ["./main/resources", "./main/screenshots"] // latter location probably not important
 dependencies {
 	compile 'com.google.code.gson:gson:2.2.+'
@@ -40,6 +41,21 @@ dependencies {
 	}
 	compile fileTree(dir: "./lib/"+dirName, include: "*.jar")
 }
+
+task('showCache') << {
+   configurations.compile.each { println it }
+}
+
+//tasks.genBuildInfo.dependsOn generateProto
+tasks.compileJava.dependsOn genBuildInfo
+ /*
+tasks.each {
+  if (!it.name.equals('showCache')) {
+    it.dependsOn showCache
+  }
+}
+*/
+
 task myjar(type: OneJar) {
    mainClass = "$MAIN_CLASS_NAME"
    mergeManifestFromJar = true

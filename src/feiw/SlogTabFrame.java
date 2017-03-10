@@ -15,28 +15,41 @@
  */
 package feiw;
 
-import feiw.LogSource.LogFilter;
-import feiw.LogSource.LogListener;
-import feiw.LogSource.LogView;
-import feiw.widgets.SlogTable;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.ToolItem;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Date;
-import java.util.concurrent.atomic.AtomicBoolean;
+import feiw.LogSource.LogFilter;
+import feiw.LogSource.LogListener;
+import feiw.LogSource.LogView;
+import feiw.widgets.SlogTable;
 
 public class SlogTabFrame extends CTabItem implements LogListener {
 
@@ -129,16 +142,6 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             }
         }
 
-        SelectionAdapter lisener = new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                Object o = event.widget.getData();
-                if (o instanceof Integer) {
-                    LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, o);
-                    Slogmain.getApp().getMainFrame().openFilterView(f);
-                }
-            }
-        };
 
         final int it = mTable.getSelectionIndex();
         if (it >= 0) {
@@ -152,6 +155,17 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim());
+                        Slogmain.getApp().getMainFrame().openFilterView(f);
+                    }
+                });
+
+                menuItem = new MenuItem(menu, SWT.NONE);
+                menuItem.setText("Filter  [Tag != \"" + tag.trim() + "\"]");
+                menuItem.setImage(Resources.filter_16);
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+                        LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim()).not();
                         Slogmain.getApp().getMainFrame().openFilterView(f);
                     }
                 });
@@ -169,7 +183,21 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                             Slogmain.getApp().getMainFrame().openFilterView(f);
                         }
                     });
+
+                    menuItem = new MenuItem(menu, SWT.NONE);
+                    menuItem.setText("Filter  [PID != \"" + pid.trim() + "\"]");
+                    menuItem.setImage(Resources.filter_16);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim()).not();
+                            Slogmain.getApp().getMainFrame().openFilterView(f);
+                        }
+                    });
+
                 }
+
+
             }
 
             final String tid = mLogView.getLogParser().parseTID(log);
@@ -184,10 +212,31 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                         Slogmain.getApp().getMainFrame().openFilterView(f);
                     }
                 });
+
+                menuItem = new MenuItem(menu, SWT.NONE);
+                menuItem.setText("Filter  [TID != \"" + tid.trim() + "\"]");
+                menuItem.setImage(Resources.filter_16);
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+                        LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TID, LogFilter.OP_EQUALS, tid.trim()).not();
+                        Slogmain.getApp().getMainFrame().openFilterView(f);
+                    }
+                });
             }
 
         }
 
+        SelectionAdapter lisener = new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                Object o = event.widget.getData();
+                if (o instanceof Integer) {
+                    LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, o);
+                    Slogmain.getApp().getMainFrame().openFilterView(f);
+                }
+            }
+        };
         menuItem = new MenuItem(menu, SWT.NONE);
         menuItem.setText("Filter  [Priority < Verbos(7)]");
         menuItem.setImage(Resources.filter_16);
