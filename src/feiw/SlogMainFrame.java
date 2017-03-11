@@ -15,10 +15,7 @@
  */
 package feiw;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -257,7 +254,6 @@ public final class SlogMainFrame {
                                 m.setMessage(e.getMessage());
                                 m.open();
                             }
-
                         }
                     }
 
@@ -278,9 +274,7 @@ public final class SlogMainFrame {
                                 m.setMessage(e.getMessage());
                                 m.open();
                             }
-
                         }
-
                     }
 
                     @Override
@@ -292,7 +286,6 @@ public final class SlogMainFrame {
                                 addListItem(lu.toString(), Resources.connected_16, lu);
                             }
                         }
-
                     }
                 });
 
@@ -300,37 +293,29 @@ public final class SlogMainFrame {
 
             @Override
             public void onToolSelected(ToolItem dropdown) {
-                FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
+                FileDialog dialog = new FileDialog(getShell(), SWT.MULTI);
                 String[] filterNames = new String[]{"Log Files", "All Files (*)"};
                 String[] filterExtensions = new String[]{"*.log;*.txt;", "*"};
-                // String filterPath = "";
-                /*
-                 * String platform = SWT.getPlatform(); if
-                 * (platform.equals("win32") || platform.equals("wpf")) {
-                 * filterNames = new String [] {"Image Files", "All Files (*.*)"
-                 * }; filterExtensions = new String []
-                 * {"*.gif;*.png;*.bmp;*.jpg;*.jpeg;*.tiff", "*.*"}; filterPath
-                 * = "c:\\"; }
-                 */
                 dialog.setFilterNames(filterNames);
                 dialog.setFilterExtensions(filterExtensions);
-                // dialog.setFilterPath (filterPath);
-                String fname = dialog.open();
-                if (fname != null) {
+                if (dialog.open() != null) {
                     FileTabFrame ftb;
-                    try {
-                        ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT | SWT.CLOSE | SWT.ICON, fname);
-                        mTabFolder.setSelection(ftb);
-
-                        SystemConfigs.instance().addRecentFile(fname);
-                        updateToolBars(ftb);
-                    } catch (FileNotFoundException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                    String filePath;
+                    String[] fileNames = dialog.getFileNames();
+                    String filterPath = dialog.getFilterPath();
+                    for (String fileName : fileNames) {
+                        try {
+                            filePath = filterPath + File.separatorChar + fileName;
+                            ftb = new FileTabFrame(mTabFolder, filePath, SWT.FLAT | SWT.CLOSE | SWT.ICON, filePath);
+                            mTabFolder.setSelection(ftb);
+                            SystemConfigs.instance().addRecentFile(fileName);
+                            updateToolBars(ftb);
+                        } catch (FileNotFoundException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
                     }
-
                 }
-
             }
 
             @Override
@@ -349,9 +334,7 @@ public final class SlogMainFrame {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-
                 }
-
             }
 
             @Override
@@ -363,9 +346,9 @@ public final class SlogMainFrame {
                         addListItem(fname, Resources.openfile_16, fname);
                     }
                 }
-
             }
         });
+
         getToolItem(ToolBarDes.TN_OPENFIFO).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -383,7 +366,6 @@ public final class SlogMainFrame {
                     try {
                         ftb = new FifoTabFrame(mTabFolder, fname, SWT.FLAT | SWT.CLOSE | SWT.ICON, fname);
                         mTabFolder.setSelection(ftb);
-
                         SystemConfigs.instance().addRecentFile(fname);
                         updateToolBars(ftb);
                     } catch (DeviceNotConnected e1) {
@@ -416,7 +398,6 @@ public final class SlogMainFrame {
                 if (o instanceof LogFilter) {
                     openFilterView((LogFilter) o);
                 }
-
             }
 
             @Override
@@ -429,7 +410,6 @@ public final class SlogMainFrame {
                     }
                 }
             }
-
         });
 
         getToolItem(ToolBarDes.TN_CLEAR).addSelectionListener(new SelectionAdapter() {
@@ -449,6 +429,7 @@ public final class SlogMainFrame {
                 }
             }
         });
+
         getToolItem(ToolBarDes.TN_DISCONNECT).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -458,6 +439,7 @@ public final class SlogMainFrame {
                 }
             }
         });
+
         getToolItem(ToolBarDes.TN_COPY).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -465,6 +447,7 @@ public final class SlogMainFrame {
                 tbf.onCopy();
             }
         });
+
         getToolItem(ToolBarDes.TN_COPYALL).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
