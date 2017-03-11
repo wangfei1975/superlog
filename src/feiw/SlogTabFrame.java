@@ -63,6 +63,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     this.getSelectedLinesFilter(),
                     this.getLogView().getLogParser(),
                     this.getParentLogView());
+
+            mSelectedLinesTab.getLogView().setLogTabFrame(this);
         }
         return mSelectedLinesTab;
     }
@@ -232,6 +234,25 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                 });
             }
 
+            if (getLogView().getLogTabFrame() != null) {
+                TreeMap <String, String> map = getLogView().getLogTabFrame().mSelectedLines;
+                if (!map.isEmpty()) {
+                    String key = (String)map.keySet().toArray()[it];
+                    menuItem = new MenuItem(menu, SWT.NONE);
+                    menuItem.setText("Go back to original log line " + key);
+                    menuItem.setImage(Resources.filter_16);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            String key = (String)map.keySet().toArray()[it];
+                            //System.out.println("Go back to line " + key + ":" + (String)map.get(key));
+                            Slogmain.getApp().getMainFrame().mTabFolder.setSelection(getLogView().getLogTabFrame());
+                            getLogView().getLogTabFrame().mTable.setSelection(Integer.parseInt(key));
+                        }
+                    });
+                }
+            }
+
             final String tag = mLogView.getLogParser().parseTag(log);
             if (tag != null && !tag.trim().isEmpty()) {
                 menuItem = new MenuItem(menu, SWT.NONE);
@@ -245,21 +266,21 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     }
                 });
             }
-            {
-                final String pid = mLogView.getLogParser().parsePID(log);
-                if (pid != null && !pid.trim().isEmpty()) {
-                    menuItem = new MenuItem(menu, SWT.NONE);
-                    menuItem.setText("Filter  [PID = \"" + pid.trim() + "\"]");
-                    menuItem.setImage(Resources.filter_16);
-                    menuItem.addSelectionListener(new SelectionAdapter() {
-                        @Override
-                        public void widgetSelected(SelectionEvent event) {
-                            LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim());
-                            Slogmain.getApp().getMainFrame().openFilterView(f);
-                        }
-                    });
-                }
+
+            final String pid = mLogView.getLogParser().parsePID(log);
+            if (pid != null && !pid.trim().isEmpty()) {
+                menuItem = new MenuItem(menu, SWT.NONE);
+                menuItem.setText("Filter  [PID = \"" + pid.trim() + "\"]");
+                menuItem.setImage(Resources.filter_16);
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+                        LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim());
+                        Slogmain.getApp().getMainFrame().openFilterView(f);
+                    }
+                });
             }
+
 
             final String tid = mLogView.getLogParser().parseTID(log);
             if (tid != null && !tid.trim().isEmpty()) {
@@ -274,7 +295,6 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     }
                 });
             }
-
         }
 
         menuItem = new MenuItem(menu, SWT.NONE);
@@ -318,6 +338,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logSource, LogFilter logFilter,
                         LogParser logParser, LogView parentLogView) {
         super(parent, style);
+
+        mSelectedLines.clear();
 
         this.mParentLogView = parentLogView;
         this.mStyle = style;
