@@ -23,9 +23,9 @@ import feiw.LogSource.LogView;
 
 public class FilterTabFrame extends SlogTabFrame {
 
-    public FilterTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter,
+    public FilterTabFrame(CTabFolder parent, String txt, int style, LogSource logSource, LogFilter logFilter,
             LogParser logParser, LogView parentView) {
-        super(parent, txt, style, logsrc, logFilter, logParser, parentView);
+        super(parent, txt, style, logSource, logFilter, logParser, parentView);
         setImage(Resources.filter_32);
     }
 
@@ -37,7 +37,7 @@ public class FilterTabFrame extends SlogTabFrame {
             tit.setEnabled(false);
             return;
         }
-        if (mLogSrc instanceof FileLogSource) {
+        if (mLogSource instanceof FileLogSource) {
             if (tn.equals(ToolBarDes.TN_DISCONNECT)) {
                 tit.setEnabled(false);
             } else if (tn.equals(ToolBarDes.TN_PAUSE)) {
@@ -47,9 +47,9 @@ public class FilterTabFrame extends SlogTabFrame {
             }
         } else {
             if (tn.equals(ToolBarDes.TN_DISCONNECT)) {
-                tit.setEnabled(mLogSrc.getStatus() == LogSource.stConnected);
+                tit.setEnabled(mLogSource.getStatus() == LogSource.stConnected);
             } else if (tn.equals(ToolBarDes.TN_PAUSE)) {
-                if (mLogSrc.getStatus() == LogSource.stConnected) {
+                if (mLogSource.getStatus() == LogSource.stConnected) {
                     tit.setToolTipText(mLogView.isPaused() ? "Resume" : "Pause");
                     tit.setImage(mLogView.isPaused() ? Resources.go_32 : Resources.pause_32);
                 } else {

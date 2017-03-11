@@ -45,7 +45,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     private SlogTable mTable;
     private TableEditor mTableEditor;
     protected LogView mLogView = null;
-    protected LogSource mLogSrc;
+    protected LogSource mLogSource;
     protected LogView mParentLogView = null;
     protected int mStyle = 0;
     private Label mLineCountLabel;
@@ -89,7 +89,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     }
 
     public void onClose() {
-        mLogSrc.removeLogView(mLogView);
+        mLogSource.removeLogView(mLogView);
     }
 
     public LogView getLogView() {
@@ -97,7 +97,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     }
 
     public LogSource getLogSource() {
-        return mLogSrc;
+        return mLogSource;
     }
 
     public SlogTable getTable() {
@@ -135,7 +135,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         } else if (tn.equals(ToolBarDes.TN_NEXT) || tn.equals(ToolBarDes.TN_PREV)) {
             tit.setEnabled(mLogView.getSearchResults() > 0);
         } else if (tn.equals(ToolBarDes.TN_SAVEAS)) {
-            // tit.setEnabled(!(mLogSrc instanceof FileLogSource));
+            // tit.setEnabled(!(mLogSource instanceof FileLogSource));
             tit.setEnabled(true);
         }
     }
@@ -315,19 +315,19 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         menu.setVisible(true);
     }
 
-    public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter,
+    public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logSource, LogFilter logFilter,
                         LogParser logParser, LogView parentLogView) {
         super(parent, style);
 
         this.mParentLogView = parentLogView;
         this.mStyle = style;
 
-        mLogSrc = logsrc;
-        mLogView = mLogSrc.newLogView(this, logFilter, logParser, parentLogView);
+        mLogSource = logSource;
+        mLogView = mLogSource.newLogView(this, logFilter, logParser, parentLogView);
 
         if (logFilter != null) {
-            System.out.println("SlogTabFrame raw rules start...");
-            System.out.print(logFilter.getRawRules());
+            //System.out.println("SlogTabFrame raw rules start...");
+            //System.out.print(logFilter.getRawRules());
             mLogView.setRawRules(logFilter.getRawRules());
         }
 
@@ -348,7 +348,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         setLogFont();
 
         // mStatusLabel = new Label(com, SWT.BORDER_SOLID|SWT.ICON);
-        // mStatusLabel.setImage(logsrc.getStatus() == LogSource.stConnected ?
+        // mStatusLabel.setImage(logSource.getStatus() == LogSource.stConnected ?
         // Resources.connected_16 :Resources.disconnected_16);
 
         // mStatusLabel.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false,
@@ -532,7 +532,6 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     updateLogUI();
                 }
             });
-
         }
     }
 

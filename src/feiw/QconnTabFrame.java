@@ -26,21 +26,21 @@ public class QconnTabFrame extends SlogTabFrame implements StatusListener {
     public QconnTabFrame(CTabFolder parent, String txt, int style, String ip, int port) throws DeviceNotConnected {
         super(parent, txt, style, new QconnLogSource(ip, port), null, new LogParser.QnxLogParser(), null);
         setImage(Resources.disconnected_32);
-        mLogSrc.addStatusListener(this);
+        mLogSource.addStatusListener(this);
     }
 
     @Override
     void updateToolItem(ToolItem tit) {
         tit.setEnabled(true);
         if (tit.getData().equals(ToolBarDes.TN_PAUSE)) {
-            if (mLogSrc.getStatus() == LogSource.stConnected) {
+            if (mLogSource.getStatus() == LogSource.stConnected) {
                 tit.setToolTipText(mLogView.isPaused() ? "Resume" : "Pause");
                 tit.setImage(mLogView.isPaused() ? Resources.go_32 : Resources.pause_32);
             } else {
                 tit.setEnabled(false);
             }
         } else if (tit.getData().equals(ToolBarDes.TN_DISCONNECT)) {
-            tit.setEnabled(mLogSrc.getStatus() == LogSource.stConnected);
+            tit.setEnabled(mLogSource.getStatus() == LogSource.stConnected);
         } else {
             super.updateToolItem(tit);
         }
@@ -48,7 +48,7 @@ public class QconnTabFrame extends SlogTabFrame implements StatusListener {
 
     @Override
     public void onClose() {
-        mLogSrc.removeStatusListener(this);
+        mLogSource.removeStatusListener(this);
         super.onClose();
     }
 
@@ -90,7 +90,7 @@ public class QconnTabFrame extends SlogTabFrame implements StatusListener {
     @Override
     public void onDisconnect() {
         if (!isDisposed()) {
-            mLogSrc.disconnect();
+            mLogSource.disconnect();
             setImage(Resources.disconnected_32);
             Slogmain.getApp().getMainFrame().updateToolBars(this);
         }

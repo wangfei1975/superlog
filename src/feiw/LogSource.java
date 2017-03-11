@@ -191,7 +191,7 @@ public class LogSource {
                 }
 
             } else if (FIELD_CONTENT.equals(field)) {
-                rawRule.value = (String)dstObj;
+                rawRule.value = (String) dstObj;
                 if (OP_CONTAINS.equals(op)) {
                     logFilter = new LogFilter(field + " " + op + " " + dstObj) {
                         private final StringPattern mPat = new StringPattern((String) dstObj, false);
@@ -203,7 +203,7 @@ public class LogSource {
                     };
                 }
             } else if (FIELD_TAG.equals(field)) {
-                rawRule.value = (String)dstObj;
+                rawRule.value = (String) dstObj;
                 if (OP_EQUALS.equals(op)) {
                     logFilter = new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
@@ -221,7 +221,7 @@ public class LogSource {
                     };
                 }
             } else if (FIELD_PID.equals(field)) {
-                rawRule.value = (String)dstObj;
+                rawRule.value = (String) dstObj;
                 if (OP_EQUALS.equals(op)) {
                     logFilter = new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
@@ -231,7 +231,7 @@ public class LogSource {
                     };
                 }
             } else if (FIELD_TID.equals(field)) {
-                rawRule.value = (String)dstObj;
+                rawRule.value = (String) dstObj;
                 if (OP_EQUALS.equals(op)) {
                     logFilter = new LogFilter(field + " " + op + " " + dstObj) {
                         @Override
@@ -331,39 +331,6 @@ public class LogSource {
         // System.out.println(" log lines = " + line);
     }
 
-    /*
-     * public static final class LogItem { private final String[] texts; private
-     * Date mTime; static final SimpleDateFormat mDfmt = new SimpleDateFormat(
-     * "MMM dd HH:mm:ss.SSS"); static final SimpleDateFormat mDfmts = new
-     * SimpleDateFormat("MMM dd HH:mm:ss"); static private SimpleDateFormat
-     * mParser = mDfmt; private int mLevel = 7;
-     * 
-     * Date getTime() { return mTime; }
-     * 
-     * public String getText() { return texts[4]; } public String getText(int i)
-     * { if (i >= 0 && i < texts.length) { return texts[i]; } return null; }
-     * 
-     * static final String[] seperator = { "    ", " ", " ", " " }; public
-     * LogItem(final String str) { final String [] ret = new String[5]; texts =
-     * ret; int idx = 0, nextidx; final int slen = str.length(); for (int i = 0;
-     * i < 4; i++) { nextidx = str.indexOf(seperator[i], idx); if (nextidx <= 0)
-     * { ret[0] = ret[1] = ret[2] = ret[3] = null; ret[4] = str; return; }
-     * ret[i] = str.substring(idx, nextidx); idx = nextidx +
-     * seperator[i].length(); while (slen > idx && str.charAt(idx) == ' ')
-     * idx++; } ret[4] = str.substring(idx); if (!ret[1].isEmpty()) { mLevel =
-     * ret[1].charAt(0) - '0'; if (mLevel < 0 || mLevel > 7) { mLevel = 6; } }
-     * 
-     * try { mTime = mParser.parse(ret[0]); } catch (ParseException e) { try {
-     * mParser = mDfmts; mTime = mParser.parse(ret[0]); } catch (ParseException
-     * e1) { mTime = null; } } }
-     * 
-     * public LogItem(String[] txt) { texts = txt; }
-     * 
-     * public int getTextCount() { if (texts != null) { return texts.length; }
-     * return 0; }
-     * 
-     * public int getLevel() { return mLevel; } }
-     */
     public static class LogView {
         private List<String> mFilteredItems;
         private LogListener mListener = null;
@@ -431,11 +398,11 @@ public class LogSource {
             dw.flush();
         }
 
-        private LogView(LogListener listener, LogFilter filter, LogParser parser, List<String> source, int rolllines) {
+        private LogView(LogListener listener, LogFilter filter, LogParser parser, List<String> source, int rollLines) {
             mListener = listener;
             mFilter = filter;
             mParser = parser;
-            mRollLines = rolllines;
+            mRollLines = rollLines;
             mFilteredItems = Collections.synchronizedList(new ArrayList<String>());
             mSource = source;
 
@@ -462,15 +429,8 @@ public class LogSource {
             return false;
         }
 
-        public void add(final String item, boolean notifylistner) {
+        public void add(final String item, boolean notify) {
 
-            if (item.contains("fei:clearlogs")) {
-                mSearchResults = -1;
-                mSearchPattern = null;
-                mFilteredItems.clear();
-                mLogChanged.set(true);
-                return;
-            }
             if (mFilter == null || mFilter.filterLog(mParser, item)) {
                 synchronized (mFilteredItems) {
                     if (isSearchResults(item)) {
@@ -482,7 +442,7 @@ public class LogSource {
                     mFilteredItems.add(item);
                 }
                 mLogChanged.set(true);
-                if (notifylistner) {
+                if (notify) {
                     notifyListener();
                 }
             }
@@ -503,7 +463,7 @@ public class LogSource {
         }
 
         public void updateFilter(LogFilter filter) {
-            System.out.println(" updateFilter clear...");
+            //System.out.println(" updateFilter clear...");
 
             this.clear();
 
@@ -518,7 +478,9 @@ public class LogSource {
                     }
                 }
             }
-            System.out.println(" updateFilter mFilteredItems.size() = " + mFilteredItems.size());
+
+            //System.out.println(" updateFilter mFilteredItems.size() = " + mFilteredItems.size());
+
             if (mFilteredItems.size() > 0) {
                 mLogChanged.set(true);
                 notifyListener();
@@ -615,16 +577,16 @@ public class LogSource {
     int mRollLines = -1;
 
     public synchronized LogView newLogView(LogListener listener, LogFilter filter, LogParser parser,
-            LogView parentView) {
+                                           LogView parentView) {
         LogView v = new LogView(listener, filter, parser, parentView == null ? null : parentView.mFilteredItems,
                 mRollLines);
         mViews.add(v);
         return v;
     }
 
-    public synchronized void addLogItem(final String item, boolean notifylistener) {
+    public synchronized void addLogItem(final String item, boolean notify) {
         for (LogView v : mViews) {
-            v.add(item, notifylistener);
+            v.add(item, notify);
         }
     }
 
