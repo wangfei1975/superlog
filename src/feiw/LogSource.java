@@ -25,6 +25,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LogSource {
@@ -338,15 +339,38 @@ public class LogSource {
         private StringPattern mSearchPattern = null;
         private LogParser mParser;
         private List<String> mSource;
-
+        private SlogTabFrame mLogTabFrame = null;
         private int mRollLines;
         private AtomicBoolean mLogChanged = new AtomicBoolean(false);
         private AtomicBoolean mPaused = new AtomicBoolean(false);
-
+        private TreeMap<Integer, Integer> mFilterLineMap = new TreeMap<Integer, Integer>();
+        private Integer mSourceLines = 0;
+        private Integer mFilteredLines = 0;
+        private boolean mIsSelectedLogView = false;
         ArrayList<FilterDlg.RawRule> mRawRules = null;
 
         void setRawRules(ArrayList<FilterDlg.RawRule> rawRules) {
             mRawRules = rawRules;
+        }
+
+        public void setLogTabFrame(SlogTabFrame logTabFrame) {
+            mLogTabFrame = logTabFrame;
+        }
+
+        public SlogTabFrame getLogTabFrame() {
+            return mLogTabFrame;
+        }
+
+        public void setSelectedLogView(boolean selectedLogView) {
+            this.mIsSelectedLogView = selectedLogView;
+        }
+
+        public boolean isSelectedLogView() {
+            return this.mIsSelectedLogView;
+        }
+
+        public TreeMap<Integer, Integer> getFilterLineMap() {
+            return mFilterLineMap;
         }
 
         ArrayList<FilterDlg.RawRule> getRawRules() {
@@ -405,13 +429,17 @@ public class LogSource {
             mRollLines = rollLines;
             mFilteredItems = Collections.synchronizedList(new ArrayList<String>());
             mSource = source;
+            mFilterLineMap.clear();
 
             if (source != null) {
                 synchronized (source) {
                     for (String it : source) {
                         if (filter.filterLog(parser, it)) {
+                            mFilterLineMap.put(mFilteredLines, mSourceLines);
                             mFilteredItems.add(it);
+                            mFilteredLines++;
                         }
+                        mSourceLines++;
                     }
                 }
             }
@@ -430,7 +458,6 @@ public class LogSource {
         }
 
         public void add(final String item, boolean notify) {
-
             if (mFilter == null || mFilter.filterLog(mParser, item)) {
                 synchronized (mFilteredItems) {
                     if (isSearchResults(item)) {
@@ -438,14 +465,18 @@ public class LogSource {
                     }
                     if (mRollLines > 0 && mFilteredItems.size() >= mRollLines) {
                         mFilteredItems.remove(0);
+                        mFilterLineMap.remove(0);
                     }
+                    mFilterLineMap.put(mFilteredLines, mSourceLines);
                     mFilteredItems.add(item);
+                    mFilteredLines++;
                 }
                 mLogChanged.set(true);
                 if (notify) {
                     notifyListener();
                 }
             }
+            mSourceLines++;
         }
 
         public void clear() {
@@ -454,6 +485,9 @@ public class LogSource {
                 mSearchPattern = null;
                 mFilteredItems.clear();
                 mLogChanged.set(true);
+                mFilterLineMap.clear();
+                mSourceLines = 0;
+                mFilteredLines = 0;
                 notifyListener();
             }
         }
@@ -463,23 +497,20 @@ public class LogSource {
         }
 
         public void updateFilter(LogFilter filter) {
-            //System.out.println(" updateFilter clear...");
-
             this.clear();
-
             mFilter = filter;
-
             if (mSource != null) {
                 synchronized (mSource) {
                     for (String it : mSource) {
                         if (mFilter.filterLog(mParser, it)) {
+                            mFilterLineMap.put(mFilteredLines, mSourceLines);
                             mFilteredItems.add(it);
+                            mFilteredLines++;
                         }
+                        mSourceLines++;
                     }
                 }
             }
-
-            //System.out.println(" updateFilter mFilteredItems.size() = " + mFilteredItems.size());
 
             if (mFilteredItems.size() > 0) {
                 mLogChanged.set(true);
@@ -600,9 +631,6 @@ public class LogSource {
 
     }
 
-    // List<LogItem> mItems = (List<LogItem>) Collections.synchronizedList(new
-    // ArrayList<LogItem>(
-    // 10000));
     List<LogView> mViews = new ArrayList<LogView>(5);
 
     List<StatusListener> mStatusListeners = (List<StatusListener>) Collections

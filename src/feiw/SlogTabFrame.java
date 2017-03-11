@@ -63,6 +63,9 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     this.getSelectedLinesFilter(),
                     this.getLogView().getLogParser(),
                     this.getParentLogView());
+
+            mSelectedLinesTab.getLogView().setLogTabFrame(this);
+            mSelectedLinesTab.getLogView().setSelectedLogView(true);
         }
         return mSelectedLinesTab;
     }
@@ -232,49 +235,92 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                 });
             }
 
+            if (getLogView().getLogTabFrame() != null) {
+                if (getLogView().isSelectedLogView() == true) {
+                    TreeMap<String, String> map = getLogView().getLogTabFrame().mSelectedLines;
+                    if (!map.isEmpty()) {
+                        String key = (String) map.keySet().toArray()[it];
+                        menuItem = new MenuItem(menu, SWT.NONE);
+                        menuItem.setText("Go back to original log line " + key);
+                        menuItem.setImage(Resources.filter_16);
+                        menuItem.addSelectionListener(new SelectionAdapter() {
+                            @Override
+                            public void widgetSelected(SelectionEvent event) {
+                                String key = (String) map.keySet().toArray()[it];
+                                //System.out.println("Go back to line " + key + ":" + (String)map.get(key));
+                                Slogmain.getApp().getMainFrame().mTabFolder.setSelection(getLogView().getLogTabFrame());
+                                getLogView().getLogTabFrame().mTable.setSelection(Integer.parseInt(key));
+                            }
+                        });
+                    }
+                } else {
+                    TreeMap<Integer, Integer> filterLineMap = getLogView().getFilterLineMap();
+                    if (!filterLineMap.isEmpty()) {
+                        Integer key = (Integer) filterLineMap.keySet().toArray()[it];
+                        Integer originalLine = filterLineMap.get(key);
+                        menuItem = new MenuItem(menu, SWT.NONE);
+                        menuItem.setText("Go back to original log line " + originalLine);
+                        menuItem.setImage(Resources.filter_16);
+                        menuItem.addSelectionListener(new SelectionAdapter() {
+                            @Override
+                            public void widgetSelected(SelectionEvent event) {
+                                System.out.println("Go back to line " + key + ":" + originalLine);
+                                Slogmain.getApp().getMainFrame().mTabFolder.setSelection(getLogView().getLogTabFrame());
+                                getLogView().getLogTabFrame().mTable.setSelection(originalLine);
+                            }
+                        });
+                    }
+                }
+            }
+
             final String tag = mLogView.getLogParser().parseTag(log);
             if (tag != null && !tag.trim().isEmpty()) {
                 menuItem = new MenuItem(menu, SWT.NONE);
                 menuItem.setText("Filter  [Tag = \"" + tag.trim() + "\"]");
                 menuItem.setImage(Resources.filter_16);
+                SlogTabFrame parentFilterTabFrame = this;
                 menuItem.addSelectionListener(new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim());
-                        Slogmain.getApp().getMainFrame().openFilterView(f);
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(parentFilterTabFrame);
                     }
                 });
             }
-            {
-                final String pid = mLogView.getLogParser().parsePID(log);
-                if (pid != null && !pid.trim().isEmpty()) {
-                    menuItem = new MenuItem(menu, SWT.NONE);
-                    menuItem.setText("Filter  [PID = \"" + pid.trim() + "\"]");
-                    menuItem.setImage(Resources.filter_16);
-                    menuItem.addSelectionListener(new SelectionAdapter() {
-                        @Override
-                        public void widgetSelected(SelectionEvent event) {
-                            LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim());
-                            Slogmain.getApp().getMainFrame().openFilterView(f);
-                        }
-                    });
-                }
+
+            final String pid = mLogView.getLogParser().parsePID(log);
+            if (pid != null && !pid.trim().isEmpty()) {
+                menuItem = new MenuItem(menu, SWT.NONE);
+                menuItem.setText("Filter  [PID = \"" + pid.trim() + "\"]");
+                menuItem.setImage(Resources.filter_16);
+                SlogTabFrame parentFilterTabFrame = this;
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+                        LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim());
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(parentFilterTabFrame);
+                    }
+                });
             }
+
 
             final String tid = mLogView.getLogParser().parseTID(log);
             if (tid != null && !tid.trim().isEmpty()) {
                 menuItem = new MenuItem(menu, SWT.NONE);
                 menuItem.setText("Filter  [TID = \"" + tid.trim() + "\"]");
                 menuItem.setImage(Resources.filter_16);
+                SlogTabFrame parentFilterTabFrame = this;
                 menuItem.addSelectionListener(new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TID, LogFilter.OP_EQUALS, tid.trim());
-                        Slogmain.getApp().getMainFrame().openFilterView(f);
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(parentFilterTabFrame);
                     }
                 });
             }
-
         }
 
         menuItem = new MenuItem(menu, SWT.NONE);
@@ -298,6 +344,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         menuItem = new MenuItem(menu, SWT.NONE);
         menuItem.setText("Filter  [Customized ...]");
         menuItem.setImage(Resources.filter_16);
+        SlogTabFrame parentFilterTabFrame = this;
         menuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
@@ -306,7 +353,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     return;
                 }
                 LogFilter f = fdlg.getFilter();
-                Slogmain.getApp().getMainFrame().openFilterView(f);
+                FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                tbf.getLogView().setLogTabFrame(parentFilterTabFrame);
                 SystemConfigs.instance().addRecentFilter(f);
             }
         });
@@ -318,6 +366,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logSource, LogFilter logFilter,
                         LogParser logParser, LogView parentLogView) {
         super(parent, style);
+
+        mSelectedLines.clear();
 
         this.mParentLogView = parentLogView;
         this.mStyle = style;
