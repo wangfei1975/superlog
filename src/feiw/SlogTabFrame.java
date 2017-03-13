@@ -53,6 +53,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     private FilterTabFrame mSelectedLinesTab = null;
     private TreeMap<String, String> mSelectedLines = new TreeMap<String, String>();
     private LogFilter mSelectedLinesFilter = LogFilter.newSelectedFilter("");
+    final SlogTabFrame thisFilterTabFrame = this;
 
     public SlogTabFrame getSelectedLinesTab() {
         if (mSelectedLinesTab == null || mSelectedLinesTab.isDisposed()) {
@@ -237,17 +238,15 @@ public class SlogTabFrame extends CTabItem implements LogListener {
 
             if (getLogView().getLogTabFrame() != null) {
                 if (getLogView().isSelectedLogView() == true) {
-                    TreeMap<String, String> map = getLogView().getLogTabFrame().mSelectedLines;
-                    if (!map.isEmpty()) {
-                        String key = (String) map.keySet().toArray()[it];
+                    final TreeMap<String, String> selectedLinesMap = getLogView().getLogTabFrame().mSelectedLines;
+                    if (!selectedLinesMap.isEmpty()) {
+                        final String key = (String) selectedLinesMap.keySet().toArray()[it];
                         menuItem = new MenuItem(menu, SWT.NONE);
                         menuItem.setText("Go back to original log line " + key);
                         menuItem.setImage(Resources.filter_16);
                         menuItem.addSelectionListener(new SelectionAdapter() {
                             @Override
                             public void widgetSelected(SelectionEvent event) {
-                                String key = (String) map.keySet().toArray()[it];
-                                //System.out.println("Go back to line " + key + ":" + (String)map.get(key));
                                 Slogmain.getApp().getMainFrame().mTabFolder.setSelection(getLogView().getLogTabFrame());
                                 getLogView().getLogTabFrame().mTable.setSelection(Integer.parseInt(key));
                             }
@@ -256,8 +255,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                 } else {
                     TreeMap<Integer, Integer> filterLineMap = getLogView().getFilterLineMap();
                     if (!filterLineMap.isEmpty()) {
-                        Integer key = (Integer) filterLineMap.keySet().toArray()[it];
-                        Integer originalLine = filterLineMap.get(key);
+                        final Integer key = (Integer) filterLineMap.keySet().toArray()[it];
+                        final Integer originalLine = filterLineMap.get(key);
                         menuItem = new MenuItem(menu, SWT.NONE);
                         menuItem.setText("Go back to original log line " + originalLine);
                         menuItem.setImage(Resources.filter_16);
@@ -278,13 +277,12 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                 menuItem = new MenuItem(menu, SWT.NONE);
                 menuItem.setText("Filter  [Tag = \"" + tag.trim() + "\"]");
                 menuItem.setImage(Resources.filter_16);
-                SlogTabFrame parentFilterTabFrame = this;
                 menuItem.addSelectionListener(new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim());
                         FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
-                        tbf.getLogView().setLogTabFrame(parentFilterTabFrame);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                     }
                 });
             }
@@ -294,13 +292,12 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                 menuItem = new MenuItem(menu, SWT.NONE);
                 menuItem.setText("Filter  [PID = \"" + pid.trim() + "\"]");
                 menuItem.setImage(Resources.filter_16);
-                SlogTabFrame parentFilterTabFrame = this;
                 menuItem.addSelectionListener(new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim());
                         FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
-                        tbf.getLogView().setLogTabFrame(parentFilterTabFrame);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                     }
                 });
             }
@@ -311,13 +308,12 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                 menuItem = new MenuItem(menu, SWT.NONE);
                 menuItem.setText("Filter  [TID = \"" + tid.trim() + "\"]");
                 menuItem.setImage(Resources.filter_16);
-                SlogTabFrame parentFilterTabFrame = this;
                 menuItem.addSelectionListener(new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TID, LogFilter.OP_EQUALS, tid.trim());
                         FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
-                        tbf.getLogView().setLogTabFrame(parentFilterTabFrame);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                     }
                 });
             }
@@ -344,7 +340,6 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         menuItem = new MenuItem(menu, SWT.NONE);
         menuItem.setText("Filter  [Customized ...]");
         menuItem.setImage(Resources.filter_16);
-        SlogTabFrame parentFilterTabFrame = this;
         menuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
@@ -354,7 +349,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                 }
                 LogFilter f = fdlg.getFilter();
                 FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
-                tbf.getLogView().setLogTabFrame(parentFilterTabFrame);
+                tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                 SystemConfigs.instance().addRecentFilter(f);
             }
         });
