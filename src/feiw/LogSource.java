@@ -132,11 +132,21 @@ public class LogSource {
             };
         }
 
+
         public static LogFilter newSelectedFilter(String name) {
             return new LogFilter("Selected" + name) {
                 @Override
                 public boolean filterLog(LogParser parser, String item) {
                     return true;
+              }
+            };
+        }
+      
+        public LogFilter not() {
+            return new LogFilter("NOT(" + getName() + ")") {
+                @Override
+                public boolean filterLog(LogParser parser, String item) {
+                    return !LogFilter.this.filterLog(parser, item);
                 }
             };
         }
@@ -633,7 +643,7 @@ public class LogSource {
 
     List<LogView> mViews = new ArrayList<LogView>(5);
 
-    List<StatusListener> mStatusListeners = (List<StatusListener>) Collections
+    List<StatusListener> mStatusListeners = Collections
             .synchronizedList(new ArrayList<StatusListener>(5));
 
 }

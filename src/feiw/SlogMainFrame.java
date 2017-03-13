@@ -493,7 +493,7 @@ public final class SlogMainFrame {
             public void widgetSelected(SelectionEvent e) {
                 MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_INFORMATION);
                 m.setText("About SuperLog");
-                m.setMessage("SuperLog Version 1.0.5\n");
+                m.setMessage("SuperLog Version " + BuildInfo.VERSION + "\n" + "Build Time: " + BuildInfo.BUILD_TIME + "\n");
                 m.open();
             }
         });
