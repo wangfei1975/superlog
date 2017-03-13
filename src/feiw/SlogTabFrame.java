@@ -227,6 +227,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
 
             if (getLogView().getLogTabFrame() != null) {
                 TreeMap<Integer, Integer> filterLineMap;
+
                 if (getLogView().isSelectedLogView() == true) {
                     filterLineMap = getLogView().getLogTabFrame().mSelectedLinesMap;
                 } else {
@@ -247,6 +248,24 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                             getLogView().getLogTabFrame().mTable.setSelection(originalLine);
                         }
                     });
+
+                    if (getLogView().isSelectedLogView() == true) {
+                        menuItem = new MenuItem(menu, SWT.NONE);
+                        menuItem.setText("Remove line " + it + "(" + originalLine + ") from Selected");
+                        menuItem.setImage(Resources.filter_16);
+                        menuItem.addSelectionListener(new SelectionAdapter() {
+                            @Override
+                            public void widgetSelected(SelectionEvent event) {
+                                System.out.println("Remove line " + it + ":" + originalLine);
+
+                                filterLineMap.remove(key);
+
+                                TableItem tableItem = getLogView().getLogTabFrame().mTable.getItem(originalLine);
+                                tableItem.setImage(Resources.empty);
+                                getLogView().getLogTabFrame().updateSelectedLinesTab();
+                            }
+                        });
+                    }
                 }
             }
 
