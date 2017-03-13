@@ -51,7 +51,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     private Label mLineCountLabel;
     private Label mSearchResult;
     private FilterTabFrame mSelectedLinesTab = null;
-    private TreeMap<String, String> mSelectedLines = new TreeMap<String, String>();
+    private TreeMap<Integer, Integer> mSelectedLinesMap = new TreeMap<Integer, Integer>();
     private LogFilter mSelectedLinesFilter = LogFilter.newSelectedFilter("");
     final SlogTabFrame thisFilterTabFrame = this;
 
@@ -75,7 +75,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         SlogTabFrame selectedTab = getSelectedLinesTab();
 
         // Get a set of the entries
-        Set set = mSelectedLines.entrySet();
+        Set set = mSelectedLinesMap.entrySet();
 
         // Get an iterator
         Iterator i = set.iterator();
@@ -85,10 +85,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         // Display elements
         while (i.hasNext()) {
             Map.Entry me = (Map.Entry) i.next();
-            //System.out.print(me.getKey() + ": ");
-            //System.out.println(me.getValue());
-
-            selectedTab.getLogView().add((String) me.getValue(), true);
+            selectedTab.getLogView().add(mLogView.getLog((Integer) me.getKey()), true);
         }
     }
 
@@ -200,19 +197,17 @@ public class SlogTabFrame extends CTabItem implements LogListener {
 
         final int it = mTable.getSelectionIndex();
         if (it >= 0) {
-            final String log = mLogView.getLog(it);
-
             menuItem = new MenuItem(menu, SWT.NONE);
 
-            if (!mSelectedLines.containsKey(String.valueOf(it))) {
+            if (!mSelectedLinesMap.containsKey(it)) {
                 menuItem.setText("Add line " + it + " to Selected");
                 menuItem.setImage(Resources.filter_16);
                 menuItem.addSelectionListener(new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
 
-                        if (!mSelectedLines.containsKey(String.valueOf(it))) {
-                            mSelectedLines.put(String.valueOf(it), log);
+                        if (!mSelectedLinesMap.containsKey(it)) {
+                            mSelectedLinesMap.put(it, it);
                             TableItem[] tableItem = mTable.getSelection();
                             tableItem[0].setImage(Resources.check);
                             updateSelectedLinesTab();
@@ -226,8 +221,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
 
-                        if (mSelectedLines.containsKey(String.valueOf(it))) {
-                            mSelectedLines.remove(String.valueOf(it));
+                        if (mSelectedLinesMap.containsKey(it)) {
+                            mSelectedLinesMap.remove(it);
                             TableItem[] tableItem = mTable.getSelection();
                             tableItem[0].setImage(Resources.empty);
                             updateSelectedLinesTab();
@@ -237,41 +232,31 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             }
 
             if (getLogView().getLogTabFrame() != null) {
+                TreeMap<Integer, Integer> filterLineMap;
                 if (getLogView().isSelectedLogView() == true) {
-                    final TreeMap<String, String> selectedLinesMap = getLogView().getLogTabFrame().mSelectedLines;
-                    if (!selectedLinesMap.isEmpty()) {
-                        final String key = (String) selectedLinesMap.keySet().toArray()[it];
-                        menuItem = new MenuItem(menu, SWT.NONE);
-                        menuItem.setText("Go back to original log line " + key);
-                        menuItem.setImage(Resources.filter_16);
-                        menuItem.addSelectionListener(new SelectionAdapter() {
-                            @Override
-                            public void widgetSelected(SelectionEvent event) {
-                                Slogmain.getApp().getMainFrame().mTabFolder.setSelection(getLogView().getLogTabFrame());
-                                getLogView().getLogTabFrame().mTable.setSelection(Integer.parseInt(key));
-                            }
-                        });
-                    }
+                    filterLineMap = getLogView().getLogTabFrame().mSelectedLinesMap;
                 } else {
-                    TreeMap<Integer, Integer> filterLineMap = getLogView().getFilterLineMap();
-                    if (!filterLineMap.isEmpty()) {
-                        final Integer key = (Integer) filterLineMap.keySet().toArray()[it];
-                        final Integer originalLine = filterLineMap.get(key);
-                        menuItem = new MenuItem(menu, SWT.NONE);
-                        menuItem.setText("Go back to original log line " + originalLine);
-                        menuItem.setImage(Resources.filter_16);
-                        menuItem.addSelectionListener(new SelectionAdapter() {
-                            @Override
-                            public void widgetSelected(SelectionEvent event) {
-                                System.out.println("Go back to line " + key + ":" + originalLine);
-                                Slogmain.getApp().getMainFrame().mTabFolder.setSelection(getLogView().getLogTabFrame());
-                                getLogView().getLogTabFrame().mTable.setSelection(originalLine);
-                            }
-                        });
-                    }
+                    filterLineMap = getLogView().getFilterLineMap();
+                }
+
+                if (!filterLineMap.isEmpty()) {
+                    final Integer key = (Integer) filterLineMap.keySet().toArray()[it];
+                    final Integer originalLine = filterLineMap.get(key);
+                    menuItem = new MenuItem(menu, SWT.NONE);
+                    menuItem.setText("Go back to original log line " + originalLine);
+                    menuItem.setImage(Resources.filter_16);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            System.out.println("Go back to line " + key + ":" + originalLine);
+                            Slogmain.getApp().getMainFrame().mTabFolder.setSelection(getLogView().getLogTabFrame());
+                            getLogView().getLogTabFrame().mTable.setSelection(originalLine);
+                        }
+                    });
                 }
             }
 
+            String log = mLogView.getLog(it);
             final String tag = mLogView.getLogParser().parseTag(log);
             if (tag != null && !tag.trim().isEmpty()) {
                 menuItem = new MenuItem(menu, SWT.NONE);
@@ -362,7 +347,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                         LogParser logParser, LogView parentLogView) {
         super(parent, style);
 
-        mSelectedLines.clear();
+        mSelectedLinesMap.clear();
 
         this.mParentLogView = parentLogView;
         this.mStyle = style;
