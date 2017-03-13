@@ -38,15 +38,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.*;
 
 import feiw.LogSource.LogFilter;
 import feiw.LogSource.LogListener;
@@ -231,17 +223,6 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                         }
                     }
                 });
-
-                menuItem = new MenuItem(menu, SWT.NONE);
-                menuItem.setText("Filter  [Tag != \"" + tag.trim() + "\"]");
-                menuItem.setImage(Resources.filter_16);
-                menuItem.addSelectionListener(new SelectionAdapter() {
-                    @Override
-                    public void widgetSelected(SelectionEvent event) {
-                        LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim()).not();
-                        Slogmain.getApp().getMainFrame().openFilterView(f);
-                    }
-                });
             }
 
             if (getLogView().getLogTabFrame() != null) {
@@ -266,21 +247,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                             getLogView().getLogTabFrame().mTable.setSelection(originalLine);
                         }
                     });
-
-                    menuItem = new MenuItem(menu, SWT.NONE);
-                    menuItem.setText("Filter  [PID != \"" + pid.trim() + "\"]");
-                    menuItem.setImage(Resources.filter_16);
-                    menuItem.addSelectionListener(new SelectionAdapter() {
-                        @Override
-                        public void widgetSelected(SelectionEvent event) {
-                            LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim()).not();
-                            Slogmain.getApp().getMainFrame().openFilterView(f);
-                        }
-                    });
-
                 }
-
-
             }
 
             String log = mLogView.getLog(it);
@@ -297,6 +264,18 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                         tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                     }
                 });
+
+                menuItem = new MenuItem(menu, SWT.NONE);
+                menuItem.setText("Filter  [Tag != \"" + tag.trim() + "\"]");
+                menuItem.setImage(Resources.filter_16);
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+                        LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim()).not();
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
+                    }
+                });
             }
 
             final String pid = mLogView.getLogParser().parsePID(log);
@@ -308,6 +287,18 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim());
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
+                    }
+                });
+
+                menuItem = new MenuItem(menu, SWT.NONE);
+                menuItem.setText("Filter  [PID != \"" + pid.trim() + "\"]");
+                menuItem.setImage(Resources.filter_16);
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+                        LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim()).not();
                         FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
                         tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                     }
@@ -336,22 +327,25 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TID, LogFilter.OP_EQUALS, tid.trim()).not();
-                        Slogmain.getApp().getMainFrame().openFilterView(f);
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                     }
                 });
             }
         }
 
-        SelectionAdapter lisener = new SelectionAdapter() {
+        SelectionAdapter listener = new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
                 Object o = event.widget.getData();
                 if (o instanceof Integer) {
                     LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, o);
-                    Slogmain.getApp().getMainFrame().openFilterView(f);
+                    FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                    tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                 }
             }
         };
+
         menuItem = new MenuItem(menu, SWT.NONE);
         menuItem.setText("Filter  [Priority < Verbose(7)]");
         menuItem.setImage(Resources.filter_16);
