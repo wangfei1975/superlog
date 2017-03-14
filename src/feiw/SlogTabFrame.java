@@ -565,15 +565,10 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     private void updateSearchUI() {
         int nResults = mLogView.getSearchResults();
         // System.out.println("nResults = " + nResults + " last results = " + mLastSearchResults);
-        if (nResults != mLastSearchResults) {
-            if (nResults >= 0) {
-                mSearchResult.setText("Found " + nResults + " results of \"" + mLogView.getSearchPattern() + "\"");
-            } else if (nResults < 0) {
-                mSearchResult.setText("");
-            }
-        }
         mLastSearchResults = nResults;
         mCurrentSearchResult = 0;
+        mTable.setSelection(0);
+        onNext();
     }
 
     private void updateLogUI() {
@@ -662,7 +657,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             mCurrentSearchResult++;
             if (mCurrentSearchResult > mLastSearchResults)
                 mCurrentSearchResult = 1;
-            mSearchResult.setText("Locating (" + mCurrentSearchResult + "/" + mLastSearchResults + ") for \"" + mLogView.getSearchPattern() + "\"");
+            mSearchResult.setText("Locating (" + mCurrentSearchResult + "/" + mLastSearchResults + ") for \"" + mLogView.getSearchPattern() + "\"" + " on line " + n);
         }
     }
 
@@ -683,8 +678,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             }
             mCurrentSearchResult--;
             if (mCurrentSearchResult <= 0)
-                mCurrentSearchResult = 1;
-            mSearchResult.setText("Locating (" + mCurrentSearchResult + "/" + mLastSearchResults + ") for \"" + mLogView.getSearchPattern() + "\"");
+                mCurrentSearchResult = mLastSearchResults;
+            mSearchResult.setText("Locating (" + mCurrentSearchResult + "/" + mLastSearchResults + ") for \"" + mLogView.getSearchPattern() + "\"" + " on line " + n);
         }
     }
 
