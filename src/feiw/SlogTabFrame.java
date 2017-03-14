@@ -226,7 +226,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             }
 
             if (getLogView().getLogTabFrame() != null) {
-                TreeMap<Integer, Integer> filterLineMap;
+                final TreeMap<Integer, Integer> filterLineMap;
 
                 if (getLogView().isSelectedLogView() == true) {
                     filterLineMap = getLogView().getLogTabFrame().mSelectedLinesMap;
