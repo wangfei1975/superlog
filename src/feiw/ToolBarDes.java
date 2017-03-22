@@ -34,14 +34,14 @@ public final class ToolBarDes {
         String mTipText;
         Image mImage;
         int mStyle;
-        int mKeyAccelerator;
+        int [] mKeyAccelerators;
 
-        ToolItemDes(String n, String t, Image i, int s, int acc) {
+        ToolItemDes(String n, String t, Image i, int s, int [] acc) {
             mName = n;
             mTipText = t;
             mImage = i;
             mStyle = s;
-            mKeyAccelerator = acc;
+            mKeyAccelerators = acc;
         }
     }
 
@@ -82,37 +82,37 @@ public final class ToolBarDes {
             add(new ToolBarDes(TBN_FILE,
                     new ToolItemDes[] {
                             new ToolItemDes(TN_CONNECT, "Connect to QCONN device", Resources.connected_32,
-                                    SWT.DROP_DOWN, cmdkey | 'd'),
+                                    SWT.DROP_DOWN, new int[]{cmdkey | 'd'}),
                             new ToolItemDes(TN_CONNECTANDROID, "Connect to Android device", Resources.android_32,
-                                    SWT.PUSH, cmdkey | 'a'),
+                                    SWT.PUSH, new int[]{cmdkey | 'a'}),
                     // new ToolItemDes(null, null, null, SWT.SEPARATOR, 0),
-                    new ToolItemDes(TN_OPEN, "Open Log file", Resources.openfile_32, SWT.DROP_DOWN, cmdkey | 'o'),
+                    new ToolItemDes(TN_OPEN, "Open Log file", Resources.openfile_32, SWT.DROP_DOWN, new int[]{cmdkey | 'o'}),
                     new ToolItemDes(TN_OPENFIFO, "Open Fifo to receive logs", Resources.fifo_32, SWT.PUSH,
-                            cmdkey | 'i'),
-                    new ToolItemDes(TN_SAVEAS, "Save Logs as", Resources.save_32, SWT.PUSH, cmdkey | 's'), }));
+                            new int[]{cmdkey | 'i'}),
+                    new ToolItemDes(TN_SAVEAS, "Save Logs as", Resources.save_32, SWT.PUSH, new int[]{cmdkey | 's'}), }));
             add(new ToolBarDes("TN_FILTER", new ToolItemDes[] {
-                    new ToolItemDes(TN_FILTER, "Open Filted view", Resources.filter_32, SWT.DROP_DOWN, 0), }));
+                    new ToolItemDes(TN_FILTER, "Open Filted view", Resources.filter_32, SWT.DROP_DOWN, null), }));
             add(new ToolBarDes(TBN_SEARCH,
                     new ToolItemDes[] {
-                            new ToolItemDes(TN_SEARCH, "Search", Resources.search_32, SWT.PUSH, cmdkey | 'f'),
-                            new ToolItemDes(TN_NEXT, "Next Result", Resources.down_32, SWT.PUSH, cmdkey | 'n'),
-                            new ToolItemDes(TN_PREV, "Previous Result", Resources.up_32, SWT.PUSH, cmdkey | 'p'), }));
+                            new ToolItemDes(TN_SEARCH, "Search", Resources.search_32, SWT.PUSH, new int[]{cmdkey | 'f'}),
+                            new ToolItemDes(TN_NEXT, "Next Result", Resources.down_32, SWT.PUSH, new int []{cmdkey | 'n', SWT.F4}),
+                            new ToolItemDes(TN_PREV, "Previous Result", Resources.up_32, SWT.PUSH, new int[]{cmdkey | 'p', SWT.F3}), }));
 
             add(new ToolBarDes(TBN_EDIT,
                     new ToolItemDes[] {
-                            new ToolItemDes(TN_CLEAR, "Clear Logs", Resources.trash_32, SWT.PUSH, cmdkey | 'r'),
+                            new ToolItemDes(TN_CLEAR, "Clear Logs", Resources.trash_32, SWT.PUSH, new int[]{cmdkey | 'r'}),
                             new ToolItemDes(TN_COPY, "Copy selection", Resources.copy_32, SWT.PUSH,
-                                    SWT.SHIFT | cmdkey | 'c'),
+                                    new int[]{SWT.SHIFT | cmdkey | 'c'}),
                     new ToolItemDes(TN_COPYALL, "Copy selection(All columns)", Resources.copyall_32, SWT.PUSH,
-                            cmdkey | 'c'), }));
+                            new int[]{cmdkey | 'c'}), }));
 
             add(new ToolBarDes(TBN_TARGET,
                     new ToolItemDes[] {
-                            new ToolItemDes(TN_DISCONNECT, "Disconnect device", Resources.disconnected_32, SWT.PUSH, 0),
-                            new ToolItemDes(TN_PAUSE, "Pause", Resources.pause_32, SWT.PUSH, 0) }));
+                            new ToolItemDes(TN_DISCONNECT, "Disconnect device", Resources.disconnected_32, SWT.PUSH, null),
+                            new ToolItemDes(TN_PAUSE, "Pause", Resources.pause_32, SWT.PUSH, null) }));
             add(new ToolBarDes(TBN_CONFIG,
-                    new ToolItemDes[] { new ToolItemDes(TN_PREFERENCE, "Preference", Resources.config_32, SWT.PUSH, 0),
-                            new ToolItemDes(TN_HELP, "Help", Resources.help_32, SWT.PUSH, 0), }));
+                    new ToolItemDes[] { new ToolItemDes(TN_PREFERENCE, "Preference", Resources.config_32, SWT.PUSH, null),
+                            new ToolItemDes(TN_HELP, "Help", Resources.help_32, SWT.PUSH, null), }));
         }
     };
 
