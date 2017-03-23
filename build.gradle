@@ -21,14 +21,14 @@ repositories {
 	mavenCentral()
 }
 defaultTasks = ["clean", "deploy", "docs"]
-version = "1.0.6"
+version = "1.0.7"
 
 def WORKSPACE_DIR = "../"
 def MAIN_CLASS_NAME = "feiw.Slogmain"
 def DEPLOY_DIR = "./"
 
-sourceSets.main.java.srcDirs = ["./build/generated-sources/main", "./src"]
-sourceSets.main.resources.includes = ["./main/resources", "./main/screenshots"] // latter location probably not important
+sourceSets.main.java.srcDirs = ["./build/generated-sources", "./src"]
+sourceSets.main.resources.includes = ["./resources", "./screenshots"] // latter location probably not important
 dependencies {
 	compile 'com.google.code.gson:gson:2.2.+'
 	def dirName
@@ -72,6 +72,9 @@ jar {
 	doFirst {
 		println("Creating JAR file: " + myjar.archivePath);
 	}
+}
+tasks.myjar.doLast() {
+    println 'Done'
 }
 task deploy(dependsOn: myjar) << {
 	println("Deploying Jar to location: " + removeLastChar(new File(DEPLOY_DIR).getAbsolutePath()) + myjar.archiveName);
