@@ -46,9 +46,17 @@ public final class Resources {
     public static Image android_32 = null;
     public static Image androidpause_32 = null;
     public static Image disconnectedand_32 = null;
+    public static Image android_log_32 = null;
 
     public static Image fifo_32 = null;
     public static Image fifo_16 = null;
+
+    public static Image left_arrow = null;
+    public static Image right_arrow = null;
+    public static Image self_arrow = null;
+    public static Image update = null;
+    public static Image check = null;
+    public static Image empty = null;
 
     public static ArrayList<Image> mIcons = new ArrayList<Image>(30);
 
@@ -80,6 +88,7 @@ public final class Resources {
         connected_32 = loadIcon(ctx, "connected_32");
         connected_16 = loadIcon(ctx, "connected_16");
         disconnected_32 = loadIcon(ctx, "disconnected_32");
+        android_log_32 = loadIcon(ctx, "android_log_32");
 
         trash_32 = loadIcon(ctx, "trash_32");
         copy_32 = loadIcon(ctx, "copy_32");
@@ -97,6 +106,12 @@ public final class Resources {
 
         fifo_32 = loadIcon(ctx, "fifo_32");
         fifo_16 = loadIcon(ctx, "fifo_16");
+
+        self_arrow = loadIcon(ctx, "self_arrow");
+        left_arrow = loadIcon(ctx, "left_arrow");
+        right_arrow = loadIcon(ctx, "right_arrow");
+        update = loadIcon(ctx, "update");
+        check = loadIcon(ctx, "check");
     }
 
     static void freeResources(AppContext ctx) {

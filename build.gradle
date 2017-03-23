@@ -18,7 +18,9 @@ buildscript {
     }
 }
 repositories {
-	mavenCentral()
+	//mavenCentral()
+	//maven { url 'http://maven.aliyun.com/mvn/repository/' }
+	maven { url "http://repo1.maven.org/maven2"}
 }
 defaultTasks = ["clean", "deploy", "docs"]
 version = "1.0.7"
@@ -40,6 +42,8 @@ dependencies {
 		dirName = 'linux64'
 	}
 	compile fileTree(dir: "./lib/"+dirName, include: "*.jar")
+
+	compile 'com.opencsv:opencsv:3.9'
 }
 
 task('showCache') << {

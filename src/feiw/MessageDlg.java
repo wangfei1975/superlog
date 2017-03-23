@@ -15,51 +15,47 @@
  */
 package feiw;
 
-import org.eclipse.swt.*;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 /**
  * This class demonstrates how to create your own dialog classes. It allows
  * users to input a String
  */
-public class SearchDlg extends Dialog {
+public class MessageDlg extends Dialog {
     private String message;
     private String input;
 
-    private boolean isCaseSenstive = false;
-
-    public boolean isCaseSenstive() {
-        return isCaseSenstive;
-    }
-
     /**
      * InputDialog constructor
-     * 
+     *
      * @param parent
      *            the parent
      */
-    public SearchDlg(Shell parent) {
+    public MessageDlg(Shell parent) {
         // Pass the default styles here
         this(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     }
 
     /**
      * InputDialog constructor
-     * 
+     *
      * @param parent
      *            the parent
      * @param style
      *            the style
      */
-    public SearchDlg(Shell parent, int style) {
+    public MessageDlg(Shell parent, int style) {
         // Let users override the default styles
         super(parent, style);
-        setText("Find");
-        setMessage("Enter a string:");
+        setText("Name");
+        setMessage("Message");
     }
 
     /**
@@ -147,18 +143,12 @@ public class SearchDlg extends Dialog {
         data.horizontalSpan = 2;
         label.setLayoutData(data);
 
-        final Button caseSenstive = new Button(shell, SWT.CHECK);
-        caseSenstive.setText("Case sensitive");
-        caseSenstive.setSelection(isCaseSenstive);
-        data = new GridData(GridData.FILL_HORIZONTAL);
-        data.horizontalSpan = 2;
-        caseSenstive.setLayoutData(data);
-
         // Display the input box
         final Text text = new Text(shell, SWT.BORDER);
         data = new GridData(GridData.FILL_HORIZONTAL);
         data.horizontalSpan = 2;
         text.setLayoutData(data);
+        text.setText(this.input);
 
         // Create the OK button and add a handler
         // so that pressing it will set input
@@ -171,7 +161,6 @@ public class SearchDlg extends Dialog {
             @Override
             public void widgetSelected(SelectionEvent event) {
                 input = text.getText();
-                isCaseSenstive = caseSenstive.getSelection();
                 shell.close();
             }
         });
@@ -185,7 +174,6 @@ public class SearchDlg extends Dialog {
         cancel.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                input = null;
                 shell.close();
             }
         });

@@ -27,7 +27,7 @@ public class FileTabFrame extends SlogTabFrame {
         super(parent, txt, style, new FileLogSource(fname), null, LogParser.newLogParser(new FileInputStream(fname)),
                 null);
         setImage(Resources.openfile_32);
-        ((FileLogSource) mLogSrc).load(mLogView.getLogParser());
+        ((FileLogSource) mLogSource).load(mLogView.getLogParser());
 
     }
 

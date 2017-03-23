@@ -28,21 +28,21 @@ public class AndroidTabFrame extends SlogTabFrame implements StatusListener {
         super(parent, "adb logcat " + device, SWT.FLAT | SWT.CLOSE | SWT.ICON, new AndroidLogSource(device), null,
                 new LogParser.AndroidThreadtimeLogParser(), null);
         setImage(Resources.android_32);
-        mLogSrc.addStatusListener(this);
+        mLogSource.addStatusListener(this);
     }
 
     @Override
     void updateToolItem(ToolItem tit) {
         tit.setEnabled(true);
         if (tit.getData().equals(ToolBarDes.TN_PAUSE)) {
-            if (mLogSrc.getStatus() == LogSource.stConnected) {
+            if (mLogSource.getStatus() == LogSource.stConnected) {
                 tit.setToolTipText(mLogView.isPaused() ? "Resume" : "Pause");
                 tit.setImage(mLogView.isPaused() ? Resources.go_32 : Resources.pause_32);
             } else {
                 tit.setEnabled(false);
             }
         } else if (tit.getData().equals(ToolBarDes.TN_DISCONNECT)) {
-            tit.setEnabled(mLogSrc.getStatus() == LogSource.stConnected);
+            tit.setEnabled(mLogSource.getStatus() == LogSource.stConnected);
         } else {
             super.updateToolItem(tit);
         }
@@ -84,14 +84,14 @@ public class AndroidTabFrame extends SlogTabFrame implements StatusListener {
 
     @Override
     public void onClose() {
-        mLogSrc.removeStatusListener(this);
+        mLogSource.removeStatusListener(this);
         super.onClose();
     }
 
     @Override
     public void onDisconnect() {
         if (!isDisposed()) {
-            mLogSrc.disconnect();
+            mLogSource.disconnect();
             setImage(Resources.disconnectedand_32);
             Slogmain.getApp().getMainFrame().updateToolBars(this);
         }

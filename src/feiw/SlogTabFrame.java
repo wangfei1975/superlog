@@ -18,12 +18,13 @@ package feiw;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -33,18 +34,11 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.*;
 
 import feiw.LogSource.LogFilter;
 import feiw.LogSource.LogListener;
@@ -54,13 +48,54 @@ import feiw.widgets.SlogTable;
 public class SlogTabFrame extends CTabItem implements LogListener {
 
     private SlogTable mTable;
+    private TableEditor mTableEditor;
     protected LogView mLogView = null;
-    protected LogSource mLogSrc;
+    protected LogSource mLogSource;
+    protected LogView mParentLogView = null;
+    protected int mStyle = 0;
     private Label mLineCountLabel;
     private Label mSearchResult;
+    private FilterTabFrame mSelectedLinesTab = null;
+    private TreeMap<Integer, Integer> mSelectedLinesMap = new TreeMap<Integer, Integer>();
+    private LogFilter mSelectedLinesFilter = LogFilter.newSelectedFilter("");
+    final SlogTabFrame thisFilterTabFrame = this;
+
+    public SlogTabFrame getSelectedLinesTab() {
+        if (mSelectedLinesTab == null || mSelectedLinesTab.isDisposed()) {
+            mSelectedLinesTab = new FilterTabFrame(this.getParent(),
+                    this.getText(),
+                    this.getStyle(),
+                    this.getLogSource(),
+                    this.getSelectedLinesFilter(),
+                    this.getLogView().getLogParser(),
+                    this.getParentLogView());
+
+            mSelectedLinesTab.getLogView().setLogTabFrame(this);
+            mSelectedLinesTab.getLogView().setSelectedLogView(true);
+        }
+        return mSelectedLinesTab;
+    }
+
+    public void updateSelectedLinesTab() {
+        SlogTabFrame selectedTab = getSelectedLinesTab();
+
+        // Get a set of the entries
+        Set set = mSelectedLinesMap.entrySet();
+
+        // Get an iterator
+        Iterator i = set.iterator();
+
+        selectedTab.getLogView().clear();
+
+        // Display elements
+        while (i.hasNext()) {
+            Map.Entry me = (Map.Entry) i.next();
+            selectedTab.getLogView().add(mLogView.getLog((Integer) me.getKey()), true);
+        }
+    }
 
     public void onClose() {
-        mLogSrc.removeLogView(mLogView);
+        mLogSource.removeLogView(mLogView);
     }
 
     public LogView getLogView() {
@@ -68,11 +103,23 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     }
 
     public LogSource getLogSource() {
-        return mLogSrc;
+        return mLogSource;
     }
 
     public SlogTable getTable() {
         return mTable;
+    }
+
+    public LogView getParentLogView() {
+        return mParentLogView;
+    }
+
+    public LogFilter getSelectedLinesFilter() {
+        return mSelectedLinesFilter;
+    }
+
+    public int getStyle() {
+        return mStyle;
     }
 
     public void setLogFont() {
@@ -94,7 +141,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         } else if (tn.equals(ToolBarDes.TN_NEXT) || tn.equals(ToolBarDes.TN_PREV)) {
             tit.setEnabled(mLogView.getSearchResults() > 0);
         } else if (tn.equals(ToolBarDes.TN_SAVEAS)) {
-            // tit.setEnabled(!(mLogSrc instanceof FileLogSource));
+            // tit.setEnabled(!(mLogSource instanceof FileLogSource));
             tit.setEnabled(true);
         }
     }
@@ -142,9 +189,86 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             }
         }
 
-
         final int it = mTable.getSelectionIndex();
         if (it >= 0) {
+            menuItem = new MenuItem(menu, SWT.NONE);
+
+            if (!mSelectedLinesMap.containsKey(it)) {
+                menuItem.setText("Add line " + it + " to Selected");
+                menuItem.setImage(Resources.filter_16);
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+
+                        if (!mSelectedLinesMap.containsKey(it)) {
+                            mSelectedLinesMap.put(it, it);
+                            TableItem[] tableItem = mTable.getSelection();
+                            tableItem[0].setImage(Resources.check);
+                            updateSelectedLinesTab();
+                        }
+                    }
+                });
+            } else {
+                menuItem.setText("Remove line " + it + " from Selected");
+                menuItem.setImage(Resources.filter_16);
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+
+                        if (mSelectedLinesMap.containsKey(it)) {
+                            mSelectedLinesMap.remove(it);
+                            TableItem[] tableItem = mTable.getSelection();
+                            tableItem[0].setImage(Resources.empty);
+                            updateSelectedLinesTab();
+                        }
+                    }
+                });
+            }
+
+            if (getLogView().getLogTabFrame() != null) {
+                final TreeMap<Integer, Integer> filterLineMap;
+
+                if (getLogView().isSelectedLogView() == true) {
+                    filterLineMap = getLogView().getLogTabFrame().mSelectedLinesMap;
+                } else {
+                    filterLineMap = getLogView().getFilterLineMap();
+                }
+
+                if (!filterLineMap.isEmpty()) {
+                    final Integer key = (Integer) filterLineMap.keySet().toArray()[it];
+                    final Integer originalLine = filterLineMap.get(key);
+                    menuItem = new MenuItem(menu, SWT.NONE);
+                    menuItem.setText("Go back to original log line " + originalLine);
+                    menuItem.setImage(Resources.filter_16);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            System.out.println("Go back to line " + key + ":" + originalLine);
+                            Slogmain.getApp().getMainFrame().mTabFolder.setSelection(getLogView().getLogTabFrame());
+                            getLogView().getLogTabFrame().mTable.setSelection(originalLine);
+                        }
+                    });
+
+                    if (getLogView().isSelectedLogView() == true) {
+                        menuItem = new MenuItem(menu, SWT.NONE);
+                        menuItem.setText("Remove line " + it + "(" + originalLine + ") from Selected");
+                        menuItem.setImage(Resources.filter_16);
+                        menuItem.addSelectionListener(new SelectionAdapter() {
+                            @Override
+                            public void widgetSelected(SelectionEvent event) {
+                                System.out.println("Remove line " + it + ":" + originalLine);
+
+                                filterLineMap.remove(key);
+
+                                TableItem tableItem = getLogView().getLogTabFrame().mTable.getItem(originalLine);
+                                tableItem.setImage(Resources.empty);
+                                getLogView().getLogTabFrame().updateSelectedLinesTab();
+                            }
+                        });
+                    }
+                }
+            }
+
             String log = mLogView.getLog(it);
             final String tag = mLogView.getLogParser().parseTag(log);
             if (tag != null && !tag.trim().isEmpty()) {
@@ -155,7 +279,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim());
-                        Slogmain.getApp().getMainFrame().openFilterView(f);
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                     }
                 });
 
@@ -166,39 +291,39 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TAG, LogFilter.OP_EQUALS, tag.trim()).not();
-                        Slogmain.getApp().getMainFrame().openFilterView(f);
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                     }
                 });
             }
-            {
-                final String pid = mLogView.getLogParser().parsePID(log);
-                if (pid != null && !pid.trim().isEmpty()) {
-                    menuItem = new MenuItem(menu, SWT.NONE);
-                    menuItem.setText("Filter  [PID = \"" + pid.trim() + "\"]");
-                    menuItem.setImage(Resources.filter_16);
-                    menuItem.addSelectionListener(new SelectionAdapter() {
-                        @Override
-                        public void widgetSelected(SelectionEvent event) {
-                            LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim());
-                            Slogmain.getApp().getMainFrame().openFilterView(f);
-                        }
-                    });
 
-                    menuItem = new MenuItem(menu, SWT.NONE);
-                    menuItem.setText("Filter  [PID != \"" + pid.trim() + "\"]");
-                    menuItem.setImage(Resources.filter_16);
-                    menuItem.addSelectionListener(new SelectionAdapter() {
-                        @Override
-                        public void widgetSelected(SelectionEvent event) {
-                            LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim()).not();
-                            Slogmain.getApp().getMainFrame().openFilterView(f);
-                        }
-                    });
+            final String pid = mLogView.getLogParser().parsePID(log);
+            if (pid != null && !pid.trim().isEmpty()) {
+                menuItem = new MenuItem(menu, SWT.NONE);
+                menuItem.setText("Filter  [PID = \"" + pid.trim() + "\"]");
+                menuItem.setImage(Resources.filter_16);
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+                        LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim());
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
+                    }
+                });
 
-                }
-
-
+                menuItem = new MenuItem(menu, SWT.NONE);
+                menuItem.setText("Filter  [PID != \"" + pid.trim() + "\"]");
+                menuItem.setImage(Resources.filter_16);
+                menuItem.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+                        LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PID, LogFilter.OP_EQUALS, pid.trim()).not();
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
+                    }
+                });
             }
+
 
             final String tid = mLogView.getLogParser().parseTID(log);
             if (tid != null && !tid.trim().isEmpty()) {
@@ -209,7 +334,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TID, LogFilter.OP_EQUALS, tid.trim());
-                        Slogmain.getApp().getMainFrame().openFilterView(f);
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                     }
                 });
 
@@ -220,43 +346,45 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
                         LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TID, LogFilter.OP_EQUALS, tid.trim()).not();
-                        Slogmain.getApp().getMainFrame().openFilterView(f);
+                        FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                        tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                     }
                 });
             }
-
         }
 
-        SelectionAdapter lisener = new SelectionAdapter() {
+        SelectionAdapter listener = new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
                 Object o = event.widget.getData();
                 if (o instanceof Integer) {
                     LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_PRIORITY, LogFilter.OP_LESSTHEN, o);
-                    Slogmain.getApp().getMainFrame().openFilterView(f);
+                    FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                    tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                 }
             }
         };
+
         menuItem = new MenuItem(menu, SWT.NONE);
-        menuItem.setText("Filter  [Priority < Verbos(7)]");
+        menuItem.setText("Filter  [Priority < Verbose(7)]");
         menuItem.setImage(Resources.filter_16);
         menuItem.setData(Integer.valueOf(7));
-        menuItem.addSelectionListener(lisener);
+        menuItem.addSelectionListener(listener);
 
         menuItem = new MenuItem(menu, SWT.NONE);
         menuItem.setText("Filter  [Priority < Debug(6)]");
         menuItem.setImage(Resources.filter_16);
         menuItem.setData(Integer.valueOf(6));
-        menuItem.addSelectionListener(lisener);
+        menuItem.addSelectionListener(listener);
 
         menuItem = new MenuItem(menu, SWT.NONE);
         menuItem.setText("Filter  [Priority < Information(5)]");
         menuItem.setImage(Resources.filter_16);
         menuItem.setData(Integer.valueOf(5));
-        menuItem.addSelectionListener(lisener);
+        menuItem.addSelectionListener(listener);
 
         menuItem = new MenuItem(menu, SWT.NONE);
-        menuItem.setText("Filter  [Message contains ...]");
+        menuItem.setText("Filter  [Customized ...]");
         menuItem.setImage(Resources.filter_16);
         menuItem.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -266,7 +394,8 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     return;
                 }
                 LogFilter f = fdlg.getFilter();
-                Slogmain.getApp().getMainFrame().openFilterView(f);
+                FilterTabFrame tbf = Slogmain.getApp().getMainFrame().openFilterView(f);
+                tbf.getLogView().setLogTabFrame(thisFilterTabFrame);
                 SystemConfigs.instance().addRecentFilter(f);
             }
         });
@@ -275,12 +404,23 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         menu.setVisible(true);
     }
 
-    public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter,
-            LogParser logParser, LogView parentLogView) {
+    public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logSource, LogFilter logFilter,
+                        LogParser logParser, LogView parentLogView) {
         super(parent, style);
 
-        mLogSrc = logsrc;
-        mLogView = mLogSrc.newLogView(this, logFilter, logParser, parentLogView);
+        mSelectedLinesMap.clear();
+
+        this.mParentLogView = parentLogView;
+        this.mStyle = style;
+
+        mLogSource = logSource;
+        mLogView = mLogSource.newLogView(this, logFilter, logParser, parentLogView);
+
+        if (logFilter != null) {
+            //System.out.println("SlogTabFrame raw rules start...");
+            //System.out.print(logFilter.getRawRules());
+            mLogView.setRawRules(logFilter.getRawRules());
+        }
 
         setText(txt);
         Composite com = new Composite(parent, style);
@@ -294,11 +434,12 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         SlogTable tb = new SlogTable(com, SWT.FLAT, mLogView);
         tb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
         mTable = tb;
+        mTableEditor = new TableEditor(mTable);
         mTable.setLogView(mLogView);
         setLogFont();
 
         // mStatusLabel = new Label(com, SWT.BORDER_SOLID|SWT.ICON);
-        // mStatusLabel.setImage(logsrc.getStatus() == LogSource.stConnected ?
+        // mStatusLabel.setImage(logSource.getStatus() == LogSource.stConnected ?
         // Resources.connected_16 :Resources.disconnected_16);
 
         // mStatusLabel.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false,
@@ -334,6 +475,60 @@ public class SlogTabFrame extends CTabItem implements LogListener {
 
         });
 
+        mTableEditor.horizontalAlignment = SWT.LEFT;
+        mTableEditor.grabHorizontal = true;
+        mTable.addListener(SWT.MouseDoubleClick, new Listener() {
+            public void handleEvent(Event event) {
+                Rectangle clientArea = mTable.getClientArea();
+                Point pt = new Point(event.x, event.y);
+                int index = mTable.getTopIndex();
+                while (index < mTable.getItemCount()) {
+                    boolean visible = false;
+                    final TableItem item = mTable.getItem(index);
+                    for (int i = 0; i < mTable.getColumnCount(); i++) {
+                        Rectangle rect = item.getBounds(i);
+                        if (rect.contains(pt)) {
+                            final int column = i;
+                            final Text text = new Text(mTable, SWT.NONE);
+                            Listener textListener = new Listener() {
+                                public void handleEvent(final Event e) {
+                                    switch (e.type) {
+                                        case SWT.FocusOut:
+                                            item.setText(column, text.getText());
+                                            text.dispose();
+                                            break;
+                                        case SWT.Traverse:
+                                            switch (e.detail) {
+                                                case SWT.TRAVERSE_RETURN:
+                                                    item.setText(column, text.getText());
+                                                    // FALL THROUGH
+                                                case SWT.TRAVERSE_ESCAPE:
+                                                    text.dispose();
+                                                    e.doit = false;
+                                            }
+                                            break;
+                                    }
+                                }
+                            };
+                            text.addListener(SWT.FocusOut, textListener);
+                            text.addListener(SWT.Traverse, textListener);
+                            mTableEditor.setEditor(text, item, i);
+                            text.setText(item.getText(i));
+                            text.selectAll();
+                            text.setFocus();
+                            return;
+                        }
+                        if (!visible && rect.intersects(clientArea)) {
+                            visible = true;
+                        }
+                    }
+                    if (!visible)
+                        return;
+                    index++;
+                }
+            }
+        });
+
         com.addListener(SWT.Show, new Listener() {
             @Override
             public void handleEvent(Event event) {
@@ -364,23 +559,20 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     }
 
     int mLastSearchResults = 0;
+    int mCurrentSearchResult = 0;
     boolean mVisible = false;
 
     private void updateSearchUI() {
-        int nresults = mLogView.getSearchResults();
-        // System.out.println("nresults = " + nresults + " last results = " +
-        // mLastSearchResults);
-        if (nresults != mLastSearchResults) {
-            if (nresults >= 0) {
-                mSearchResult.setText("Found " + nresults + " results of \"" + mLogView.getSearchPattern() + "\"");
-            } else if (nresults < 0) {
-                mSearchResult.setText("");
-            }
-        }
-        mLastSearchResults = nresults;
+        int nResults = mLogView.getSearchResults();
+        // System.out.println("nResults = " + nResults + " last results = " + mLastSearchResults);
+        mLastSearchResults = nResults;
+        mCurrentSearchResult = 0;
+        mTable.setSelection(0);
+        onNext();
     }
 
     private void updateLogUI() {
+        //System.out.println(" updateLogUI...");
         if (!mVisible || mTable.isDisposed())
             return;
 
@@ -388,9 +580,10 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             return;
 
         final int cnt = mLogView.size();
-        final int cnto = mTable.getItemCount();
+        final int cntOld = mTable.getItemCount();
         final int rolls = mLogView.getRollLines();
         if (rolls > 0 && cnt >= rolls) {
+            //System.out.println("updateLogUI log changed old cnt = " + cntOld + " new cnt = " + cnt + " rolls = " + rolls);
             mTable.setRedraw(true);
             mTable.setItemCount(0);
             mTable.setItemCount(cnt);
@@ -398,10 +591,9 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             mLineCountLabel.setText("" + cnt + " lines");
             mLineCountLabel.pack();
             updateSearchUI();
-        } else if (cnto != cnt) {
-            // System.out.println("log changed old cnt = " + cnto + " new cnt =
-            // " + cnt);
-            // mTable.setItemCount(0);
+        } else if (cntOld != cnt) {
+            //System.out.println("updateLogUI log changed old cnt = " + cntOld + " new cnt = " + cnt);
+            mTable.setItemCount(0);
             mTable.setRedraw(true);
             mTable.setItemCount(cnt);
             mTable.setTopIndex(cnt - 2);
@@ -409,14 +601,13 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             mLineCountLabel.pack();
             updateSearchUI();
         }
-        //
     }
 
     AtomicBoolean mLogChangPosted = new AtomicBoolean(false);
 
     @Override
     public void onLogChanged() {
-
+        //System.out.println(" onLogChanged...");
         if (mVisible && !mLogChangPosted.get()) {
             mLogChangPosted.set(true);
             Display display = getDisplay();
@@ -427,7 +618,6 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                     updateLogUI();
                 }
             });
-
         }
     }
 
@@ -464,6 +654,10 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             if (n < mTable.getTopIndex() || n >= mTable.getTopIndex() + getTableVisibleCount()) {
                 mTable.setTopIndex(n);
             }
+            mCurrentSearchResult++;
+            if (mCurrentSearchResult > mLastSearchResults)
+                mCurrentSearchResult = 1;
+            mSearchResult.setText("Locating (" + mCurrentSearchResult + "/" + mLastSearchResults + ") for \"" + mLogView.getSearchPattern() + "\"" + " on line " + n);
         }
     }
 
@@ -482,6 +676,10 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             if (n < mTable.getTopIndex() || n >= mTable.getTopIndex() + getTableVisibleCount()) {
                 mTable.setTopIndex(n);
             }
+            mCurrentSearchResult--;
+            if (mCurrentSearchResult <= 0)
+                mCurrentSearchResult = mLastSearchResults;
+            mSearchResult.setText("Locating (" + mCurrentSearchResult + "/" + mLastSearchResults + ") for \"" + mLogView.getSearchPattern() + "\"" + " on line " + n);
         }
     }
 
@@ -507,7 +705,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                 }
             }
         }
-        cb.setContents(new Object[] { txt.toString() }, new Transfer[] { TextTransfer.getInstance() });
+        cb.setContents(new Object[]{txt.toString()}, new Transfer[]{TextTransfer.getInstance()});
     }
 
     public void onCopyAll() {
@@ -525,7 +723,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
             os.close();
         } catch (FileNotFoundException e) {
             MessageBox m = new MessageBox(null, SWT.OK | SWT.ICON_ERROR);
-            m.setMessage("Cound not open " + fname + " ");
+            m.setMessage("Could not open " + fname + " ");
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -547,25 +745,24 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         mLogView.clear();
     }
 
+    public void onUpdateFilter(LogFilter f) {
+        mLogView.updateFilter(f);
+    }
+
     @Override
     public void onSearchResult() {
-        // Display display = getDisplay();
-        // display.asyncExec(new Runnable() {
-        // @Override
-        // public void run() {
+
         if (mTable.isDisposed() || !mTable.isVisible())
             return;
 
         int top = mTable.getTopIndex();
+        int nResults = mLogView.getSearchResults();
 
-        int nresults = mLogView.getSearchResults();
-        if (nresults == 0) {
+        if (nResults == 0) {
             mTable.setItemCount(0);
             mTable.setRedraw(true);
             mTable.setItemCount(mLogView.size());
-
             mTable.setTopIndex(top);
-
         } else {
             int first = mLogView.getNextSearchResult(0);
 
@@ -587,9 +784,5 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         }
         updateSearchUI();
         Slogmain.getApp().getMainFrame().updateToolBars(this);
-
-        // }
-        // });
     }
-
 }

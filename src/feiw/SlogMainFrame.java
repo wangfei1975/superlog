@@ -15,10 +15,15 @@
  */
 package feiw;
 
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
@@ -55,6 +60,7 @@ public final class SlogMainFrame {
 
     private Display mDisplay;
     private Shell mShell;
+    private static AtomicBoolean mWaitingDev = new AtomicBoolean(false);
 
     CoolBar mCoolBar = null;
     List<ToolItem> mToolItems = new ArrayList<ToolItem>(10);
@@ -81,6 +87,7 @@ public final class SlogMainFrame {
         mDisplay = disp;
         mShell = new Shell(disp);
         mShell.setText(caption);
+        mShell.setImage(Resources.android_log_32);
         createContents();
         mShell.addListener(SWT.Close, new Listener() {
             @Override
@@ -247,7 +254,6 @@ public final class SlogMainFrame {
                                 m.setMessage(e.getMessage());
                                 m.open();
                             }
-
                         }
                     }
 
@@ -268,9 +274,7 @@ public final class SlogMainFrame {
                                 m.setMessage(e.getMessage());
                                 m.open();
                             }
-
                         }
-
                     }
 
                     @Override
@@ -282,7 +286,6 @@ public final class SlogMainFrame {
                                 addListItem(lu.toString(), Resources.connected_16, lu);
                             }
                         }
-
                     }
                 });
 
@@ -290,37 +293,29 @@ public final class SlogMainFrame {
 
             @Override
             public void onToolSelected(ToolItem dropdown) {
-                FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
-                String[] filterNames = new String[] { "Log Files", "All Files (*)" };
-                String[] filterExtensions = new String[] { "*.log;*.txt;", "*" };
-                // String filterPath = "";
-                /*
-                 * String platform = SWT.getPlatform(); if
-                 * (platform.equals("win32") || platform.equals("wpf")) {
-                 * filterNames = new String [] {"Image Files", "All Files (*.*)"
-                 * }; filterExtensions = new String []
-                 * {"*.gif;*.png;*.bmp;*.jpg;*.jpeg;*.tiff", "*.*"}; filterPath
-                 * = "c:\\"; }
-                 */
+                FileDialog dialog = new FileDialog(getShell(), SWT.MULTI);
+                String[] filterNames = new String[]{"Log Files", "All Files (*)"};
+                String[] filterExtensions = new String[]{"*.log;*.txt;", "*"};
                 dialog.setFilterNames(filterNames);
                 dialog.setFilterExtensions(filterExtensions);
-                // dialog.setFilterPath (filterPath);
-                String fname = dialog.open();
-                if (fname != null) {
+                if (dialog.open() != null) {
                     FileTabFrame ftb;
-                    try {
-                        ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT | SWT.CLOSE | SWT.ICON, fname);
-                        mTabFolder.setSelection(ftb);
-
-                        SystemConfigs.instance().addRecentFile(fname);
-                        updateToolBars(ftb);
-                    } catch (FileNotFoundException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                    String filePath;
+                    String[] fileNames = dialog.getFileNames();
+                    String filterPath = dialog.getFilterPath();
+                    for (String fileName : fileNames) {
+                        try {
+                            filePath = filterPath + File.separatorChar + fileName;
+                            ftb = new FileTabFrame(mTabFolder, filePath, SWT.FLAT | SWT.CLOSE | SWT.ICON, filePath);
+                            mTabFolder.setSelection(ftb);
+                            SystemConfigs.instance().addRecentFile(fileName);
+                            updateToolBars(ftb);
+                        } catch (FileNotFoundException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
                     }
-
                 }
-
             }
 
             @Override
@@ -339,9 +334,7 @@ public final class SlogMainFrame {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-
                 }
-
             }
 
             @Override
@@ -353,15 +346,15 @@ public final class SlogMainFrame {
                         addListItem(fname, Resources.openfile_16, fname);
                     }
                 }
-
             }
         });
+
         getToolItem(ToolBarDes.TN_OPENFIFO).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
-                String[] filterNames = new String[] { "Fifo", "All Files (*)" };
-                String[] filterExtensions = new String[] { "*" };
+                String[] filterNames = new String[]{"Fifo", "All Files (*)"};
+                String[] filterExtensions = new String[]{"*"};
 
                 dialog.setFilterNames(filterNames);
                 dialog.setFilterExtensions(filterExtensions);
@@ -373,7 +366,6 @@ public final class SlogMainFrame {
                     try {
                         ftb = new FifoTabFrame(mTabFolder, fname, SWT.FLAT | SWT.CLOSE | SWT.ICON, fname);
                         mTabFolder.setSelection(ftb);
-
                         SystemConfigs.instance().addRecentFile(fname);
                         updateToolBars(ftb);
                     } catch (DeviceNotConnected e1) {
@@ -406,7 +398,6 @@ public final class SlogMainFrame {
                 if (o instanceof LogFilter) {
                     openFilterView((LogFilter) o);
                 }
-
             }
 
             @Override
@@ -419,7 +410,6 @@ public final class SlogMainFrame {
                     }
                 }
             }
-
         });
 
         getToolItem(ToolBarDes.TN_CLEAR).addSelectionListener(new SelectionAdapter() {
@@ -439,6 +429,7 @@ public final class SlogMainFrame {
                 }
             }
         });
+
         getToolItem(ToolBarDes.TN_DISCONNECT).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -448,6 +439,7 @@ public final class SlogMainFrame {
                 }
             }
         });
+
         getToolItem(ToolBarDes.TN_COPY).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -455,6 +447,7 @@ public final class SlogMainFrame {
                 tbf.onCopy();
             }
         });
+
         getToolItem(ToolBarDes.TN_COPYALL).addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -467,8 +460,8 @@ public final class SlogMainFrame {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
-                final String[] filterNames = new String[] { "Log Files", "All Files (*)" };
-                final String[] filterExtensions = new String[] { "*.log;*.txt;", "*" };
+                final String[] filterNames = new String[]{"Log Files", "All Files (*)"};
+                final String[] filterExtensions = new String[]{"*.log;*.txt;", "*"};
                 dialog.setFilterNames(filterNames);
                 dialog.setFilterExtensions(filterExtensions);
                 String fname = dialog.open();
@@ -523,31 +516,105 @@ public final class SlogMainFrame {
                     SystemConfigs.instance().setAdbPath(adbPath);
                 }
 
-                final String [] devs = AndroidLogSource.enumDevices();
-                if (devs == null) {
-                    MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
-                    m.setText("Error");
-                    m.setMessage("No Android device connected");
-                    m.open();
+                // try connecting existing device
+                if (connectDevice() == true)
                     return;
-                }
-                int selectedDevice = 0;
-                if (devs.length > 1) {
-                    //multiple device, choice
-                    AndroidDeviceChoiceDlg d = new AndroidDeviceChoiceDlg(getShell(), devs, 0);
-                    if (d.open() != SWT.OK) {
-                        return;
+
+                if (mWaitingDev.compareAndSet(false, true) == false)
+                    return;
+
+                // if no existing device connected, start a new thread to wait for device connection
+                new Thread() {
+                    public void run() {
+
+                        String[] devs = AndroidLogSource.enumDevices();
+                        int wait = 0;
+
+                        while (devs == null) {
+                            if (wait == 0) {
+                                // Info the user for the 1st time
+                                getDisplay().syncExec(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
+                                        m.setText("Warning!");
+                                        m.setMessage("Waiting for Android devices to be connected");
+                                        m.open();
+                                    }
+                                });
+                            }
+
+                            // wait one second
+                            wait++;
+
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e1) {
+                                e1.printStackTrace();
+                            }
+
+                            // if more than 60 seconds passed, give up
+                            if (wait > 60) {
+                                getDisplay().syncExec(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
+                                        m.setText("Warning!");
+                                        m.setMessage("No Android device connected in 1 minute, give up!");
+                                        m.open();
+                                    }
+                                });
+
+                                mWaitingDev.set(false);
+
+                                //exit the thread
+                                return;
+                            }
+
+                            // check again for any device connection
+                            devs = AndroidLogSource.enumDevices();
+                        }
+
+                        // try connecting the connected device, will update UI from external thread
+                        getDisplay().syncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                connectDevice();
+                            }
+                        });
+
+                        mWaitingDev.set(false);
                     }
-                    selectedDevice = d.getSelection();
-                }
-                try {
-                    SlogTabFrame ltab = new AndroidTabFrame(mTabFolder, SWT.FLAT | SWT.CLOSE | SWT.ICON, devs[selectedDevice]);
-                    mTabFolder.setSelection(ltab);
-                    updateToolBars(ltab);
-                } catch (DeviceNotConnected e1) {
-                }
+                }.start();
             }
         });
+    }
+
+    public boolean connectDevice() {
+        String[] devs = AndroidLogSource.enumDevices();
+        int selectedDevice = 0;
+
+        if (devs == null)
+            return false;
+
+        if (devs.length > 1) {
+            //multiple device, choice
+            AndroidDeviceChoiceDlg d = new AndroidDeviceChoiceDlg(getShell(), devs, 0);
+            if (d.open() != SWT.OK) {
+                return true;
+            }
+            selectedDevice = d.getSelection();
+        }
+
+        try {
+            SlogTabFrame ltab = new AndroidTabFrame(mTabFolder,
+                    SWT.FLAT | SWT.CLOSE | SWT.ICON, devs[selectedDevice]);
+            mTabFolder.setSelection(ltab);
+            updateToolBars(ltab);
+            return true;
+        } catch (DeviceNotConnected e1) {
+            return false;
+        }
     }
 
     void updateToolItem(ToolItem tit) {
@@ -625,6 +692,117 @@ public final class SlogMainFrame {
             }
         });
 
+        mTabFolder.addListener(SWT.MenuDetect, new Listener() {
+            public void handleEvent(Event event) {
+                Point point = mDisplay.map(null, mTabFolder, new Point(event.x, event.y));
+                SlogTabFrame cTabItem = (SlogTabFrame) mTabFolder.getItem(point);
+                if (cTabItem != null) {
+                    System.out.println("MenuDetect on tab: " + cTabItem.getText());
+                    Menu menu = new Menu(mTabFolder);
+                    MenuItem menuItem;
+
+                    menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Load Filter Settings");
+                    menuItem.setImage(Resources.update);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Load filter for tab index " + index);
+                            loadTabFilter(index);
+                        }
+                    });
+
+                    if (cTabItem.getLogView().getRawRules() != null) {
+
+                        menuItem = new MenuItem(menu, SWT.PUSH);
+                        menuItem.setText("Save Filter Settings");
+                        menuItem.setImage(Resources.update);
+                        menuItem.addSelectionListener(new SelectionAdapter() {
+                            @Override
+                            public void widgetSelected(SelectionEvent event) {
+                                int index = mTabFolder.getSelectionIndex();
+                                System.out.println("Save filter for tab index " + index);
+                                saveTabFilter(index);
+                            }
+                        });
+
+                        menuItem = new MenuItem(menu, SWT.PUSH);
+                        menuItem.setText("Update Filter Settings");
+                        menuItem.setImage(Resources.update);
+                        menuItem.addSelectionListener(new SelectionAdapter() {
+                            @Override
+                            public void widgetSelected(SelectionEvent event) {
+                                int index = mTabFolder.getSelectionIndex();
+                                System.out.println("Update filter for tab index " + index);
+                                updateTabFilter(index);
+                            }
+                        });
+                    }
+
+                    menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Close Right Tabs");
+                    menuItem.setImage(Resources.right_arrow);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Closing right tabs for index " + index);
+                            closeRightTabFrames(index);
+                        }
+                    });
+
+                    menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Close Left Tabs");
+                    menuItem.setImage(Resources.left_arrow);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Closing left tabs for index " + index);
+                            closeLeftTabFrames(index);
+                        }
+                    });
+
+                    menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Close This Tab!");
+                    menuItem.setImage(Resources.self_arrow);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Closing this tab for index " + index);
+                            closeThisTabFrames(index);
+                        }
+                    });
+
+                    menuItem = new MenuItem(menu, SWT.PUSH);
+                    menuItem.setText("Edit Tab Name");
+                    menuItem.setImage(Resources.self_arrow);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            int index = mTabFolder.getSelectionIndex();
+                            System.out.println("Edit Tab Name " + index);
+                            MessageDlg d = new MessageDlg(Slogmain.getApp().getMainFrame().getShell());
+                            SlogTabFrame tbf = (SlogTabFrame) mTabFolder.getSelection();
+                            d.setInput(tbf.getText());
+                            d.setMessage("Please Copy or Edit the Tab Name");
+                            d.setText("Edit Tab Name");
+                            String txt = d.open();
+                            if (txt != null && !(txt.trim().isEmpty())) {
+                                tbf.setText(txt);
+                            }
+                        }
+                    });
+
+                    menu.setLocation(event.x, event.y);
+                    menu.setVisible(true);
+                }
+            }
+        });
+
+
         mTabFolder.setFocus();
 
         getDisplay().addFilter(SWT.KeyDown, new Listener() {
@@ -642,6 +820,29 @@ public final class SlogMainFrame {
                             it.notifyListeners(SWT.Selection, null);
                             break;
                        }
+                    }
+                }
+
+                if (e.keyCode == SWT.F3) {
+                    SlogTabFrame tbf = (SlogTabFrame) mTabFolder.getSelection();
+                    if (tbf != null) {
+                        tbf.onNext();
+                    }
+                } else if (e.keyCode == SWT.F4) {
+                    SlogTabFrame tbf = (SlogTabFrame) mTabFolder.getSelection();
+                    if (tbf != null) {
+                        tbf.onPrev();
+                    }
+                }
+
+                if (((e.stateMask & SWT.CTRL) == SWT.CTRL) && (e.keyCode == 'f')) {
+                    SearchDlg d = new SearchDlg(Slogmain.getApp().getMainFrame().getShell());
+                    String txt = d.open();
+                    if (txt != null && !(txt.trim().isEmpty())) {
+                        SlogTabFrame tbf = (SlogTabFrame) mTabFolder.getSelection();
+                        if (tbf != null) {
+                            tbf.onSearch(txt.trim(), d.isCaseSenstive());
+                        }
                     }
                 }
                 /*
@@ -665,6 +866,199 @@ public final class SlogMainFrame {
         for (CTabItem it : mTabFolder.getItems()) {
             SlogTabFrame tbf = (SlogTabFrame) it;
             tbf.onClose();
+        }
+    }
+
+    public void closeLeftTabFrames(int index) {
+        CTabItem it;
+
+        if (index < 0)
+            return;
+
+        for (int i = 0; i < index; i++) {
+            it = mTabFolder.getItem(i);
+            SlogTabFrame tbf = (SlogTabFrame) it;
+            tbf.onClose();
+            it.dispose();
+        }
+    }
+
+    public void closeThisTabFrames(int index) {
+        CTabItem it;
+
+        if (index >= mTabFolder.getItemCount() || index < 0)
+            return;
+
+        it = mTabFolder.getItem(index);
+        SlogTabFrame tbf = (SlogTabFrame) it;
+        tbf.onClose();
+        it.dispose();
+    }
+
+    public void updateTabFilter(int index) {
+        CTabItem it;
+
+        if (index >= mTabFolder.getItemCount() || index < 0)
+            return;
+
+        it = mTabFolder.getItem(index);
+        SlogTabFrame tbf = (SlogTabFrame) it;
+
+        if (tbf instanceof FilterTabFrame) {
+            FilterDlg fdlg = new FilterDlg(getShell(), tbf.getLogView());
+            if (fdlg.open(tbf.getLogView().getLogFilter().getRawRules()) != SWT.OK) {
+                return;
+            }
+            LogFilter f = fdlg.getFilter();
+            tbf.onUpdateFilter(f);
+        }
+    }
+
+    public ArrayList<FilterDlg.RawRule> loadRawRules(String fileName) {
+        ArrayList<FilterDlg.RawRule> rawRules = new ArrayList<>(5);
+
+        if (fileName == null || rawRules == null)
+            return null;
+
+        CSVReader reader = null;
+        try {
+            reader = new CSVReader(new FileReader(fileName));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        rawRules.clear();
+
+        if (reader == null)
+            return rawRules;
+
+        String[] nextLine;
+
+        int index = 0;
+
+        try {
+            while ((nextLine = reader.readNext()) != null) {
+                FilterDlg.RawRule rawRule = new FilterDlg.RawRule();
+                // nextLine[] is an array of values from the line
+                rawRule.index = index++;
+                rawRule.mop = nextLine[0];
+                rawRule.field = nextLine[1];
+                rawRule.op = nextLine[2];
+                rawRule.value = nextLine[3];
+
+                System.out.println("Parsed " + rawRule);
+
+                rawRules.add(rawRule);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return rawRules;
+    }
+
+    public void saveRawRules(String fileName, ArrayList<FilterDlg.RawRule> rawRules) {
+        CSVWriter writer = null;
+
+        if (fileName == null)
+            return;
+
+        try {
+            writer = new CSVWriter(new FileWriter(fileName), ',');
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (writer == null)
+            return;
+
+        // feed in your array (or convert your data to an array)
+        String[] entries = new String[4];
+
+        for (FilterDlg.RawRule rawRule : rawRules) {
+
+            entries[0] = rawRule.mop;
+            entries[1] = rawRule.field;
+            entries[2] = rawRule.op;
+            entries[3] = rawRule.value;
+
+            writer.writeNext(entries);
+        }
+
+        try {
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String openFileDialog(int openOrSave) {
+
+        FileDialog dialog = new FileDialog(getShell(), openOrSave);
+        String[] filterNames = new String[]{"Log Filter Files", "All Files (*)"};
+        String[] filterExtensions = new String[]{"*.csv", "*"};
+        dialog.setFilterNames(filterNames);
+        dialog.setFilterExtensions(filterExtensions);
+        // dialog.setFilterPath (filterPath);
+
+        return dialog.open();
+    }
+
+    public void loadTabFilter(int index) {
+
+        if (index >= mTabFolder.getItemCount() || index < 0)
+            return;
+
+        String fileName = openFileDialog(SWT.OPEN);
+
+        ArrayList<FilterDlg.RawRule> rawRules = loadRawRules(fileName);
+
+        if (rawRules == null)
+            return;
+
+        CTabItem it = mTabFolder.getItem(index);
+        SlogTabFrame tbf = (SlogTabFrame) it;
+
+        FilterDlg filterDlg = new FilterDlg(getShell(), tbf.getLogView());
+        if (filterDlg.open(rawRules) != SWT.OK) {
+            return;
+        }
+        LogFilter filter = filterDlg.getFilter();
+
+        if (tbf instanceof FilterTabFrame) {
+            tbf.onUpdateFilter(filterDlg.getFilter());
+        } else if (tbf instanceof FileTabFrame) {
+            Slogmain.getApp().getMainFrame().openFilterView(filter);
+        }
+
+        SystemConfigs.instance().addRecentFilter(filter);
+    }
+
+    public void saveTabFilter(int index) {
+        CTabItem it;
+
+        if (index >= mTabFolder.getItemCount() || index < 0)
+            return;
+
+        it = mTabFolder.getItem(index);
+        SlogTabFrame tbf = (SlogTabFrame) it;
+
+        if (tbf instanceof FilterTabFrame) {
+            String fileName = openFileDialog(SWT.SAVE);
+            saveRawRules(fileName, tbf.getLogView().getLogFilter().getRawRules());
+        }
+    }
+
+    public void closeRightTabFrames(int index) {
+        CTabItem it;
+
+        if (index >= mTabFolder.getItemCount())
+            return;
+
+        for (int i = mTabFolder.getItemCount() - 1; i > index; i--) {
+            it = mTabFolder.getItem(i);
+            SlogTabFrame tbf = (SlogTabFrame) it;
+            tbf.onClose();
+            it.dispose();
         }
     }
 
