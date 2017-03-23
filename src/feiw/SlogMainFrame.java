@@ -97,7 +97,7 @@ public final class SlogMainFrame {
             // System.out.println("create tool bar " + itdes.mName);
             ToolItem it = new ToolItem(tb, itdes.mStyle);
             it.setData(itdes.mName);
-            it.setData("KeyAccelerator", new Integer(itdes.mKeyAccelerator));
+            it.setData("KeyAccelerators", itdes.mKeyAccelerators);
             it.setToolTipText(itdes.mTipText);
             if (itdes.mImage != null) {
                 it.setImage(itdes.mImage);
@@ -632,12 +632,16 @@ public final class SlogMainFrame {
             public void handleEvent(Event e) {
 
                 for (ToolItem it : mToolItems) {
-                    if (it.isEnabled()) {
-                        Integer key = (Integer) it.getData("KeyAccelerator");
-                        if (key.intValue() == (e.stateMask | e.keyCode)) {
+                    if (!it.isEnabled())
+                        continue;
+                    int [] keys = (int [])it.getData("KeyAccelerators");
+                    if (keys == null)
+                        continue;
+                    for (int k : keys) {
+                       if (k == (e.stateMask | e.keyCode)) {
                             it.notifyListeners(SWT.Selection, null);
-                        }
-
+                            break;
+                       }
                     }
                 }
                 /*

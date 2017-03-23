@@ -54,7 +54,7 @@ def genBuildInfo(String czName, String pkgName, String baseDir) {
 
 task genBuildInfo << {
      String pkgName = 'feiw'
-     String gendir = '/generated-sources/main/'
+     String gendir = '/generated-sources/'
      new File(project.buildDir.toString() + gendir + pkgName.replace(".", "/")).mkdirs();
      genBuildInfo('BuildInfo', pkgName, project.buildDir.toString() + gendir)
 }
