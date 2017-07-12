@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -33,18 +34,11 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.*;
 
 import feiw.LogSource.LogFilter;
 import feiw.LogSource.LogListener;
@@ -54,6 +48,7 @@ import feiw.widgets.SlogTable;
 public class SlogTabFrame extends CTabItem implements LogListener {
 
     private SlogTable mTable;
+    private TableEditor mTableEditor;
     protected LogView mLogView = null;
     protected LogSource mLogSrc;
     private Label mLineCountLabel;
@@ -276,7 +271,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
     }
 
     public SlogTabFrame(CTabFolder parent, String txt, int style, LogSource logsrc, LogFilter logFilter,
-            LogParser logParser, LogView parentLogView) {
+                        LogParser logParser, LogView parentLogView) {
         super(parent, style);
 
         mLogSrc = logsrc;
@@ -294,6 +289,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         SlogTable tb = new SlogTable(com, SWT.FLAT, mLogView);
         tb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
         mTable = tb;
+        mTableEditor = new TableEditor(mTable);
         mTable.setLogView(mLogView);
         setLogFont();
 
@@ -332,6 +328,60 @@ public class SlogTabFrame extends CTabItem implements LogListener {
 
             }
 
+        });
+
+        mTableEditor.horizontalAlignment = SWT.LEFT;
+        mTableEditor.grabHorizontal = true;
+        mTable.addListener(SWT.MouseDoubleClick, new Listener() {
+            public void handleEvent(Event event) {
+                Rectangle clientArea = mTable.getClientArea();
+                Point pt = new Point(event.x, event.y);
+                int index = mTable.getTopIndex();
+                while (index < mTable.getItemCount()) {
+                    boolean visible = false;
+                    final TableItem item = mTable.getItem(index);
+                    for (int i = 0; i < mTable.getColumnCount(); i++) {
+                        Rectangle rect = item.getBounds(i);
+                        if (rect.contains(pt)) {
+                            final int column = i;
+                            final Text text = new Text(mTable, SWT.NONE);
+                            Listener textListener = new Listener() {
+                                public void handleEvent(final Event e) {
+                                    switch (e.type) {
+                                        case SWT.FocusOut:
+                                            item.setText(column, text.getText());
+                                            text.dispose();
+                                            break;
+                                        case SWT.Traverse:
+                                            switch (e.detail) {
+                                                case SWT.TRAVERSE_RETURN:
+                                                    item.setText(column, text.getText());
+                                                    // FALL THROUGH
+                                                case SWT.TRAVERSE_ESCAPE:
+                                                    text.dispose();
+                                                    e.doit = false;
+                                            }
+                                            break;
+                                    }
+                                }
+                            };
+                            text.addListener(SWT.FocusOut, textListener);
+                            text.addListener(SWT.Traverse, textListener);
+                            mTableEditor.setEditor(text, item, i);
+                            text.setText(item.getText(i));
+                            text.selectAll();
+                            text.setFocus();
+                            return;
+                        }
+                        if (!visible && rect.intersects(clientArea)) {
+                            visible = true;
+                        }
+                    }
+                    if (!visible)
+                        return;
+                    index++;
+                }
+            }
         });
 
         com.addListener(SWT.Show, new Listener() {
@@ -507,7 +557,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                 }
             }
         }
-        cb.setContents(new Object[] { txt.toString() }, new Transfer[] { TextTransfer.getInstance() });
+        cb.setContents(new Object[]{txt.toString()}, new Transfer[]{TextTransfer.getInstance()});
     }
 
     public void onCopyAll() {
