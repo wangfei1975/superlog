@@ -21,7 +21,7 @@ repositories {
 	mavenCentral()
 }
 defaultTasks = ["clean", "deploy", "docs"]
-version = "1.0.7"
+version = "1.0.8"
 
 def WORKSPACE_DIR = "../"
 def MAIN_CLASS_NAME = "feiw.Slogmain"

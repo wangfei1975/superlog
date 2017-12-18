@@ -46,6 +46,7 @@ public class FilterDlg extends Dialog {
     String mDefaultField;
     boolean mHasTagField = false;
     boolean mHasPidField = false;
+    boolean mHasTidField = false;
 
     public FilterDlg(Shell parent, final LogView logView, String defaultField) {
         super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
@@ -56,6 +57,8 @@ public class FilterDlg extends Dialog {
                 mHasTagField = true;
             } else if (hd[i].equalsIgnoreCase(LogFilter.FIELD_PID)) {
                 mHasPidField = true;
+            } else if (hd[i].equalsIgnoreCase(LogFilter.FIELD_TID)) {
+                mHasTidField = true;
             }
         }
         mDefaultField = defaultField;
@@ -90,8 +93,10 @@ public class FilterDlg extends Dialog {
     public static class Rule {
         int index;
         Composite holder;
+
         Combo mop;
         Combo field;
+        Button not;
         Combo op;
         Text value;
 
@@ -119,13 +124,16 @@ public class FilterDlg extends Dialog {
             } else {
                 v = value.getText();
             }
+            if (not.getSelection()){
+                return LogFilter.newLogFilter(fie, op.getText(), v).not();
+            }
             return LogFilter.newLogFilter(fie, op.getText(), v);
         }
     };
 
     ArrayList<Rule> mRules = new ArrayList<Rule>(5);
 
-    static final int mLayoutCols = 4;
+    static final int mLayoutCols = 5;
 
     private LogFilter mFilter = null;
 
@@ -158,7 +166,7 @@ public class FilterDlg extends Dialog {
         g.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, mLayoutCols, 1));
         g.setLayout(gly);
         final Combo comb = new Combo(g, SWT.DROP_DOWN | SWT.READ_ONLY);
-        comb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+        comb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
         comb.add(LogFilter.FIELD_PRIORITY);
         comb.add(LogFilter.FIELD_CONTENT);
         // comb.add(LogFilter.FIELD_TIME);
@@ -168,8 +176,17 @@ public class FilterDlg extends Dialog {
         if (mHasPidField) {
             comb.add(LogFilter.FIELD_PID);
         }
+        if (mHasTidField) {
+            comb.add(LogFilter.FIELD_TID);
+        }
         comb.select(0);
         r.field = comb;
+
+        r.not = new Button(g, SWT.CHECK);
+        GridData gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+        r.not.setLayoutData(gd);
+        r.not.setText("Not");
+        r.not.setSelection(false);
 
         final Combo combop = new Combo(g, SWT.DROP_DOWN | SWT.READ_ONLY);
         combop.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
@@ -194,10 +211,10 @@ public class FilterDlg extends Dialog {
                     combop.add(LogFilter.OP_CONTAINS);
                     combop.select(0);
                 } else if (comb.getSelectionIndex() == 2) {
-                    combop.add(LogFilter.OP_EQUALS);
                     combop.add(LogFilter.OP_CONTAINS);
+                    combop.add(LogFilter.OP_EQUALS);
                     combop.select(0);
-                } else {
+                } else  {
                     combop.add(LogFilter.OP_EQUALS);
                     combop.select(0);
                 }
@@ -223,7 +240,7 @@ public class FilterDlg extends Dialog {
 
         final Text text = new Text(g, SWT.BORDER);
 
-        text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+        text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         r.value = text;
         text.setFocus();
         Button b = new Button(g, SWT.PUSH);

@@ -501,7 +501,8 @@ public final class SlogMainFrame {
             public void widgetSelected(SelectionEvent e) {
                 MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_INFORMATION);
                 m.setText("About SuperLog");
-                m.setMessage("SuperLog Version " + BuildInfo.VERSION + "\n" + "Build Time: " + BuildInfo.BUILD_TIME + "\n");
+                m.setMessage("SuperLog Version " + BuildInfo.VERSION + "\n" + "Build Time: " + BuildInfo.BUILD_TIME + "\n"
+                        + "Build Server: " + BuildInfo.BUILD_SERVER + "\nBuild OS: " + BuildInfo.BUILD_OS + "\nCommit ID: " + BuildInfo.COMMIT + "\n");
                 m.open();
             }
         });
@@ -627,46 +628,91 @@ public final class SlogMainFrame {
         });
 
         mTabFolder.addListener(SWT.MenuDetect, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 Point point = mDisplay.map(null, mTabFolder, new Point(event.x, event.y));
-                CTabItem cTabItem = mTabFolder.getItem(point);
+                final CTabItem cTabItem = mTabFolder.getItem(point);
                 if (cTabItem != null) {
-                    System.out.println("MenuDetect on tab: " + cTabItem.getText());
+                    final CTabItem [] items = mTabFolder.getItems();
                     Menu menu = new Menu(mTabFolder);
                     MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
-                    menuItem.setText("Close Right Tabs");
-                    menuItem.setImage(Resources.right_arrow);
+                    menuItem.setText("Close");
                     menuItem.addSelectionListener(new SelectionAdapter() {
                         @Override
                         public void widgetSelected(SelectionEvent event) {
-                            int index = mTabFolder.getSelectionIndex();
-                            System.out.println("Closing right tabs for index " + index);
-                            closeRightTabFrames(index);
+                            ((SlogTabFrame)cTabItem).onClose();
+                            cTabItem.dispose();
                         }
                     });
+                    if (items.length < 2) return;
+
                     menuItem = new MenuItem(menu, SWT.PUSH);
-                    menuItem.setText("Close Left Tabs");
-                    menuItem.setImage(Resources.left_arrow);
+                    menuItem.setText("Close All Tabs with same Log source");
                     menuItem.addSelectionListener(new SelectionAdapter() {
                         @Override
                         public void widgetSelected(SelectionEvent event) {
-                            int index = mTabFolder.getSelectionIndex();
-                            System.out.println("Closing left tabs for index " + index);
-                            closeLeftTabFrames(index);
+                            final LogSource lgsrc = ((SlogTabFrame)cTabItem).getLogSource();
+                            for (int i = 0; i < items.length; i++) {
+                                 if (((SlogTabFrame)items[i]).getLogSource().equals(lgsrc)) {
+                                     ((SlogTabFrame)items[i]).onClose();
+                                     items[i].dispose();
+                                 }
+                            }
                         }
                     });
 
+
                     menuItem = new MenuItem(menu, SWT.PUSH);
-                    menuItem.setText("Close This Tab!");
-                    menuItem.setImage(Resources.self_arrow);
+                    menuItem.setText("Close Other Tabs");
                     menuItem.addSelectionListener(new SelectionAdapter() {
                         @Override
                         public void widgetSelected(SelectionEvent event) {
-                            int index = mTabFolder.getSelectionIndex();
-                            System.out.println("Closing this tab for index " + index);
-                            closeThisTabFrames(index);
+                            for (int i = 0; i < items.length; i++) {
+                                 if (!items[i].equals(cTabItem)) {
+                                     ((SlogTabFrame)items[i]).onClose();
+                                     items[i].dispose();
+                                 }
+                            }
                         }
                     });
+
+                    if (!items[items.length-1].equals(cTabItem)) {
+                        menuItem = new MenuItem(menu, SWT.PUSH);
+                        menuItem.setText("Close Right Tabs");
+                        menuItem.addSelectionListener(new SelectionAdapter() {
+                            @Override
+                            public void widgetSelected(SelectionEvent event) {
+                                boolean found = false;
+                                for (int i = 0; i < items.length; i++) {
+                                    if (found) {
+                                        ((SlogTabFrame)items[i]).onClose();
+                                        items[i].dispose();
+                                    } else  if (items[i].equals(cTabItem)) {
+                                         found = true;
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    if (!items[0].equals(cTabItem)) {
+                        menuItem = new MenuItem(menu, SWT.PUSH);
+                        menuItem.setText("Close Left Tabs");
+                        menuItem.addSelectionListener(new SelectionAdapter() {
+                            @Override
+                            public void widgetSelected(SelectionEvent event) {
+                                for (int i = 0; i < items.length; i++) {
+                                    if (!items[i].equals(cTabItem)) {
+                                        ((SlogTabFrame)items[i]).onClose();
+                                        items[i].dispose();
+                                    } else {
+                                        break;
+                                    }
+                                }
+
+                            }
+                        });
+                    }
 
                     menu.setLocation(event.x, event.y);
                     menu.setVisible(true);
