@@ -35,8 +35,8 @@ public class AppContext {
         return mMainFrame;
     }
 
-    public void run() {
-        mMainFrame.run();
+    public void run(String[] args) {
+        mMainFrame.run(args);
         Resources.freeResources(this);
 
     }

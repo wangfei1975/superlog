@@ -24,19 +24,17 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 
 public class AndroidDeviceChoiceDlg extends Dialog {
     private String message = "Select device:";
     private String [] mDevices;
     private int mSelection = 0;
     private int mReturn;
-    
+
     public int getSelection() {
         return mSelection;
     }
@@ -79,7 +77,7 @@ public class AndroidDeviceChoiceDlg extends Dialog {
 
     /**
      * Creates the dialog's contents
-     * 
+     *
      * @param shell
      *            the dialog window
      */
@@ -97,7 +95,7 @@ public class AndroidDeviceChoiceDlg extends Dialog {
             combop.add(s);
         }
         combop.select(mSelection);
-        
+
 
         // Create the OK button and add a handler
         // so that pressing it will set input

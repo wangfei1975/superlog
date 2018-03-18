@@ -24,6 +24,12 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -76,21 +82,37 @@ public final class SlogMainFrame {
         }
         return null;
     }
-
+    DropTarget mDropTarget;
     public SlogMainFrame(String caption, Display disp) {
         mDisplay = disp;
         mShell = new Shell(disp);
         mShell.setText(caption);
         mShell.setImage(Resources.android_log_32);
         createContents();
+        mDropTarget = new DropTarget(mTabFolder, DND.DROP_DEFAULT | DND.DROP_MOVE);
+        mDropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance() });
+        mDropTarget.addDropListener(new DropTargetAdapter() {
+            @Override
+            public void drop(DropTargetEvent event) {
+                FileTransfer ft = FileTransfer.getInstance();
+                if (ft.isSupportedType(event.currentDataType)) {
+                    String fileList[] = (String[]) event.data;
+                    for (String fn : fileList) {
+                        openFile(fn);
+                    }
+                }
+            }
+        });
+
         mShell.addListener(SWT.Close, new Listener() {
             @Override
             public void handleEvent(Event event) {
                 closeTabFrames();
             }
         });
-    }
 
+
+    }
     void createToolBar(ToolBarDes tbdes) {
         ToolBar tb = new ToolBar(mCoolBar, SWT.FLAT);
         tb.setData(tbdes.mName);
@@ -293,7 +315,7 @@ public final class SlogMainFrame {
             public void onToolSelected(ToolItem dropdown) {
                 FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
                 String[] filterNames = new String[] { "Log Files", "All Files (*)" };
-                String[] filterExtensions = new String[] { "*.log;*.txt;", "*" };
+                String[] filterExtensions = new String[] { "*.log;*.txt;*.rot;", "*" };
                 // String filterPath = "";
                 /*
                  * String platform = SWT.getPlatform(); if
@@ -308,20 +330,8 @@ public final class SlogMainFrame {
                 // dialog.setFilterPath (filterPath);
                 String fname = dialog.open();
                 if (fname != null) {
-                    FileTabFrame ftb;
-                    try {
-                        ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT | SWT.CLOSE | SWT.ICON, fname);
-                        mTabFolder.setSelection(ftb);
-
-                        SystemConfigs.instance().addRecentFile(fname);
-                        updateToolBars(ftb);
-                    } catch (FileNotFoundException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-
+                    openFile(fname);
                 }
-
             }
 
             @Override
@@ -804,7 +814,22 @@ public final class SlogMainFrame {
         }
     }
 
-    public void run() {
+    private void openFile(String fname) {
+        FileTabFrame ftb;
+        try {
+            ftb = new FileTabFrame(mTabFolder, fname, SWT.FLAT | SWT.CLOSE | SWT.ICON, fname);
+            mTabFolder.setSelection(ftb);
+            SystemConfigs.instance().addRecentFile(fname);
+            updateToolBars(ftb);
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    public void run(String[] args) {
+        for (String fname : args) {
+            openFile (fname);
+        }
         mShell.open();
         Display display = getDisplay();
         while (!mShell.isDisposed()) {

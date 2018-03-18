@@ -24,6 +24,6 @@ public final class Slogmain {
     }
 
     public static void main(String[] args) {
-        mApp.run();
+        mApp.run(args);
     }
 }
