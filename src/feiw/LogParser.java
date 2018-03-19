@@ -404,8 +404,8 @@ public class LogParser {
             updateTableItemColors(item, pri, (searchPat != null && searchPat.isContainedBy(msg) >= 0));
         }
     }
-    
-    static final DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss.SSS");
+
+   public static final DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss.SSS");
 
     // adb logcat -v time
     public static final class AndroidTimeLogParser extends LogParser {
@@ -561,7 +561,7 @@ public class LogParser {
             return false;
         }
 
-        
+
 
         @Override
         public Date parseTime(final String log) {
@@ -608,6 +608,7 @@ public class LogParser {
             return null;
         }
 
+        @Override
         public String parsePID(final String log) {
             if (taste(log)) {
                 return log.substring(IDX_PID_START, IDX_PID_END).trim();
@@ -615,6 +616,7 @@ public class LogParser {
             return null;
         }
 
+        @Override
         public String parseTID(final String log) {
             if (taste(log)) {
                 return log.substring(IDX_TID_START, IDX_TID_END).trim();
@@ -785,6 +787,7 @@ public class LogParser {
             return null;
         }
 
+        @Override
         public String parsePID(final String log) {
             if (taste(log)) {
                 return log.substring(IDX_PID_START, IDX_PID_END).trim();

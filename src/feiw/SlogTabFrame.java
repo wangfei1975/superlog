@@ -38,7 +38,17 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolItem;
 
 import feiw.LogSource.LogFilter;
 import feiw.LogSource.LogListener;
@@ -166,6 +176,32 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                 });
             }
             {
+                final Date tm = mLogView.getLogParser().parseTime(log);
+                if (tm != null) {
+                    menuItem = new MenuItem(menu, SWT.NONE);
+                    menuItem.setText("Filter  [Time > \"" + LogParser.dateFormat.format(tm) + "\"]");
+                    menuItem.setImage(Resources.filter_16);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TIME, LogFilter.OP_GREATERTHAN, tm);
+                            Slogmain.getApp().getMainFrame().openFilterView(f);
+                        }
+                    });
+
+                    menuItem = new MenuItem(menu, SWT.NONE);
+                    menuItem.setText("Filter  [Time < \"" + LogParser.dateFormat.format(tm) + "\"]");
+                    menuItem.setImage(Resources.filter_16);
+                    menuItem.addSelectionListener(new SelectionAdapter() {
+                        @Override
+                        public void widgetSelected(SelectionEvent event) {
+                            LogFilter f = LogFilter.newLogFilter(LogFilter.FIELD_TIME, LogFilter.OP_LESSTHEN, tm);
+                            Slogmain.getApp().getMainFrame().openFilterView(f);
+                        }
+                    });
+
+                }
+
                 final String pid = mLogView.getLogParser().parsePID(log);
                 if (pid != null && !pid.trim().isEmpty()) {
                     menuItem = new MenuItem(menu, SWT.NONE);
@@ -333,6 +369,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
         mTableEditor.horizontalAlignment = SWT.LEFT;
         mTableEditor.grabHorizontal = true;
         mTable.addListener(SWT.MouseDoubleClick, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 Rectangle clientArea = mTable.getClientArea();
                 Point pt = new Point(event.x, event.y);
@@ -346,6 +383,7 @@ public class SlogTabFrame extends CTabItem implements LogListener {
                             final int column = i;
                             final Text text = new Text(mTable, SWT.NONE);
                             Listener textListener = new Listener() {
+                                @Override
                                 public void handleEvent(final Event e) {
                                     switch (e.type) {
                                         case SWT.FocusOut:

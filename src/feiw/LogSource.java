@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -145,7 +146,6 @@ public class LogSource {
                         public boolean filterLog(final LogParser parser, final String item) {
                             return parser.parsePriority(item) > ((Integer) dstObj).intValue();
                         }
-
                     };
                 } else if (OP_LESSTHEN.equals(op)) {
                     return new LogFilter(field + " " + op + " " + dstObj) {
@@ -153,7 +153,6 @@ public class LogSource {
                         public boolean filterLog(final LogParser parser, final String item) {
                             return parser.parsePriority(item) < ((Integer) dstObj).intValue();
                         }
-
                     };
                 }
             } else if (FIELD_TIME.equals(field)) {
@@ -162,9 +161,21 @@ public class LogSource {
                 } else if (OP_CONTAINS.equals(op)) {
 
                 } else if (OP_GREATERTHAN.equals(op)) {
-
+                    return new LogFilter(field + " " + op + " " +  LogParser.dateFormat.format(dstObj)) {
+                        @Override
+                        public boolean filterLog(final LogParser parser, final String item) {
+                            Date logTime = parser.parseTime(item);
+                            return (logTime != null && logTime.after((Date)dstObj));
+                        }
+                    };
                 } else if (OP_LESSTHEN.equals(op)) {
-
+                    return new LogFilter(field + " " + op + " " + LogParser.dateFormat.format(dstObj)) {
+                        @Override
+                        public boolean filterLog(final LogParser parser, final String item) {
+                            Date logTime = parser.parseTime(item);
+                            return (logTime != null && logTime.before((Date)dstObj));
+                        }
+                    };
                 }
 
             } else if (FIELD_CONTENT.equals(field)) {

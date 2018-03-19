@@ -15,7 +15,9 @@
  */
 package feiw;
 
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -121,6 +123,14 @@ public class FilterDlg extends Dialog {
             Object v;
             if (fie.equals(LogFilter.FIELD_PRIORITY)) {
                 v = Integer.parseInt(value.getText());
+            } else if (fie.equals(LogFilter.FIELD_TIME)) {
+                try {
+                    v = LogParser.dateFormat.parseObject(value.getText());
+                } catch (ParseException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    v = new Date();
+                }
             } else {
                 v = value.getText();
             }
@@ -169,7 +179,7 @@ public class FilterDlg extends Dialog {
         comb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
         comb.add(LogFilter.FIELD_PRIORITY);
         comb.add(LogFilter.FIELD_CONTENT);
-        // comb.add(LogFilter.FIELD_TIME);
+        comb.add(LogFilter.FIELD_TIME);
         if (mHasTagField) {
             comb.add(LogFilter.FIELD_TAG);
         }
@@ -202,15 +212,20 @@ public class FilterDlg extends Dialog {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 combop.removeAll();
-                if (comb.getSelectionIndex() == 0) {
+                String sTxt = comb.getItem(comb.getSelectionIndex());
+                if (sTxt.equals(LogFilter.FIELD_PRIORITY)) {
                     combop.add(LogFilter.OP_LESSTHEN);
                     combop.add(LogFilter.OP_GREATERTHAN);
                     combop.add(LogFilter.OP_EQUALS);
                     combop.select(0);
-                } else if (comb.getSelectionIndex() == 1) {
+                } else if (sTxt.equals(LogFilter.FIELD_CONTENT)) {
                     combop.add(LogFilter.OP_CONTAINS);
                     combop.select(0);
-                } else if (comb.getSelectionIndex() == 2) {
+                } else if (sTxt.equals(LogFilter.FIELD_TIME)) {
+                    combop.add(LogFilter.OP_LESSTHEN);
+                    combop.add(LogFilter.OP_GREATERTHAN);
+                    combop.select(0);
+                } else if (sTxt.equals(LogFilter.FIELD_TAG)) {
                     combop.add(LogFilter.OP_CONTAINS);
                     combop.add(LogFilter.OP_EQUALS);
                     combop.select(0);
