@@ -19,9 +19,10 @@ Run class feiw.Slogmain
 ## Build instructions using Gradle
 If you have problems running the class mentioned above, you can use Gradle to build the project:
 
-Build the project by either executing
-  * gradlew (eg if you don't have Gradle installed)
-  * or the Gradle build file (build.gradle)
+Build the project by either
+
+* executing `gradlew` with no parameters (e.g. if you don't have Gradle installed)
+* or the Gradle build file (build.gradle)
 
 Execute the resulting Jar:
 
