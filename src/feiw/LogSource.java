@@ -360,6 +360,10 @@ public class LogSource {
             return mParser;
         }
 
+        public LogFilter getLogFilter() {
+            return mFilter;
+        }
+
         public int getRollLines() {
             return mRollLines;
         }
@@ -401,13 +405,19 @@ public class LogSource {
             dw.flush();
         }
 
-        private LogView(LogListener listener, LogFilter filter, LogParser parser, List<String> source, int rolllines) {
+        private LogView(LogListener listener, LogFilter filter, LogParser parser, LogView parentView, int rolllines) {
             mListener = listener;
             mFilter = filter;
             mParser = parser;
             mRollLines = rolllines;
             mFilteredItems = Collections.synchronizedList(new ArrayList<String>());
 
+            LogFilter parentFilter = parentView == null ? null : parentView.getLogFilter();
+            if (parentFilter != null) {
+                mFilter = filter == null ? parentFilter : parentFilter.and(filter);
+            }
+
+            List<String> source = parentView == null ? null : parentView.mFilteredItems;
             if (source != null) {
                 synchronized (source) {
                     for (String it : source) {
@@ -558,8 +568,7 @@ public class LogSource {
 
     public synchronized LogView newLogView(LogListener listener, LogFilter filter, LogParser parser,
             LogView parentView) {
-        LogView v = new LogView(listener, filter, parser, parentView == null ? null : parentView.mFilteredItems,
-                mRollLines);
+        LogView v = new LogView(listener, filter, parser, parentView, mRollLines);
         mViews.add(v);
         return v;
     }
