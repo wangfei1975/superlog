@@ -33,11 +33,23 @@ dependencies {
 	compile 'com.google.code.gson:gson:2.2.+'
 	def dirName
 	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-		dirName = 'win64'
+		if (Os.isArch('i386')) {
+			dirName = 'win32'
+		} else if (Os.isArch('x86_64')) {
+			dirName = 'win64'
+		}
 	} else if (Os.isFamily(Os.FAMILY_MAC)) {
-		dirName = 'mac64'
+		if (Os.isArch('i386')) {
+			dirName = 'mac32'
+		} else if (Os.isArch('x86_64')) {
+			dirName = 'mac64'
+		}
 	} else if (Os.isFamily(Os.FAMILY_UNIX)) {
-		dirName = 'linux64'
+		if (Os.isArch('i386')) {
+			dirName = 'linux32'
+		} else if (Os.isArch('x86_64')) {
+			dirName = 'linux64'
+		}
 	}
 	compile fileTree(dir: "./lib/"+dirName, include: "*.jar")
 }
